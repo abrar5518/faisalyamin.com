@@ -1,0 +1,3 @@
+ALTER TABLE `OrderItem`
+ADD COLUMN `variantLabel` VARCHAR(191) NULL,
+ADD COLUMN `sizeLabel` VARCHAR(191) NULL;

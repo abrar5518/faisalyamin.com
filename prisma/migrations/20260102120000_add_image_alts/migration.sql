@@ -1,0 +1,19 @@
+ALTER TABLE `Category`
+ADD COLUMN `imageAlt` TEXT NULL;
+
+ALTER TABLE `Subcategory`
+ADD COLUMN `imageAlt` TEXT NULL;
+
+ALTER TABLE `ProductImage`
+ADD COLUMN `alt` TEXT NULL;
+
+ALTER TABLE `Blog`
+ADD COLUMN `coverAlt` TEXT NULL;
+
+ALTER TABLE `Page`
+ADD COLUMN `featureImageAlt` TEXT NULL,
+ADD COLUMN `heroImageAlt` TEXT NULL;
+
+ALTER TABLE `SiteSettings`
+ADD COLUMN `logoAlt` TEXT NULL,
+ADD COLUMN `siteIconAlt` TEXT NULL;

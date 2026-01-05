@@ -1,0 +1,417 @@
+﻿@import "tailwindcss";
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  @apply bg-white text-neutral-900 antialiased font-sans;
+}
+
+/* Headings premium serif */
+h1, h2, h3 {
+  @apply font-serif tracking-tight;
+}
+
+/* ---------- Brand tokens (same look as your design) ---------- */
+:root{
+  --brand-bg: #ffffff;
+  --brand-text: #0a0a0a;
+  --brand-border: #e5e7eb;
+  --brand-surface: #fafafa;
+  --brand-primary: #0a0a0a;
+  --brand-primary-hover: #1f1f1f;
+}
+
+::selection {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+/* ---------- Buttons (Global) FIX (no custom utilities) ---------- */
+.btn-primary {
+  @apply inline-flex items-center justify-center
+    rounded-2xl bg-neutral-900
+    text-white font-medium
+    hover:bg-neutral-800
+    transition-colors;
+}
+
+.btn-secondary {
+  @apply inline-flex items-center justify-center
+    rounded-2xl border border-neutral-200
+    bg-white text-neutral-900 font-medium
+    hover:bg-neutral-50
+    transition-colors;
+}
+
+
+/* ======================================================================
+   LuxStore Rich Text Styles (TipTap / ProseMirror)
+   Usage:
+   - Viewer: <div className="rt-content" dangerouslySetInnerHTML={{__html}} />
+   - Editor: <EditorContent className="rt-editor" editor={editor} />
+   ====================================================================== */
+
+/* -------- Base wrapper -------- */
+.rt-content,
+.rt-editor .ProseMirror {
+  color: rgb(23 23 23); /* neutral-900 */
+  line-height: 1.75;
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+}
+
+/* Optional sizes */
+.rt-content--sm { font-size: 14px; }
+.rt-content--lg { font-size: 16px; }
+
+/* Keep layout breathable */
+.rt-content > *:first-child,
+.rt-editor .ProseMirror > *:first-child {
+  margin-top: 0 !important;
+}
+.rt-content > *:last-child,
+.rt-editor .ProseMirror > *:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* Spacing between blocks */
+.rt-content p,
+.rt-content ul,
+.rt-content ol,
+.rt-content blockquote,
+.rt-content pre,
+.rt-content table,
+.rt-content hr,
+.rt-content h1,
+.rt-content h2,
+.rt-content h3,
+.rt-content h4,
+.rt-content h5,
+.rt-content h6,
+.rt-editor .ProseMirror p,
+.rt-editor .ProseMirror ul,
+.rt-editor .ProseMirror ol,
+.rt-editor .ProseMirror blockquote,
+.rt-editor .ProseMirror pre,
+.rt-editor .ProseMirror table,
+.rt-editor .ProseMirror hr,
+.rt-editor .ProseMirror h1,
+.rt-editor .ProseMirror h2,
+.rt-editor .ProseMirror h3,
+.rt-editor .ProseMirror h4,
+.rt-editor .ProseMirror h5,
+.rt-editor .ProseMirror h6 {
+  margin: 0.9rem 0;
+}
+
+/* -------- Headings -------- */
+.rt-content h1,
+.rt-editor .ProseMirror h1 {
+  font-size: 2rem;
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-top: 1.4rem;
+}
+.rt-content h2,
+.rt-editor .ProseMirror h2 {
+  font-size: 1.55rem;
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-top: 1.25rem;
+}
+.rt-content h3,
+.rt-editor .ProseMirror h3 {
+  font-size: 1.25rem;
+  line-height: 1.35;
+  font-weight: 650;
+  margin-top: 1.1rem;
+}
+.rt-content h4,
+.rt-editor .ProseMirror h4 {
+  font-size: 1.05rem;
+  line-height: 1.4;
+  font-weight: 650;
+  margin-top: 1rem;
+}
+.rt-content h5,
+.rt-editor .ProseMirror h5,
+.rt-content h6,
+.rt-editor .ProseMirror h6 {
+  font-size: 0.95rem;
+  line-height: 1.45;
+  font-weight: 650;
+  margin-top: 0.9rem;
+  color: rgb(64 64 64); /* neutral-700 */
+}
+
+/* Heading anchor offset (sticky header friendly) */
+.rt-content h2,
+.rt-content h3,
+.rt-content h4 {
+  scroll-margin-top: 96px;
+}
+
+/* -------- Links -------- */
+.rt-content a,
+.rt-editor .ProseMirror a {
+  color: rgb(23 23 23);
+  text-decoration: underline;
+  text-decoration-color: rgba(23, 23, 23, 0.25);
+  text-underline-offset: 3px;
+  transition: all 0.2s ease;
+}
+.rt-content a:hover,
+.rt-editor .ProseMirror a:hover {
+  text-decoration-color: rgba(23, 23, 23, 0.6);
+}
+
+/* -------- Strong / Em / code -------- */
+.rt-content strong,
+.rt-editor .ProseMirror strong {
+  font-weight: 700;
+}
+.rt-content em,
+.rt-editor .ProseMirror em {
+  font-style: italic;
+}
+.rt-content code,
+.rt-editor .ProseMirror code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.9em;
+  padding: 0.15rem 0.35rem;
+  border-radius: 10px;
+  background: rgb(245 245 245); /* neutral-100 */
+  border: 1px solid rgb(229 229 229); /* neutral-200 */
+}
+
+/* -------- Lists -------- */
+.rt-content ul,
+.rt-editor .ProseMirror ul {
+  padding-left: 1.25rem;
+  list-style: disc;
+}
+.rt-content ol,
+.rt-editor .ProseMirror ol {
+  padding-left: 1.25rem;
+  list-style: decimal;
+}
+.rt-content li,
+.rt-editor .ProseMirror li {
+  margin: 0.35rem 0;
+}
+.rt-content li::marker,
+.rt-editor .ProseMirror li::marker {
+  color: rgb(115 115 115); /* neutral-500 */
+}
+
+/* Nested lists */
+.rt-content li ul,
+.rt-content li ol,
+.rt-editor .ProseMirror li ul,
+.rt-editor .ProseMirror li ol {
+  margin-top: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+
+/* -------- Blockquote (premium) -------- */
+.rt-content blockquote,
+.rt-editor .ProseMirror blockquote {
+  border-left: 3px solid rgb(23 23 23);
+  background: rgb(250 250 250); /* neutral-50 */
+  padding: 0.85rem 1rem;
+  border-radius: 18px;
+  color: rgb(64 64 64); /* neutral-700 */
+}
+.rt-content blockquote p,
+.rt-editor .ProseMirror blockquote p {
+  margin: 0.4rem 0;
+}
+
+/* -------- Horizontal rule -------- */
+.rt-content hr,
+.rt-editor .ProseMirror hr {
+  border: 0;
+  height: 1px;
+  background: rgb(229 229 229); /* neutral-200 */
+  margin: 1.5rem 0;
+}
+
+/* -------- Images / Figures -------- */
+.rt-content img,
+.rt-editor .ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 24px;
+  border: 1px solid rgb(229 229 229);
+  background: rgb(245 245 245);
+}
+.rt-content figure,
+.rt-editor .ProseMirror figure {
+  margin: 1rem 0;
+}
+.rt-content figcaption,
+.rt-editor .ProseMirror figcaption {
+  margin-top: 0.5rem;
+  font-size: 12px;
+  color: rgb(115 115 115);
+}
+
+/* -------- Code block -------- */
+.rt-content pre,
+.rt-editor .ProseMirror pre {
+  overflow: auto;
+  padding: 1rem 1.1rem;
+  border-radius: 22px;
+  border: 1px solid rgb(229 229 229);
+  background: rgb(250 250 250);
+}
+.rt-content pre code,
+.rt-editor .ProseMirror pre code {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+/* -------- Tables (TipTap table extension) -------- */
+.rt-content table,
+.rt-editor .ProseMirror table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid rgb(229 229 229);
+  border-radius: 22px;
+  overflow: hidden;
+  background: white;
+}
+.rt-content thead th,
+.rt-editor .ProseMirror thead th {
+  background: rgb(250 250 250);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+  color: rgb(64 64 64);
+}
+.rt-content th,
+.rt-content td,
+.rt-editor .ProseMirror th,
+.rt-editor .ProseMirror td {
+  padding: 0.75rem 0.9rem;
+  border-bottom: 1px solid rgb(229 229 229);
+  border-right: 1px solid rgb(229 229 229);
+  vertical-align: top;
+}
+.rt-content tr:last-child td,
+.rt-editor .ProseMirror tr:last-child td {
+  border-bottom: 0;
+}
+.rt-content th:last-child,
+.rt-content td:last-child,
+.rt-editor .ProseMirror th:last-child,
+.rt-editor .ProseMirror td:last-child {
+  border-right: 0;
+}
+.rt-content tbody tr:hover td,
+.rt-editor .ProseMirror tbody tr:hover td {
+  background: rgb(250 250 250);
+}
+
+/* Optional: zebra rows */
+.rt-content tbody tr:nth-child(even) td,
+.rt-editor .ProseMirror tbody tr:nth-child(even) td {
+  background: rgba(250, 250, 250, 0.6);
+}
+
+/* -------- Task lists (if using TaskList extension) -------- */
+.rt-content ul[data-type="taskList"],
+.rt-editor .ProseMirror ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0;
+}
+.rt-content li[data-type="taskItem"],
+.rt-editor .ProseMirror li[data-type="taskItem"] {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.55rem 0.6rem;
+  border: 1px solid rgb(229 229 229);
+  border-radius: 18px;
+  background: rgb(250 250 250);
+}
+.rt-content li[data-type="taskItem"] + li[data-type="taskItem"],
+.rt-editor .ProseMirror li[data-type="taskItem"] + li[data-type="taskItem"] {
+  margin-top: 0.55rem;
+}
+.rt-content li[data-type="taskItem"] input[type="checkbox"],
+.rt-editor .ProseMirror li[data-type="taskItem"] input[type="checkbox"] {
+  margin-top: 0.2rem;
+  height: 16px;
+  width: 16px;
+  accent-color: rgb(23 23 23);
+}
+
+/* -------- Callouts (if you add a custom node or use blockquote variant) -------- */
+.rt-content .callout,
+.rt-editor .ProseMirror .callout {
+  border: 1px solid rgb(229 229 229);
+  background: rgb(250 250 250);
+  padding: 0.9rem 1rem;
+  border-radius: 22px;
+}
+.rt-content .callout-title,
+.rt-editor .ProseMirror .callout-title {
+  font-weight: 700;
+  font-size: 13px;
+  margin-bottom: 0.35rem;
+}
+.rt-content .callout-desc,
+.rt-editor .ProseMirror .callout-desc {
+  color: rgb(82 82 82);
+  font-size: 13px;
+}
+
+/* -------- TipTap editor experience -------- */
+.rt-editor .ProseMirror {
+  outline: none;
+  padding: 1rem 1.1rem;
+  border-radius: 22px;
+  border: 1px solid rgb(229 229 229);
+  background: white;
+  min-height: 220px;
+}
+
+/* Placeholder (TipTap placeholder extension uses ::before) */
+.rt-editor .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: rgb(163 163 163);
+  pointer-events: none;
+  height: 0;
+}
+
+/* Selection / focus ring feel (lux) */
+.rt-editor .ProseMirror:focus {
+  border-color: rgba(23, 23, 23, 0.35);
+  box-shadow: 0 0 0 4px rgba(23, 23, 23, 0.06);
+}
+
+/* -------- Subtle “badge” tags inside content (optional) -------- */
+.rt-content .tag,
+.rt-editor .ProseMirror .tag {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgb(229 229 229);
+  background: rgb(250 250 250);
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+  font-size: 12px;
+  color: rgb(64 64 64);
+}

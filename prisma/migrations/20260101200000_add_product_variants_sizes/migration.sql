@@ -1,0 +1,3 @@
+ALTER TABLE `Product`
+ADD COLUMN `sizes` JSON NULL,
+ADD COLUMN `variants` JSON NULL;
