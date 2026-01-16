@@ -10,6 +10,7 @@ const SiteSettingsSchema = z.object({
   logoAlt: z.string().optional().nullable(),
   siteIconUrl: z.string().optional().nullable(),
   siteIconAlt: z.string().optional().nullable(),
+  siteFooterText: z.string().optional().nullable(),
 });
 
 export async function GET(req: NextRequest) {

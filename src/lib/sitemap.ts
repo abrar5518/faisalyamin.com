@@ -20,3 +20,14 @@ export function buildUrlset(
   return `<?xml version="1.0" encoding="UTF-8"?>` +
     `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${entries}</urlset>`;
 }
+
+export function buildSitemapIndex(sitemaps: Array<{ loc: string; lastmod?: string }>) {
+  const entries = sitemaps
+    .map((s) => {
+      const lastmod = s.lastmod ? `<lastmod>${s.lastmod}</lastmod>` : "";
+      return `<sitemap><loc>${s.loc}</loc>${lastmod}</sitemap>`;
+    })
+    .join("");
+  return `<?xml version="1.0" encoding="UTF-8"?>` +
+    `<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${entries}</sitemapindex>`;
+}

@@ -16,6 +16,7 @@ export default function AdminSettingsPage() {
   // Branding
   const [siteName, setSiteName] = useState("");
   const [siteUrl, setSiteUrl] = useState("");
+  const [siteFooterText, setSiteFooterText] = useState("");
   const [logoImages, setLogoImages] = useState<AdminImage[]>([]);
   const [iconImages, setIconImages] = useState<AdminImage[]>([]);
 
@@ -60,6 +61,7 @@ export default function AdminSettingsPage() {
       const data: any = res.data || {};
       setSiteName(data.siteName ?? "");
       setSiteUrl(data.siteUrl ?? "");
+      setSiteFooterText(data.siteFooterText ?? "");
       setLogoImages(data.logoUrl ? [{ url: data.logoUrl, alt: data.logoAlt ?? "" }] : []);
       setIconImages(data.siteIconUrl ? [{ url: data.siteIconUrl, alt: data.siteIconAlt ?? "" }] : []);
       setBrandingLoading(false);
@@ -139,6 +141,7 @@ export default function AdminSettingsPage() {
         logoAlt: logoImages[0]?.alt || null,
         siteIconUrl: iconImages[0]?.url || null,
         siteIconAlt: iconImages[0]?.alt || null,
+        siteFooterText: siteFooterText.trim() || null,
       };
 
       const res = await Fetch("/api/admin/site-settings", {
@@ -260,6 +263,17 @@ export default function AdminSettingsPage() {
                     placeholder="https://luxstore.pk"
                   />
                 </div>
+              </div>
+
+              <div className="mt-4">
+                <label className="text-xs font-medium text-neutral-700">Footer text</label>
+                <textarea
+                  value={siteFooterText}
+                  onChange={(e) => setSiteFooterText(e.target.value)}
+                  className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-900"
+                  rows={3}
+                  placeholder="Short brand description shown under the footer logo."
+                />
               </div>
 
               <div className="mt-6 grid gap-6">

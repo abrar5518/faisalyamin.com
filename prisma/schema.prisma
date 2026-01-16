@@ -28,6 +28,18 @@ enum OrderStatus {
   REFUNDED          // Order refunded
 }
 
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum CouponType {
+  PERCENT
+  FIXED
+  FREE_SHIPPING
+}
+
 model Category {
   id            Int           @id @default(autoincrement())
   name          String
@@ -36,6 +48,7 @@ model Category {
   descriptionHtml String?     @db.LongText
   image         String?
   imageAlt      String?       @db.Text
+  isFeatured    Boolean       @default(false)
   metaTitle     String?       @db.Text
   metaDescription String?     @db.Text
   metaKeywords  String?       @db.Text
@@ -102,12 +115,37 @@ model Product {
   images          ProductImage[]
   orderItems      OrderItem[]
   wishlistedBy    WishlistItem[]
+  reviews         ProductReview[]
+  blogProducts    BlogProduct[]
 
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
   @@index([categoryId])
   @@index([subcategoryId])
+}
+
+enum BlogProductPlacement {
+  TOP
+  MIDDLE
+  BOTTOM
+}
+
+model BlogProduct {
+  id        Int                  @id @default(autoincrement())
+  blogId    Int
+  productId Int
+  placement BlogProductPlacement @default(MIDDLE)
+  sortOrder Int                  @default(0)
+
+  blog      Blog                 @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  product   Product              @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime             @default(now())
+
+  @@unique([blogId, productId])
+  @@index([blogId])
+  @@index([productId])
 }
 
 
@@ -138,6 +176,23 @@ model Blog {
   metaKeywords String?  @db.Text
   isPublished Boolean   @default(false)
   publishedAt DateTime?
+
+  blogProducts BlogProduct[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model BlogAuthor {
+  id          Int       @id @default(autoincrement())
+  name        String
+  slug        String    @unique
+  role        String?
+  avatar      String?   @db.Text
+  bioHtml     String?   @db.LongText
+  metaTitle   String?   @db.Text
+  metaDescription String? @db.Text
+  metaKeywords String?  @db.Text
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -178,8 +233,231 @@ model Page {
   heroHighlight3Title String?
   heroHighlight3Desc  String? @db.Text
 
+  homeIntroTitle String?
+  homeIntroBody  String? @db.Text
+  homeBenefitsTitle String?
+  homeBenefitsIntro String? @db.Text
+  homeFaqTitle String?
+  homeFaqIntro String? @db.Text
+  homeSaleLimit Int?
+  homeSaleVisibleCount Float?
+  homeSaleAutoMs Int?
+
+  aboutPage  AboutPage?
+  homeBenefits HomeBenefitItem[]
+  homeFaqItems HomeFaqItem[]
+  homeTestimonials HomeTestimonial[]
+
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+}
+
+model AboutPage {
+  id          Int       @id @default(autoincrement())
+  pageId      Int       @unique
+  breadcrumbLabel String?
+  heroNoteHtml String?  @db.Text
+
+  storyTitle  String?
+  storyIntro  String?   @db.Text
+  storyPrimaryLabel String?
+  storyPrimaryHref  String?
+  storySecondaryLabel String?
+  storySecondaryHref String?
+  storyBodyHtml String? @db.LongText
+
+  valuesTitle String?
+  valuesIntro String?   @db.Text
+  valuesAssistTitle String?
+  valuesAssistDesc String? @db.Text
+  valuesAssistCtaLabel String?
+  valuesAssistCtaHref  String?
+
+  verificationTitle String?
+  verificationIntro String? @db.Text
+  verificationSupportLabel String?
+  verificationSupportHref  String?
+  verificationMoreHtml String? @db.Text
+
+  supportTitle String?
+  supportIntro String? @db.Text
+  supportLinkLabel String?
+  supportLinkHref  String?
+
+  faqTitle String?
+  faqIntro String? @db.Text
+  faqLinkLabel String?
+  faqLinkHref  String?
+  faqFooterHtml String? @db.Text
+
+  finalCtaTitle String?
+  finalCtaDesc  String? @db.Text
+  finalCtaPrimaryLabel String?
+  finalCtaPrimaryHref  String?
+  finalCtaSecondaryLabel String?
+  finalCtaSecondaryHref  String?
+
+  page        Page      @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  stats       AboutStat[]
+  heroChips   AboutHeroChip[]
+  heroInfoCards AboutHeroInfoCard[]
+  valuesItems AboutValueItem[]
+  verificationSteps AboutVerificationStep[]
+  supportLinks AboutSupportLink[]
+  supportCards AboutSupportCard[]
+  faqItems    AboutFaqItem[]
+  finalCtaLinks AboutFooterLink[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model AboutStat {
+  id          Int      @id @default(autoincrement())
+  aboutPageId Int
+  label       String
+  value       String
+  sortOrder   Int      @default(0)
+
+  aboutPage   AboutPage @relation(fields: [aboutPageId], references: [id], onDelete: Cascade)
+
+  @@index([aboutPageId])
+}
+
+model AboutHeroChip {
+  id          Int      @id @default(autoincrement())
+  aboutPageId Int
+  label       String
+  sortOrder   Int      @default(0)
+
+  aboutPage   AboutPage @relation(fields: [aboutPageId], references: [id], onDelete: Cascade)
+
+  @@index([aboutPageId])
+}
+
+model AboutHeroInfoCard {
+  id          Int      @id @default(autoincrement())
+  aboutPageId Int
+  title       String
+  bodyHtml    String?  @db.Text
+  sortOrder   Int      @default(0)
+
+  aboutPage   AboutPage @relation(fields: [aboutPageId], references: [id], onDelete: Cascade)
+
+  @@index([aboutPageId])
+}
+
+model AboutValueItem {
+  id          Int      @id @default(autoincrement())
+  aboutPageId Int
+  title       String
+  desc        String?  @db.Text
+  sortOrder   Int      @default(0)
+
+  aboutPage   AboutPage @relation(fields: [aboutPageId], references: [id], onDelete: Cascade)
+
+  @@index([aboutPageId])
+}
+
+model AboutVerificationStep {
+  id          Int      @id @default(autoincrement())
+  aboutPageId Int
+  stepLabel   String
+  title       String
+  desc        String?  @db.Text
+  sortOrder   Int      @default(0)
+
+  aboutPage   AboutPage @relation(fields: [aboutPageId], references: [id], onDelete: Cascade)
+
+  @@index([aboutPageId])
+}
+
+model AboutSupportLink {
+  id          Int      @id @default(autoincrement())
+  aboutPageId Int
+  href        String
+  title       String
+  desc        String?  @db.Text
+  sortOrder   Int      @default(0)
+
+  aboutPage   AboutPage @relation(fields: [aboutPageId], references: [id], onDelete: Cascade)
+
+  @@index([aboutPageId])
+}
+
+model AboutSupportCard {
+  id          Int      @id @default(autoincrement())
+  aboutPageId Int
+  title       String
+  bodyHtml    String?  @db.Text
+  sortOrder   Int      @default(0)
+
+  aboutPage   AboutPage @relation(fields: [aboutPageId], references: [id], onDelete: Cascade)
+
+  @@index([aboutPageId])
+}
+
+model AboutFaqItem {
+  id          Int      @id @default(autoincrement())
+  aboutPageId Int
+  question    String
+  answer      String?  @db.Text
+  sortOrder   Int      @default(0)
+
+  aboutPage   AboutPage @relation(fields: [aboutPageId], references: [id], onDelete: Cascade)
+
+  @@index([aboutPageId])
+}
+
+model AboutFooterLink {
+  id          Int      @id @default(autoincrement())
+  aboutPageId Int
+  label       String
+  href        String
+  sortOrder   Int      @default(0)
+
+  aboutPage   AboutPage @relation(fields: [aboutPageId], references: [id], onDelete: Cascade)
+
+  @@index([aboutPageId])
+}
+
+model HomeFaqItem {
+  id        Int      @id @default(autoincrement())
+  pageId    Int
+  question  String
+  answer    String?  @db.Text
+  sortOrder Int      @default(0)
+
+  page      Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@index([pageId])
+}
+
+model HomeBenefitItem {
+  id        Int      @id @default(autoincrement())
+  pageId    Int
+  title     String
+  desc      String?  @db.Text
+  sortOrder Int      @default(0)
+
+  page      Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@index([pageId])
+}
+
+model HomeTestimonial {
+  id        Int      @id @default(autoincrement())
+  pageId    Int
+  name      String
+  title     String?
+  quote     String?  @db.Text
+  avatarUrl String?  @db.Text
+  rating    Float    @default(5)
+  sortOrder Int      @default(0)
+
+  page      Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@index([pageId])
 }
 
 model Customer {
@@ -187,6 +465,7 @@ model Customer {
   name      String
   email     String?  @unique
   phone     String?
+  loyaltyPoints Int  @default(0)
 
   address1  String?
   address2  String?
@@ -208,8 +487,13 @@ model Order {
 
   subtotal      Decimal     @db.Decimal(12, 2)
   shipping      Decimal     @db.Decimal(12, 2)
+  discount      Decimal     @db.Decimal(12, 2) @default(0)
+  loyaltyDiscount Decimal   @db.Decimal(12, 2) @default(0)
+  loyaltyPointsRedeemed Int @default(0)
+  loyaltyPointsEarned Int   @default(0)
   total         Decimal     @db.Decimal(12, 2)
   paymentMethod String?
+  couponCode    String?
 
   // Tracking & Delivery
   trackingId    String?     // Courier tracking ID
@@ -227,6 +511,36 @@ model Order {
   updatedAt     DateTime    @updatedAt
 
   @@index([customerId])
+  @@index([couponCode])
+}
+
+model LoyaltySettings {
+  id               Int      @id @default(autoincrement())
+  enabled          Boolean  @default(true)
+  pointsPerCurrency Decimal @db.Decimal(12, 4) @default(0.01) // 1 point per 100 currency
+  currencyPerPoint  Decimal @db.Decimal(12, 4) @default(0.05) // 100 points = 5 currency
+  minRedeemPoints  Int      @default(100)
+  maxRedeemPercent Int      @default(50)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Coupon {
+  id               Int        @id @default(autoincrement())
+  code             String     @unique
+  description      String?    @db.Text
+  type             CouponType @default(PERCENT)
+  value            Decimal    @db.Decimal(12, 2)
+  minSubtotal      Decimal?   @db.Decimal(12, 2)
+  maxDiscount      Decimal?   @db.Decimal(12, 2)
+  startsAt         DateTime?
+  endsAt           DateTime?
+  usageLimit       Int?
+  perCustomerLimit Int?
+  usedCount        Int        @default(0)
+  isActive         Boolean    @default(true)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
 }
 
 model OrderItem {
@@ -256,8 +570,43 @@ model User {
   sessions     Session[]
   addresses    AccountAddress[]
   wishlist     WishlistItem[]
+  reviews      ProductReview[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+model ProductReview {
+  id         Int          @id @default(autoincrement())
+  productId  Int
+  userId     Int
+  rating     Int
+  title      String?      @db.Text
+  body       String       @db.LongText
+  status     ReviewStatus @default(PENDING)
+  approvedAt DateTime?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  product    Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  images     ReviewImage[]
+
+  @@unique([productId, userId])
+  @@index([productId, status])
+  @@index([userId])
+}
+
+model ReviewImage {
+  id        Int           @id @default(autoincrement())
+  reviewId  Int
+  url       String
+  alt       String?       @db.Text
+  sortOrder Int           @default(0)
+  createdAt DateTime      @default(now())
+
+  review    ProductReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@index([reviewId])
 }
 
 model WishlistItem {
@@ -359,16 +708,17 @@ model Contact {
 }
 
 model SiteSettings {
-  id          Int      @id @default(autoincrement())
-  siteName    String?
-  siteUrl     String?  @db.Text
-  logoUrl     String?  @db.Text
-  logoAlt     String?  @db.Text
-  siteIconUrl String?  @db.Text
-  siteIconAlt String?  @db.Text
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
+    id          Int      @id @default(autoincrement())
+    siteName    String?
+    siteUrl     String?  @db.Text
+    logoUrl     String?  @db.Text
+    logoAlt     String?  @db.Text
+    siteIconUrl String?  @db.Text
+    siteIconAlt String?  @db.Text
+    siteFooterText String? @db.Text
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+  }
 
 model StoreSettings {
   id                    Int      @id @default(autoincrement())
@@ -386,4 +736,16 @@ model StoreSettings {
   indexable             Boolean  @default(true)
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
+}
+
+model Subscriber {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String?
+  source    String?  @db.Text
+  ip        String?  @db.Text
+  userAgent String?  @db.Text
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

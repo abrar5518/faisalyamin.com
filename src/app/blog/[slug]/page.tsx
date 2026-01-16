@@ -5,9 +5,11 @@ import { withImageParams } from "@/lib/image";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import BlogCard, { BlogPostCard } from "@/components/BlogCard";
+import ProductCard, { Product as ProductCardItem } from "@/components/ProductCard";
 import { prisma } from "@/lib/prisma";
 import Schema from "@/components/seo/Schema";
 import { absoluteUrl, blogPostingSchema, breadcrumbSchema } from "@/components/seo/schemas";
+import SubscribeCard from "@/components/SubscribeCard";
 
 type BlogPost = {
   slug: string;
@@ -15,7 +17,7 @@ type BlogPost = {
   excerpt: string;
   coverImage: string;
   date: string;
-  author: { name: string; role: string; avatar: string };
+  author: { name: string; role: string; avatar: string; slug: string };
   tags: string[];
   html: string;
   related: BlogPostCard[];
@@ -57,6 +59,27 @@ function estimateReadingTime(html: string) {
   return { words, minutes };
 }
 
+function formatPKR(n: number) {
+  return `PKR ${n.toLocaleString("en-PK")}`;
+}
+
+function mapBlogProduct(row: any): ProductCardItem {
+  const product = row?.product ?? row;
+  const img = product?.images?.[0]?.url || FALLBACK_IMAGE;
+  return {
+    id: product?.slug ?? String(product?.id ?? ""),
+    name: product?.name ?? "Untitled product",
+    price: formatPKR(Number(product?.price ?? 0)),
+    compareAt: product?.compareAt != null ? formatPKR(Number(product.compareAt)) : undefined,
+    badge: product?.badge ?? undefined,
+    rating: typeof product?.rating === "number" ? product.rating : 0,
+    reviews: typeof product?.reviewsCount === "number" ? product.reviewsCount : 0,
+    image: img,
+    imageAlt: product?.images?.[0]?.alt ?? product?.name ?? "Product image",
+    href: product?.slug ? `/product/${product.slug}` : undefined,
+  };
+}
+
 function extractHeadings(html: string) {
   const matches = [...html.matchAll(/<h([2-3])>(.*?)<\/h\1>/gi)];
   return matches.map((m, idx) => {
@@ -89,6 +112,28 @@ function Pill({ children }: { children: ReactNode }) {
     <span className="inline-flex items-center rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs text-neutral-700">
       {children}
     </span>
+  );
+}
+
+function ProductInsert({ title, items }: { title: string; items: ProductCardItem[] }) {
+  if (!items.length) return null;
+  return (
+    <section className="mt-6 rounded-3xl border border-neutral-200 bg-neutral-50 p-5 sm:p-6">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">Featured products</p>
+          <h3 className="mt-1 text-lg font-semibold text-neutral-900">{title}</h3>
+        </div>
+        <Link href="/shop" className="text-xs font-medium text-neutral-600 hover:text-neutral-900">
+          Shop all
+        </Link>
+      </div>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        {items.map((p) => (
+          <ProductCard key={p.id} p={p} variant="compact" />
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -130,7 +175,7 @@ type PageProps = {
 export default async function BlogPostPage({ params }: PageProps) {
   const { slug } = await params;
 
-  const [postRow, siteSettings, contact] = await Promise.all([
+  const [postRow, siteSettings, contact, authorRow] = await Promise.all([
     prisma.blog.findFirst({
       where: { slug, isPublished: true },
       select: {
@@ -141,10 +186,33 @@ export default async function BlogPostPage({ params }: PageProps) {
         contentHtml: true,
         publishedAt: true,
         createdAt: true,
+        blogProducts: {
+          where: { product: { isActive: true } },
+          orderBy: { sortOrder: "asc" },
+          include: {
+            product: {
+              select: {
+                id: true,
+                slug: true,
+                name: true,
+                price: true,
+                compareAt: true,
+                badge: true,
+                rating: true,
+                reviewsCount: true,
+                images: {
+                  orderBy: { sortOrder: "asc" },
+                  take: 1,
+                },
+              },
+            },
+          },
+        },
       },
     }),
     prisma.siteSettings.findFirst({ orderBy: { id: "asc" } }),
     prisma.contact.findFirst({ orderBy: { id: "asc" } }),
+    prisma.blogAuthor.findFirst({ orderBy: { id: "asc" } }),
   ]);
 
   if (!postRow) {
@@ -180,21 +248,47 @@ export default async function BlogPostPage({ params }: PageProps) {
     };
   });
 
+  const author = authorRow
+    ? {
+        name: authorRow.name,
+        role: authorRow.role || "Editorial",
+        avatar:
+          authorRow.avatar ||
+          "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
+        slug: authorRow.slug,
+      }
+    : {
+        name: "LuxStore Editorial",
+        role: "Premium eCommerce Team",
+        avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
+        slug: "luxstore-editorial",
+      };
+
   const post: BlogPost = {
     slug: postRow.slug,
     title: postRow.title,
     excerpt: postRow.excerpt ?? excerptFromHtml(postRow.contentHtml),
     coverImage: postRow.coverImage || FALLBACK_IMAGE,
     date: date.toISOString().slice(0, 10),
-    author: {
-      name: "LuxStore Editorial",
-      role: "Premium eCommerce Team",
-      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
-    },
+    author,
     tags: [],
     html: postRow.contentHtml,
     related,
   };
+
+  const productGroups: Record<"top" | "middle" | "bottom", ProductCardItem[]> = {
+    top: [],
+    middle: [],
+    bottom: [],
+  };
+
+  postRow.blogProducts?.forEach((row) => {
+    const placement = String(row.placement || "MIDDLE").toLowerCase();
+    const item = mapBlogProduct(row);
+    if (placement === "top") productGroups.top.push(item);
+    else if (placement === "bottom") productGroups.bottom.push(item);
+    else productGroups.middle.push(item);
+  });
 
   const rt = estimateReadingTime(post.html);
   const headings = extractHeadings(post.html);
@@ -271,7 +365,12 @@ export default async function BlogPostPage({ params }: PageProps) {
                   loading="lazy"
                 />
                 <div>
-                  <p className="text-sm font-semibold">{post.author.name}</p>
+                  <Link
+                    href={`/blog/author/${post.author.slug}`}
+                    className="text-sm font-semibold hover:underline"
+                  >
+                    {post.author.name}
+                  </Link>
                   <p className="text-xs text-neutral-500">{post.author.role}</p>
                 </div>
               </div>
@@ -326,6 +425,8 @@ export default async function BlogPostPage({ params }: PageProps) {
           <div className="grid gap-10 lg:grid-cols-12">
             {/* Article */}
             <article className="lg:col-span-8">
+              <ProductInsert title="Top picks from this story" items={productGroups.top} />
+
               <div className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8">
                 <div
                   className="rt-content"
@@ -333,11 +434,13 @@ export default async function BlogPostPage({ params }: PageProps) {
                 />
               </div>
 
+              <ProductInsert title="Products worth a closer look" items={productGroups.middle} />
+
               {/* CTA strip */}
               <div className="mt-8 rounded-3xl border border-neutral-200 bg-neutral-50 p-6 sm:p-8">
                 <p className="text-sm font-semibold">Want help choosing the right watch?</p>
                 <p className="mt-2 text-sm text-neutral-600">
-                  Tell us your budget and preferred brand. We'll recommend the best options for you.
+                  Tell us your budget and preferred brand. We&apos;ll recommend the best options for you.
                 </p>
                 <div className="mt-5 flex flex-wrap gap-2">
                   <Link
@@ -354,6 +457,8 @@ export default async function BlogPostPage({ params }: PageProps) {
                   </Link>
                 </div>
               </div>
+
+              <ProductInsert title="More from the store" items={productGroups.bottom} />
             </article>
 
             {/* Sidebar */}
@@ -406,22 +511,7 @@ export default async function BlogPostPage({ params }: PageProps) {
                 </div>
 
                 {/* Newsletter */}
-                <div className="rounded-3xl border border-neutral-200 bg-neutral-900 p-6 text-white">
-                  <p className="text-sm font-semibold">Get weekly drops and guides</p>
-                  <p className="mt-2 text-sm text-white/70">
-                    No spam. Just premium updates.
-                  </p>
-                  <div className="mt-4 flex gap-2">
-                    <input
-                      type="email"
-                      placeholder="Your email"
-                      className="w-full rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm outline-none placeholder:text-white/40"
-                    />
-                    <button className="rounded-2xl bg-white px-4 py-3 text-sm font-medium text-neutral-900 hover:bg-white/90">
-                      Join
-                    </button>
-                  </div>
-                </div>
+                <SubscribeCard source="blog_sidebar" />
               </div>
             </aside>
           </div>

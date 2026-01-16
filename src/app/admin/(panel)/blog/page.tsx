@@ -20,28 +20,14 @@ function clampInt(v: any, fallback: number, min: number, max: number) {
   return Math.max(min, Math.min(max, Math.floor(n)));
 }
 
-function readToken() {
-  if (typeof window !== "undefined") {
-    const saved = window.localStorage.getItem("adminToken");
-    if (saved) return saved;
-  }
-  return process.env.NEXT_PUBLIC_ADMIN_TOKEN ?? "";
-}
-
 export default function AdminBlogPage() {
   const [items, setItems] = useState<BlogRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState<string | null>(null);
-  const [adminToken, setAdminToken] = useState("");
-
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<"all" | "published" | "draft">("all");
   const [page, setPage] = useState(1);
   const pageSize = 12;
-
-  useEffect(() => {
-    setAdminToken(readToken());
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -51,7 +37,7 @@ export default function AdminBlogPage() {
       try {
         const res = await Fetch("/api/admin/blogs", { auth: true, cache: "no-store" });
         if (res.status === 401) {
-          throw new Error("Unauthorized. Set admin token in .env or localStorage.");
+          throw new Error("Unauthorized. Please sign in again.");
         }
         if (!res.ok) throw new Error(res.error || `Failed to load blog posts (${res.status})`);
         if (!cancelled) setItems((res.data as BlogRow[]) ?? []);
@@ -95,22 +81,21 @@ export default function AdminBlogPage() {
             <p className="mt-1 text-xs text-neutral-500">These power your frontend blog listing and single blog pages.</p>
           </div>
 
-          <Link
-            href="/admin/blog/create"
-            className="rounded-2xl bg-neutral-900 px-6 py-3 text-sm font-medium text-white hover:bg-neutral-800"
-          >
-            + Create post
-          </Link>
-        </div>
-
-        {!adminToken ? (
-          <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
-            Admin token missing. Set `NEXT_PUBLIC_ADMIN_TOKEN` in `.env` and restart, or run in console:
-            <span className="ml-2 rounded bg-white px-2 py-1 text-xs text-amber-800">
-              localStorage.setItem("adminToken", "YOUR_TOKEN")
-            </span>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/admin/blog/author"
+              className="rounded-2xl border border-neutral-200 px-6 py-3 text-sm font-medium hover:bg-neutral-50"
+            >
+              Author profile
+            </Link>
+            <Link
+              href="/admin/blog/create"
+              className="rounded-2xl bg-neutral-900 px-6 py-3 text-sm font-medium text-white hover:bg-neutral-800"
+            >
+              + Create post
+            </Link>
           </div>
-        ) : null}
+        </div>
 
         <div className="mt-6 grid gap-3 rounded-3xl border border-neutral-200 bg-white p-4 sm:grid-cols-12">
           <div className="sm:col-span-8">
@@ -201,7 +186,7 @@ export default function AdminBlogPage() {
                             method: "DELETE",
                             auth: true,
                           });
-                          if (res.status === 401) throw new Error("Unauthorized. Check admin token.");
+                          if (res.status === 401) throw new Error("Unauthorized. Please sign in again.");
                           if (!res.ok) throw new Error(res.error || `Delete failed (${res.status})`);
                           setItems((prev) => prev.filter((r) => r.slug !== x.slug));
                         } catch (err: any) {

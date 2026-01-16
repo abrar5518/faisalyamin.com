@@ -4,26 +4,50 @@ import type { Metadata } from "next";
 import Schema from "@/components/seo/Schema";
 import { absoluteUrl, breadcrumbSchema, collectionPageSchema, itemListSchema } from "@/components/seo/schemas";
 
-const baseUrl = process.env.SITE_URL ?? "http://localhost:3000";
+const baseUrl = process.env.SITE_URL ?? "";
 
-export const metadata: Metadata = {
-  title: "Shop",
-  description: "Browse premium watches and accessories with secure checkout and fast delivery.",
-  alternates: { canonical: `${baseUrl}/shop` },
-  openGraph: {
-    type: "website",
-    title: "Shop",
-    description: "Browse premium watches and accessories with secure checkout and fast delivery.",
-    url: `${baseUrl}/shop`,
-    images: ["/images/shopping.jpg"],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Shop",
-    description: "Browse premium watches and accessories with secure checkout and fast delivery.",
-    images: ["/images/shopping.jpg"],
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const [page, settings] = await Promise.all([
+    prisma.page.findUnique({ where: { slug: "shop" } }),
+    prisma.siteSettings.findFirst({ orderBy: { id: "asc" } }),
+  ]);
+
+  const baseUrlResolved = (settings?.siteUrl || baseUrl).replace(/\/$/, "");
+  const canonical = baseUrlResolved ? `${baseUrlResolved}/shop` : undefined;
+  const ogImage = page?.featureImage
+    ? page.featureImage.startsWith("http")
+      ? page.featureImage
+      : baseUrlResolved
+        ? `${baseUrlResolved}${page.featureImage.startsWith("/") ? "" : "/"}${page.featureImage}`
+        : undefined
+    : undefined;
+
+  return {
+    title: page?.metaTitle || page?.title || "Shop",
+    description:
+      page?.metaDescription ||
+      "Browse premium watches and accessories with secure checkout and fast delivery.",
+    keywords: page?.metaKeywords || undefined,
+    alternates: canonical ? { canonical } : undefined,
+    openGraph: {
+      type: "website",
+      title: page?.metaTitle || page?.title || "Shop",
+      description:
+        page?.metaDescription ||
+        "Browse premium watches and accessories with secure checkout and fast delivery.",
+      url: canonical,
+      images: ogImage ? [{ url: ogImage }] : undefined,
+    },
+    twitter: {
+      card: ogImage ? "summary_large_image" : "summary",
+      title: page?.metaTitle || page?.title || "Shop",
+      description:
+        page?.metaDescription ||
+        "Browse premium watches and accessories with secure checkout and fast delivery.",
+      images: ogImage ? [ogImage] : undefined,
+    },
+  };
+}
 
 function formatPKR(n: number) {
   return `PKR ${n.toLocaleString("en-PK")}`;
@@ -31,7 +55,6 @@ function formatPKR(n: number) {
 
 function mapProduct(p: any): ShopProduct {
   const img = p.images?.[0]?.url || "https://images.unsplash.com/photo-1523275335684-37898b6baf30";
-  const brand = p.name ? String(p.name).split(" ")[0] : "LuxStore";
   return {
     id: p.slug,
     name: p.name ?? "Untitled product",
@@ -41,10 +64,6 @@ function mapProduct(p: any): ShopProduct {
     rating: typeof p.rating === "number" ? p.rating : 0,
     reviews: typeof p.reviewsCount === "number" ? p.reviewsCount : 0,
     image: img,
-    category: p.category?.name ?? "Luxury Watches",
-    brand,
-    condition: p.isSale ? "Pre-Owned" : "New",
-    inStock: true,
     createdAt: p.createdAt ? new Date(p.createdAt).toISOString().slice(0, 10) : "",
   };
 }
@@ -52,7 +71,7 @@ function mapProduct(p: any): ShopProduct {
 export default async function ShopPage() {
   const pageSize = 18;
 
-  const [rows, total, siteSettings] = await Promise.all([
+  const [rows, total, siteSettings, pageRow, categories] = await Promise.all([
     prisma.product.findMany({
       where: { isActive: true },
       orderBy: { createdAt: "desc" },
@@ -61,6 +80,18 @@ export default async function ShopPage() {
     }),
     prisma.product.count({ where: { isActive: true } }),
     prisma.siteSettings.findFirst({ orderBy: { id: "asc" } }),
+    prisma.page.findUnique({ where: { slug: "shop" } }),
+    prisma.category.findMany({
+      orderBy: { createdAt: "desc" },
+      select: {
+        name: true,
+        slug: true,
+        subcategories: {
+          select: { name: true, slug: true },
+          orderBy: { createdAt: "desc" },
+        },
+      },
+    }),
   ]);
 
   const initialProducts = rows.map(mapProduct);
@@ -82,8 +113,10 @@ export default async function ShopPage() {
       />
       <Schema
         data={collectionPageSchema({
-          name: "Shop",
-          description: "Browse premium watches and accessories with secure checkout and fast delivery.",
+          name: pageRow?.title || "Shop",
+          description:
+            pageRow?.metaDescription ||
+            "Browse premium watches and accessories with secure checkout and fast delivery.",
           url: pageUrl,
         })}
       />
@@ -97,6 +130,36 @@ export default async function ShopPage() {
         initialProducts={initialProducts}
         initialTotal={total}
         pageSize={pageSize}
+        categories={categories.map((c) => ({
+          name: c.name ?? "Category",
+          slug: c.slug ?? "",
+          subcategories: (c.subcategories || []).map((s) => ({
+            name: s.name ?? "Subcategory",
+            slug: s.slug ?? "",
+          })),
+        }))}
+        richHtml={
+          pageRow?.contentHtml ||
+          `
+            <h2>Shop the full collection</h2>
+            <p>
+              Use the filters above to narrow down your search by brand, price, and condition.
+              Update this section from the backend with your own buying guide, FAQs, or warranty details.
+            </p>
+            <ul>
+              <li>Verified products with detailed inspection notes</li>
+              <li>Secure checkout and insured shipping</li>
+              <li>Friendly support for pre and post-purchase questions</li>
+            </ul>
+          `
+        }
+        title={pageRow?.title || "Shop"}
+        shortDescription={
+          pageRow?.shortDescription ||
+          "Browse premium pieces. Use filters to find the perfect match."
+        }
+        featureImage={pageRow?.featureImage || undefined}
+        featureImageAlt={pageRow?.featureImageAlt || undefined}
       />
     </>
   );

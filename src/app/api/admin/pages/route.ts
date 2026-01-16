@@ -34,6 +34,42 @@ const CreatePageSchema = z.object({
   heroHighlight2Desc: z.string().optional(),
   heroHighlight3Title: z.string().optional(),
   heroHighlight3Desc: z.string().optional(),
+  homeIntroTitle: z.string().optional(),
+  homeIntroBody: z.string().optional(),
+  homeBenefitsTitle: z.string().optional(),
+  homeBenefitsIntro: z.string().optional(),
+  homeBenefitsItems: z
+    .array(
+      z.object({
+        title: z.string().min(1),
+        desc: z.string().min(1),
+      })
+    )
+    .optional(),
+  homeFaqTitle: z.string().optional(),
+  homeFaqIntro: z.string().optional(),
+  homeFaqItems: z
+    .array(
+      z.object({
+        question: z.string().min(1),
+        answer: z.string().min(1),
+      })
+    )
+    .optional(),
+  homeSaleLimit: z.number().int().min(1).max(50).optional(),
+  homeSaleVisibleCount: z.number().min(1).max(6).optional(),
+  homeSaleAutoMs: z.number().int().min(1000).max(20000).optional(),
+  homeTestimonials: z
+    .array(
+      z.object({
+        name: z.string().min(1),
+        title: z.string().optional(),
+        quote: z.string().optional(),
+        avatarUrl: z.string().optional(),
+        rating: z.number().min(0).max(5).optional(),
+      })
+    )
+    .optional(),
 });
 
 const UpdatePageSchema = z.object({
@@ -67,6 +103,42 @@ const UpdatePageSchema = z.object({
   heroHighlight2Desc: z.string().optional(),
   heroHighlight3Title: z.string().optional(),
   heroHighlight3Desc: z.string().optional(),
+  homeIntroTitle: z.string().optional(),
+  homeIntroBody: z.string().optional(),
+  homeBenefitsTitle: z.string().optional(),
+  homeBenefitsIntro: z.string().optional(),
+  homeBenefitsItems: z
+    .array(
+      z.object({
+        title: z.string().min(1),
+        desc: z.string().min(1),
+      })
+    )
+    .optional(),
+  homeFaqTitle: z.string().optional(),
+  homeFaqIntro: z.string().optional(),
+  homeFaqItems: z
+    .array(
+      z.object({
+        question: z.string().min(1),
+        answer: z.string().min(1),
+      })
+    )
+    .optional(),
+  homeSaleLimit: z.number().int().min(1).max(50).optional(),
+  homeSaleVisibleCount: z.number().min(1).max(6).optional(),
+  homeSaleAutoMs: z.number().int().min(1000).max(20000).optional(),
+  homeTestimonials: z
+    .array(
+      z.object({
+        name: z.string().min(1),
+        title: z.string().optional(),
+        quote: z.string().optional(),
+        avatarUrl: z.string().optional(),
+        rating: z.number().min(0).max(5).optional(),
+      })
+    )
+    .optional(),
 });
 
 export async function GET(req: NextRequest) {
@@ -80,7 +152,14 @@ export async function GET(req: NextRequest) {
     const slug = searchParams.get("slug");
 
     if (slug) {
-      const item = await prisma.page.findUnique({ where: { slug } });
+      const item = await prisma.page.findUnique({
+        where: { slug },
+        include: {
+          homeBenefits: { orderBy: { sortOrder: "asc" } },
+          homeFaqItems: { orderBy: { sortOrder: "asc" } },
+          homeTestimonials: { orderBy: { sortOrder: "asc" } },
+        },
+      });
       if (!item) {
         return NextResponse.json({ ok: false, error: "Page not found" }, { status: 404 });
       }
@@ -137,6 +216,45 @@ export async function POST(req: NextRequest) {
         heroHighlight2Desc: data.heroHighlight2Desc,
         heroHighlight3Title: data.heroHighlight3Title,
         heroHighlight3Desc: data.heroHighlight3Desc,
+        homeIntroTitle: data.homeIntroTitle,
+        homeIntroBody: data.homeIntroBody,
+        homeBenefitsTitle: data.homeBenefitsTitle,
+        homeBenefitsIntro: data.homeBenefitsIntro,
+        homeBenefits: data.homeBenefitsItems?.length
+          ? {
+              create: data.homeBenefitsItems.map((item, idx) => ({
+                title: item.title,
+                desc: item.desc,
+                sortOrder: idx,
+              })),
+            }
+          : undefined,
+        homeFaqTitle: data.homeFaqTitle,
+        homeFaqIntro: data.homeFaqIntro,
+        homeSaleLimit: data.homeSaleLimit,
+        homeSaleVisibleCount: data.homeSaleVisibleCount,
+        homeSaleAutoMs: data.homeSaleAutoMs,
+        homeFaqItems: data.homeFaqItems?.length
+          ? {
+              create: data.homeFaqItems.map((item, idx) => ({
+                question: item.question,
+                answer: item.answer,
+                sortOrder: idx,
+              })),
+            }
+          : undefined,
+        homeTestimonials: data.homeTestimonials?.length
+          ? {
+              create: data.homeTestimonials.map((item, idx) => ({
+                name: item.name,
+                title: item.title,
+                quote: item.quote,
+                avatarUrl: item.avatarUrl,
+                rating: item.rating ?? 5,
+                sortOrder: idx,
+              })),
+            }
+          : undefined,
       },
     });
 
@@ -214,6 +332,48 @@ export async function PUT(req: NextRequest) {
         heroHighlight2Desc: data.heroHighlight2Desc,
         heroHighlight3Title: data.heroHighlight3Title,
         heroHighlight3Desc: data.heroHighlight3Desc,
+        homeIntroTitle: data.homeIntroTitle,
+        homeIntroBody: data.homeIntroBody,
+        homeBenefitsTitle: data.homeBenefitsTitle,
+        homeBenefitsIntro: data.homeBenefitsIntro,
+        homeBenefits: data.homeBenefitsItems
+          ? {
+              deleteMany: {},
+              create: data.homeBenefitsItems.map((item, idx) => ({
+                title: item.title,
+                desc: item.desc,
+                sortOrder: idx,
+              })),
+            }
+          : undefined,
+        homeFaqTitle: data.homeFaqTitle,
+        homeFaqIntro: data.homeFaqIntro,
+        homeSaleLimit: data.homeSaleLimit,
+        homeSaleVisibleCount: data.homeSaleVisibleCount,
+        homeSaleAutoMs: data.homeSaleAutoMs,
+        homeFaqItems: data.homeFaqItems
+          ? {
+              deleteMany: {},
+              create: data.homeFaqItems.map((item, idx) => ({
+                question: item.question,
+                answer: item.answer,
+                sortOrder: idx,
+              })),
+            }
+          : undefined,
+        homeTestimonials: data.homeTestimonials
+          ? {
+              deleteMany: {},
+              create: data.homeTestimonials.map((item, idx) => ({
+                name: item.name,
+                title: item.title,
+                quote: item.quote,
+                avatarUrl: item.avatarUrl,
+                rating: item.rating ?? 5,
+                sortOrder: idx,
+              })),
+            }
+          : undefined,
       },
     });
 

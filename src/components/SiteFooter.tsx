@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import type { FormEvent, ReactNode } from "react";
 import { useEffect, useState } from "react";
 
 function Container({ children }: { children: ReactNode }) {
@@ -44,6 +44,7 @@ export default function SiteFooter() {
   const [branding, setBranding] = useState<{
     siteName?: string;
     logoUrl?: string;
+    siteFooterText?: string;
   } | null>(null);
   const [contact, setContact] = useState<{
     phone?: string;
@@ -58,6 +59,9 @@ export default function SiteFooter() {
     hoursWeekdays?: string;
     hoursWeekend?: string;
   } | null>(null);
+  const [email, setEmail] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -87,6 +91,9 @@ export default function SiteFooter() {
   if (hideFooter) return null;
 
   const brandName = branding?.siteName?.trim() || "LuxStore";
+  const footerText =
+    branding?.siteFooterText?.trim() ||
+    "Luxury watches & accessories with secure checkout, fast delivery and clean, modern shopping experience.";
   const brandInitials = brandName
     .split(" ")
     .filter(Boolean)
@@ -102,6 +109,31 @@ export default function SiteFooter() {
   const contactHours = contact?.hoursWeekdays || "";
   const whatsappDigits = contactWhatsapp.replace(/[^\d+]/g, "").replace(/^\+/, "");
   const whatsappHref = whatsappDigits ? `https://wa.me/${whatsappDigits}` : "/contact";
+
+  async function handleSubscribe(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!email.trim()) return;
+
+    setSubmitting(true);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/subscriptions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, source: "footer" }),
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok || !payload?.ok) {
+        throw new Error(payload?.error || "Subscription failed");
+      }
+      setEmail("");
+      setMessage("Subscribed! Watch your inbox for offers.");
+    } catch {
+      setMessage("Unable to subscribe right now. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
     <footer className="mt-16">
@@ -141,24 +173,31 @@ export default function SiteFooter() {
               </div>
 
               <div className="lg:col-span-6">
-                <form className="grid gap-3 sm:grid-cols-12">
+                <form onSubmit={handleSubscribe} className="grid gap-3 sm:grid-cols-12">
                   <div className="sm:col-span-8">
                     <input
                       className="w-full rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40 focus:border-white/25"
                       placeholder="Enter your email"
                       type="email"
                       required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      disabled={submitting}
                     />
                     <p className="mt-2 text-[11px] text-white/50">
                       By subscribing you agree to our privacy policy.
                     </p>
+                    {message ? (
+                      <p className="mt-2 text-[11px] text-white/70">{message}</p>
+                    ) : null}
                   </div>
                   <div className="sm:col-span-4">
                     <button
                       type="submit"
-                      className="w-full rounded-2xl bg-white px-5 py-3 text-sm font-medium text-neutral-900 hover:bg-white/90"
+                      disabled={submitting}
+                      className="w-full rounded-2xl bg-white px-5 py-3 text-sm font-medium text-neutral-900 hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-70"
                     >
-                      Subscribe
+                      {submitting ? "Submitting..." : "Subscribe"}
                     </button>
                   </div>
                 </form>
@@ -211,8 +250,7 @@ export default function SiteFooter() {
               </Link>
 
               <p className="mt-4 max-w-sm text-sm text-neutral-600 leading-relaxed">
-                Luxury watches & accessories with secure checkout, fast delivery and clean,
-                modern shopping experience.
+                {footerText}
               </p>
             </div>
 

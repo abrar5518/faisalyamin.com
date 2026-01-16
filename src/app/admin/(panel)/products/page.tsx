@@ -33,14 +33,6 @@ type AdminProductRow = {
   updatedAt?: string | null;
 };
 
-function readToken() {
-  if (typeof window !== "undefined") {
-    const saved = window.localStorage.getItem("adminToken");
-    if (saved) return saved;
-  }
-  return process.env.NEXT_PUBLIC_ADMIN_TOKEN ?? "";
-}
-
 function formatPrice(value: string | number) {
   const num = Number(value);
   if (Number.isFinite(num)) {
@@ -57,12 +49,6 @@ export default function AdminProductsPage() {
   const [items, setItems] = useState<AdminProductRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState<string | null>(null);
-  const [adminToken, setAdminToken] = useState("");
-
-  useEffect(() => {
-    setAdminToken(readToken());
-  }, []);
-
   useEffect(() => {
     let cancelled = false;
     const run = async () => {
@@ -71,7 +57,7 @@ export default function AdminProductsPage() {
       try {
         const res = await Fetch("/api/admin/products", { auth: true, cache: "no-store" });
         if (res.status === 401) {
-          throw new Error("Unauthorized. Set admin token in .env or localStorage.");
+          throw new Error("Unauthorized. Please sign in again.");
         }
         if (!res.ok) throw new Error(res.error || `Failed to load products (${res.status})`);
         if (!cancelled) setItems((res.data as AdminProductRow[]) ?? []);
@@ -136,15 +122,6 @@ export default function AdminProductsPage() {
           </div>
         </div>
 
-        {!adminToken ? (
-          <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
-            Admin token missing. Set `NEXT_PUBLIC_ADMIN_TOKEN` in `.env` and restart, or run in console:
-            <span className="ml-2 rounded bg-white px-2 py-1 text-xs text-amber-800">
-              localStorage.setItem("adminToken", "YOUR_TOKEN")
-            </span>
-          </div>
-        ) : null}
-
         <div className="mt-6">
           {loading ? (
             <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-600">
@@ -204,7 +181,7 @@ export default function AdminProductsPage() {
                             { method: "DELETE", auth: true }
                           );
                           if (res.status === 401) {
-                            throw new Error("Unauthorized. Check admin token.");
+                            throw new Error("Unauthorized. Please sign in again.");
                           }
                           if (!res.ok) throw new Error(res.error || `Delete failed (${res.status})`);
                           setItems((prev) => prev.filter((x) => x.slug !== p.slug));

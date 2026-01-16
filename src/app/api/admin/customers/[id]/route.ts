@@ -49,6 +49,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
       phone: user.profile?.phone ?? customer?.phone ?? null,
       city: user.profile?.city ?? customer?.city ?? null,
       country: user.profile?.country ?? customer?.country ?? null,
+      loyaltyPoints: customer?.loyaltyPoints ?? 0,
       createdAt: user.createdAt,
       notes: user.profile?.notes ?? null,
       addresses: addresses.map((a) => ({

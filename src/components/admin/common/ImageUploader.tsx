@@ -201,7 +201,7 @@ export default function ImageUploader({
             </svg>
           </div>
           <p className="text-sm font-semibold text-neutral-700">No images uploaded yet</p>
-          <p className="mt-1 text-xs text-neutral-500">Click the "+ Upload" button to add images</p>
+          <p className="mt-1 text-xs text-neutral-500">Click the &quot;+ Upload&quot; button to add images</p>
         </div>
       )}
     </div>

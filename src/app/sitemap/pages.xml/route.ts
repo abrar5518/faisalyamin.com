@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { buildUrlset, getBaseUrl } from "@/lib/sitemap";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const baseUrl = await getBaseUrl();
   const staticPages = [
@@ -8,13 +10,16 @@ export async function GET() {
     "/shop",
     "/categories",
     "/deals",
-    "/pre-owned",
+    "/about-us",
     "/blog",
     "/contact",
     "/faq",
     "/privacy",
+    "/reviews",
     "/returns",
     "/shipping",
+    "/terms",
+    "/pre-owned",
   ];
 
   const urls = staticPages.map((path) => ({

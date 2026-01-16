@@ -9,6 +9,7 @@ export type Category = {
   href: string;
   image: string;
   imageAlt?: string;
+  isFeatured?: boolean;
 };
 
 export type CategoryCardVariant = "default" | "premium" | "compact";

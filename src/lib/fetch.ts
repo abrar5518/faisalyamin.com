@@ -6,14 +6,6 @@ type FetchOptions = {
   cache?: RequestCache;
 };
 
-function readAdminToken() {
-  if (typeof window !== "undefined") {
-    const saved = window.localStorage.getItem("adminToken");
-    if (saved) return saved;
-  }
-  return process.env.NEXT_PUBLIC_ADMIN_TOKEN ?? "";
-}
-
 export async function Fetch<T = any>(
   url: string,
   options: FetchOptions = {}
@@ -21,10 +13,7 @@ export async function Fetch<T = any>(
   const headers: Record<string, string> = { ...(options.headers || {}) };
   let body: BodyInit | undefined;
 
-  if (options.auth) {
-    const token = readAdminToken();
-    if (token) headers["x-admin-token"] = token;
-  }
+  const credentials = options.auth ? "include" : undefined;
 
   if (options.data !== undefined) {
     if (options.data instanceof FormData) {
@@ -41,6 +30,7 @@ export async function Fetch<T = any>(
     method: options.method || (body ? "POST" : "GET"),
     headers,
     body,
+    credentials,
     cache: options.cache,
   });
 

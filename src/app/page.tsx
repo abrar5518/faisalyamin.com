@@ -4,16 +4,18 @@ import Image from "next/image";
 import { withImageParams } from "@/lib/image";
 import CategoryCard, { Category } from "@/components/CategoryCard";
 import ProductCard, { Product } from "@/components/ProductCard";
+import SaleCarousel from "@/components/home/SaleCarousel";
 import type { ReactNode } from "react";
 import { prisma } from "@/lib/prisma";
 import type { Metadata } from "next";
 import Schema from "@/components/seo/Schema";
-import { absoluteUrl, organizationSchema, websiteSchema } from "@/components/seo/schemas";
+import { absoluteUrl, faqSchema, itemListSchema, organizationSchema, websiteSchema } from "@/components/seo/schemas";
 type Testimonial = {
   name: string;
   title: string;
   quote: string;
   avatar: string;
+  rating: number;
 };
 
 const baseUrl = process.env.SITE_URL ?? "";
@@ -79,15 +81,6 @@ const IMAGES = {
   a3: "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
 };
 
-const categoriesFallback: Category[] = [
-  { name: "Luxury Watches", description: "Rolex, AP, Patek & more", href: "/category/watches", image: IMAGES.catWatches },
-  { name: "Accessories", description: "Straps, cases, winders", href: "/category/accessories", image: IMAGES.catAccessories },
-  { name: "Jewelry", description: "Premium pieces, timeless", href: "/category/jewelry", image: IMAGES.catJewelry },
-  { name: "Shop All Products", description: "Browse the full catalog", href: "/shop", image: IMAGES.catNew },
-  { name: "Deals & Offers", description: "Limited-time price drops", href: "/deals", image: IMAGES.catBest },
-  { name: "Pre-Owned", description: "Verified, authenticated", href: "/pre-owned", image: IMAGES.catPreowned },
-];
-
 const featuredProductsFallback: Product[] = [
   { id: "1", name: "Rolex Datejust 41", price: "PKR 52,500", compareAt: "PKR 58,000", badge: "Hot", rating: 4.8, reviews: 214, image: IMAGES.p1 },
   { id: "2", name: "Audemars Piguet Royal Oak", price: "PKR 189,000", badge: "Limited", rating: 4.9, reviews: 98, image: IMAGES.p2 },
@@ -108,7 +101,7 @@ const saleProductsFallback: Product[] = [
     rating: 4.8,
     reviews: 214,
     image: "https://images.unsplash.com/photo-1524592094714-0f0654e20314",
-    href: "/deals/datejust-bundle",
+    href: "/deals",
   },
   {
     id: "s2",
@@ -120,7 +113,7 @@ const saleProductsFallback: Product[] = [
     rating: 4.9,
     reviews: 98,
     image: "https://images.unsplash.com/photo-1547996160-81dfa63595aa",
-    href: "/deals/royal-oak",
+    href: "/deals",
   },
   {
     id: "s3",
@@ -132,7 +125,7 @@ const saleProductsFallback: Product[] = [
     rating: 5.0,
     reviews: 41,
     image: "https://images.unsplash.com/photo-1519741497674-611481863552",
-    href: "/deals/nautilus",
+    href: "/deals",
   },
   {
     id: "s4",
@@ -144,7 +137,7 @@ const saleProductsFallback: Product[] = [
     rating: 4.7,
     reviews: 392,
     image: "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3",
-    href: "/deals/speedmaster",
+    href: "/deals",
   },
   {
     id: "s5",
@@ -156,7 +149,7 @@ const saleProductsFallback: Product[] = [
     rating: 4.6,
     reviews: 167,
     image: "https://images.unsplash.com/photo-1511379938547-c1f69419868d",
-    href: "/deals/cartier-santos",
+    href: "/deals",
   },
   {
     id: "s6",
@@ -168,7 +161,7 @@ const saleProductsFallback: Product[] = [
     rating: 4.8,
     reviews: 120,
     image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30",
-    href: "/deals/reverso",
+    href: "/deals",
   },
   {
     id: "s7",
@@ -180,7 +173,7 @@ const saleProductsFallback: Product[] = [
     rating: 4.9,
     reviews: 312,
     image: "https://images.unsplash.com/photo-1547996160-81dfa63595aa",
-    href: "/deals/rolex-submariner",
+    href: "/deals",
   },
   {
     id: "s8",
@@ -192,28 +185,31 @@ const saleProductsFallback: Product[] = [
     rating: 4.7,
     reviews: 189,
     image: "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3",
-    href: "/deals/omega-seamaster",
+    href: "/deals",
   },
 ];
 
-const testimonials: Testimonial[] = [
+const testimonialsFallback: Testimonial[] = [
   {
     name: "Omar R.",
     title: "Dubai",
     quote: "Fast delivery and authentic product. The packaging felt premium and the support team was super responsive.",
     avatar: IMAGES.a1,
+    rating: 5,
   },
   {
     name: "Sarah K.",
     title: "London",
     quote: "The buying experience was smooth, and the watch condition was exactly as described. Highly recommended.",
     avatar: IMAGES.a3,
+    rating: 5,
   },
   {
     name: "Imran A.",
     title: "Chicago",
     quote: "Great selection and transparent pricing. I loved the secure checkout and the updates throughout shipping.",
     avatar: IMAGES.a2,
+    rating: 5,
   },
 ];
 
@@ -226,6 +222,18 @@ function formatPrice(value: unknown) {
   const num = typeof value === "number" ? value : Number(value);
   if (Number.isFinite(num)) return `PKR ${num.toLocaleString("en-PK")}`;
   return "PKR 0";
+}
+
+function clampInt(value: unknown, fallback: number, min: number, max: number) {
+  const num = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(num)) return fallback;
+  return Math.max(min, Math.min(max, Math.floor(num)));
+}
+
+function clampFloat(value: unknown, fallback: number, min: number, max: number) {
+  const num = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(num)) return fallback;
+  return Math.max(min, Math.min(max, num));
 }
 
 function pickFirstImage(images: Array<{ url?: string; sortOrder?: number }> = []) {
@@ -253,9 +261,10 @@ function toProduct(p: any, fallbackImage: string): Product {
 export default async function HomePage() {
   const [categoryRows, featuredRows, saleRows, pageRow, siteSettings, contact] = await Promise.all([
     prisma.category.findMany({
+      where: { isFeatured: true },
       orderBy: { createdAt: "desc" },
       take: 12,
-      select: { name: true, slug: true, description: true, image: true },
+      select: { name: true, slug: true, description: true, image: true, imageAlt: true },
     }),
     prisma.product.findMany({
       where: { isFeatured: true, isActive: true },
@@ -263,13 +272,21 @@ export default async function HomePage() {
       include: { images: true },
     }),
     prisma.product.findMany({
-      where: { isSale: true, isActive: true },
+      where: {
+        isActive: true,
+        OR: [{ isSale: true }, { compareAt: { not: null } }],
+      },
       orderBy: { createdAt: "desc" },
       take: 8,
       include: { images: true },
     }),
     prisma.page.findUnique({
       where: { slug: "home" },
+      include: {
+        homeBenefits: { orderBy: { sortOrder: "asc" } },
+        homeFaqItems: { orderBy: { sortOrder: "asc" } },
+        homeTestimonials: { orderBy: { sortOrder: "asc" } },
+      },
     }),
     prisma.siteSettings.findFirst({ orderBy: { id: "asc" } }),
     prisma.contact.findFirst({ orderBy: { id: "asc" } }),
@@ -282,8 +299,9 @@ export default async function HomePage() {
           description: c.description ?? "",
           href: `/categories/${c.slug ?? ""}`,
           image: c.image || IMAGES.catWatches,
+          imageAlt: c.imageAlt || c.name || "Category",
         }))
-      : categoriesFallback;
+      : [];
 
   const featuredList: Product[] =
     featuredRows.length > 0
@@ -327,6 +345,80 @@ export default async function HomePage() {
       },
     ],
   };
+  const homeIntro = {
+    title: pageRow?.homeIntroTitle || "Introducing our premium water bottles",
+    body:
+      pageRow?.homeIntroBody ||
+      "Discover the best water bottles designed for everyday hydration. Our premium water bottles blend sleek design, safe materials, and performance that lasts. Choose eco-friendly water bottles that keep drinks fresh and support a sustainable lifestyle.",
+  };
+  const homeBenefits = {
+    title: pageRow?.homeBenefitsTitle || "Benefits you can feel every day",
+    intro:
+      pageRow?.homeBenefitsIntro ||
+      "Built for people who care about quality, comfort, and the planet. These benefits keep you hydrated without compromise.",
+    items:
+      pageRow?.homeBenefits && pageRow.homeBenefits.length
+        ? pageRow.homeBenefits.map((item) => ({
+            title: item.title ?? "Benefit",
+            desc: item.desc ?? "",
+          }))
+        : [
+            {
+              title: "Durable stainless steel build",
+              desc:
+                "Rugged, rust-resistant bodies that handle gym bags, travel days, and daily commutes with ease.",
+            },
+            {
+              title: "Insulation that lasts",
+              desc:
+                "Vacuum insulation keeps water cold for hours and helps hot drinks stay warm on long days.",
+            },
+            {
+              title: "Eco-friendly by design",
+              desc:
+                "Reusable, BPA-free materials reduce single-use plastic and fit a sustainable lifestyle.",
+            },
+          ],
+  };
+  const homeFaqItems =
+    pageRow?.homeFaqItems && pageRow.homeFaqItems.length
+      ? pageRow.homeFaqItems.map((item) => ({
+          q: item.question ?? "Question",
+          a: item.answer ?? "",
+        }))
+      : [
+          {
+            q: "Are these bottles BPA-free and safe for daily use?",
+            a: "Yes. Our premium water bottles are made with food-grade, BPA-free materials.",
+          },
+          {
+            q: "How long does the insulation keep water cold?",
+            a: "Most bottles keep drinks cold for up to 24 hours, depending on size and usage.",
+          },
+          {
+            q: "Do you offer sizes for travel or gym use?",
+            a: "We stock multiple sizes so you can choose a compact travel bottle or a larger fitness bottle.",
+          },
+        ];
+  const homeFaq = {
+    title: pageRow?.homeFaqTitle || "FAQs about our water bottles",
+    intro: pageRow?.homeFaqIntro || "Quick answers to help you choose the right bottle for your routine.",
+    items: homeFaqItems,
+  };
+  const saleLimit = clampInt(pageRow?.homeSaleLimit, 8, 1, 50);
+  const saleVisibleCount = clampFloat(pageRow?.homeSaleVisibleCount, 4.5, 1, 6);
+  const saleAutoMs = clampInt(pageRow?.homeSaleAutoMs, 4500, 1000, 20000);
+  const saleItems = saleList.slice(0, saleLimit);
+  const testimonialsList: Testimonial[] =
+    pageRow?.homeTestimonials && pageRow.homeTestimonials.length
+      ? pageRow.homeTestimonials.map((item) => ({
+          name: item.name ?? "Customer",
+          title: item.title ?? "",
+          quote: item.quote ?? "",
+          avatar: item.avatarUrl || IMAGES.a1,
+          rating: typeof item.rating === "number" ? item.rating : 5,
+        }))
+      : testimonialsFallback;
   const baseUrlResolved = (siteSettings?.siteUrl || baseUrl).replace(/\/$/, "");
   const brandName = siteSettings?.siteName?.trim() || "LuxStore";
   const logoUrl = siteSettings?.logoUrl || siteSettings?.siteIconUrl || "/favicon.ico";
@@ -339,6 +431,37 @@ export default async function HomePage() {
         addressCountry: contact.country || "PK",
       }
     : { addressCountry: "PK" };
+  const productListSource = [...featuredList, ...saleList];
+  const seenProductUrls = new Set<string>();
+  const productListItems = baseUrlResolved
+    ? productListSource
+        .map((p) => {
+          const href = p.href || `/product/${p.id}`;
+          const url = absoluteUrl(href, baseUrlResolved);
+          return { name: p.name, url, image: p.image };
+        })
+        .filter((item) => {
+          if (!item.url || seenProductUrls.has(item.url)) return false;
+          seenProductUrls.add(item.url);
+          return true;
+        })
+    : [];
+  const faqSchemaItems = homeFaq.items.filter((f) => f.q && f.a);
+  const orgReviewSchema = baseUrlResolved
+    ? {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        name: brandName,
+        url: baseUrlResolved,
+        review: testimonialsList.map((t) => ({
+          "@type": "Review",
+          name: `Review from ${t.name}`,
+          reviewBody: t.quote,
+          author: { "@type": "Person", name: t.name },
+          reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5" },
+        })),
+      }
+    : null;
 
   return (
     <div className="min-h-screen bg-white text-neutral-900">
@@ -359,6 +482,11 @@ export default async function HomePage() {
           searchUrlTemplate: `${baseUrlResolved}/search?q={search_term_string}`,
         })}
       />
+      {baseUrlResolved && productListItems.length > 0 ? (
+        <Schema data={itemListSchema({ url: `${baseUrlResolved}/`, items: productListItems })} />
+      ) : null}
+      {faqSchemaItems.length > 0 ? <Schema data={faqSchema(faqSchemaItems)} /> : null}
+      {orgReviewSchema ? <Schema data={orgReviewSchema} /> : null}
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,#f5f5f5,transparent_45%),radial-gradient(circle_at_80%_30%,#eaeaea,transparent_45%)]" />
@@ -437,24 +565,7 @@ export default async function HomePage() {
       {/* ? Sale & Deals (moved right after Hero) */}
       <section className="border-t border-neutral-200 bg-white py-14">
         <Container>
-          <div className="flex items-end justify-between gap-6">
-            <div>
-              <h2 className="text-2xl font-semibold tracking-tight">Sale & deals</h2>
-              <p className="mt-2 text-sm text-neutral-600">
-                Limited-time offers on verified pieces. Grab them before they're gone.
-              </p>
-            </div>
-
-            <Link href="/deals" className="text-sm font-medium text-neutral-900 hover:underline">
-              View all deals
-            </Link>
-          </div>
-
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {saleList.map((p) => (
-              <ProductCard key={p.id} p={p} variant="sale" />
-            ))}
-          </div>
+          <SaleCarousel items={saleItems} visibleCount={saleVisibleCount} autoMs={saleAutoMs} />
         </Container>
       </section>
 
@@ -559,7 +670,7 @@ export default async function HomePage() {
     </div>
 
     <div className="mt-8 grid gap-4 lg:grid-cols-3">
-      {testimonials.map((t) => (
+      {testimonialsList.map((t) => (
         <article
           key={t.name}
           className="group rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
@@ -590,10 +701,21 @@ export default async function HomePage() {
             </div>
 
             {/* rating */}
-            <div className="flex items-center gap-1" aria-label="5 star rating">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <span key={i} className="h-2.5 w-2.5 rounded-sm bg-neutral-900" />
-              ))}
+            <div className="flex items-center gap-1" aria-label={`${t.rating} star rating`}>
+              {Array.from({ length: 5 }).map((_, i) => {
+                const filled = i < Math.round(t.rating);
+                return (
+                  <svg
+                    key={i}
+                    viewBox="0 0 20 20"
+                    className={filled ? "h-4 w-4 text-neutral-900" : "h-4 w-4 text-neutral-300"}
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path d="M10 2.25l2.47 5.01 5.53.8-4 3.9.94 5.52L10 14.8l-4.94 2.68.94-5.52-4-3.9 5.53-.8L10 2.25z" />
+                  </svg>
+                );
+              })}
             </div>
           </div>
 
@@ -613,9 +735,12 @@ export default async function HomePage() {
           {/* bottom micro */}
           <div className="mt-6 flex items-center justify-between border-t border-neutral-200 pt-4">
             <p className="text-xs text-neutral-500">Fast delivery • Secure checkout</p>
-            <span className="text-xs font-medium text-neutral-900 group-hover:underline">
+            <Link
+              href="/reviews"
+              className="text-xs font-medium text-neutral-900 group-hover:underline"
+            >
               Read story
-            </span>
+            </Link>
           </div>
         </article>
       ))}
@@ -623,6 +748,81 @@ export default async function HomePage() {
   </section>
 </Container>
 
+      </section>
+
+      {/* Introducing products */}
+      <section className="border-t border-neutral-200 bg-white py-14">
+        <Container>
+          <div className="grid gap-8 lg:grid-cols-12 lg:items-start">
+            <div className="lg:col-span-4">
+              <p className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-[11px] font-medium text-neutral-700">
+                <span className="h-1.5 w-1.5 rounded-full bg-neutral-900" />
+                Introducing products
+              </p>
+              <h2 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl">
+                {homeIntro.title}
+              </h2>
+            </div>
+            <div className="lg:col-span-8">
+              <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-6 sm:p-8">
+                <p className="text-sm leading-relaxed text-neutral-600 sm:text-base">
+                  {homeIntro.body}
+                </p>
+              </div>
+            </div>
+          </div>
+        </Container>
+      </section>
+
+      {/* Benefits */}
+      <section className="border-t border-neutral-200 bg-neutral-50 py-14">
+        <Container>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold tracking-tight">{homeBenefits.title}</h2>
+              <p className="mt-2 text-sm text-neutral-600">{homeBenefits.intro}</p>
+            </div>
+          </div>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {homeBenefits.items.map((item) => (
+              <div key={item.title} className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
+                <p className="text-sm font-semibold text-neutral-900">{item.title}</p>
+                <p className="mt-2 text-sm leading-relaxed text-neutral-600">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </Container>
+      </section>
+
+      {/* FAQs */}
+      <section className="border-t border-neutral-200 bg-white py-14">
+        <Container>
+          <div className="flex items-end justify-between gap-6">
+            <div>
+              <h2 className="text-2xl font-semibold tracking-tight">{homeFaq.title}</h2>
+              <p className="mt-2 text-sm text-neutral-600">
+                {homeFaq.intro}
+              </p>
+            </div>
+            <Link href="/faq" className="text-sm font-medium text-neutral-900 hover:underline">
+              View all FAQs
+            </Link>
+          </div>
+
+          <div className="mt-8 grid gap-4 lg:grid-cols-2">
+            {homeFaq.items.map((f) => (
+              <details key={f.q} className="group rounded-3xl border border-neutral-200 bg-white p-6">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
+                  <p className="text-sm font-semibold text-neutral-900">{f.q}</p>
+                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-neutral-200 bg-white text-neutral-900 group-open:bg-neutral-900 group-open:text-white">
+                    +
+                  </span>
+                </summary>
+                <p className="mt-4 text-sm leading-relaxed text-neutral-600">{f.a}</p>
+              </details>
+            ))}
+          </div>
+        </Container>
       </section>
 
     </div>

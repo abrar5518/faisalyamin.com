@@ -5,6 +5,7 @@ import { useState } from "react";
 import AdminTopbar from "@/components/admin/AdminTopbar";
 import ImageUploader from "@/components/admin/common/ImageUploader";
 import RichEditor from "@/components/admin/common/RichEditor";
+import BlogProductSelector, { BlogProductSelection } from "@/components/admin/blog/BlogProductSelector";
 import type { AdminImage } from "@/types/adminProduct";
 import { Fetch } from "@/lib/fetch";
 
@@ -38,6 +39,7 @@ export default function AdminBlogCreatePage() {
   const [coverImage, setCoverImage] = useState<AdminImage | null>(null);
 
   const [html, setHtml] = useState("<h2>Blog title</h2><p>Rich HTML content here...</p>");
+  const [productSelections, setProductSelections] = useState<BlogProductSelection[]>([]);
 
   const [seoTitle, setSeoTitle] = useState("");
   const [seoMetaDescription, setSeoMetaDescription] = useState("");
@@ -59,6 +61,10 @@ export default function AdminBlogCreatePage() {
         coverAlt: coverImage?.alt || undefined,
         contentHtml: html,
         isPublished: status === "published",
+        productSelections: productSelections.map((p, idx) => ({
+          ...p,
+          sortOrder: idx,
+        })),
       };
 
       const res = await Fetch("/api/admin/blogs", {
@@ -182,6 +188,8 @@ export default function AdminBlogCreatePage() {
                 <RichEditor value={html} onChange={setHtml} />
               </div>
             </div>
+
+            <BlogProductSelector value={productSelections} onChange={setProductSelections} />
           </div>
 
           <aside className="lg:col-span-4 space-y-6">

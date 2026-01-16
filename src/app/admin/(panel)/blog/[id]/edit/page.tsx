@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import AdminTopbar from "@/components/admin/AdminTopbar";
 import ImageUploader from "@/components/admin/common/ImageUploader";
 import RichEditor from "@/components/admin/common/RichEditor";
+import BlogProductSelector, { BlogProductSelection } from "@/components/admin/blog/BlogProductSelector";
 import type { AdminImage } from "@/types/adminProduct";
 import { Fetch } from "@/lib/fetch";
 
@@ -17,6 +18,7 @@ type BlogEditModel = {
   excerpt: string;
   coverImage: AdminImage | null;
   html: string;
+  productSelections: BlogProductSelection[];
 
   seoTitle?: string;
   seoMetaDescription?: string;
@@ -99,6 +101,13 @@ export default function AdminBlogEditPage() {
           excerpt: api.excerpt ?? "",
           coverImage: api.coverImage ? { url: api.coverImage, alt: api.coverAlt ?? cached?.coverAlt ?? "" } : null,
           html: api.contentHtml ?? "",
+          productSelections: Array.isArray(api.productSelections)
+            ? api.productSelections.map((p: any) => ({
+                productId: Number(p.productId),
+                placement: p.placement,
+                sortOrder: p.sortOrder,
+              }))
+            : [],
           seoTitle: cached?.seoTitle ?? "",
           seoMetaDescription: cached?.seoMetaDescription ?? "",
           metaKeywords: cached?.metaKeywords ?? "",
@@ -132,6 +141,10 @@ export default function AdminBlogEditPage() {
         coverAlt: p.coverImage?.alt || undefined,
         contentHtml: p.html,
         isPublished: p.status === "published",
+        productSelections: p.productSelections.map((item, idx) => ({
+          ...item,
+          sortOrder: idx,
+        })),
       };
 
       const res = await Fetch(`/api/admin/blogs?slug=${encodeURIComponent(id)}`, {
@@ -270,6 +283,11 @@ export default function AdminBlogEditPage() {
                 <RichEditor value={p.html} onChange={(val) => setP((x) => (x ? { ...x, html: val } : x))} />
               </div>
             </div>
+
+            <BlogProductSelector
+              value={p.productSelections}
+              onChange={(next) => setP((x) => (x ? { ...x, productSelections: next } : x))}
+            />
           </div>
 
           <aside className="lg:col-span-4 space-y-6">

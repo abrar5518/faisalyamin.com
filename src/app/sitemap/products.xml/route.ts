@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { buildUrlset, getBaseUrl } from "@/lib/sitemap";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const baseUrl = await getBaseUrl();
   const rows = await prisma.product.findMany({

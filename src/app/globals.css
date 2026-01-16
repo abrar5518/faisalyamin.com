@@ -10,6 +10,15 @@ body {
   @apply bg-white text-neutral-900 antialiased font-sans;
 }
 
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Headings premium serif */
 h1, h2, h3 {
   @apply font-serif tracking-tight;

@@ -14,6 +14,7 @@ type CustomerDetail = {
   country?: string;
   createdAt: string;
   notes?: string;
+  loyaltyPoints?: number;
 
   addresses: Array<{
     label: string;
@@ -180,6 +181,10 @@ export default function AdminCustomerDetailPage() {
                 <div className="rounded-2xl bg-neutral-50 p-4">
                   <p className="text-xs font-semibold">Total orders</p>
                   <p className="mt-1 text-sm text-neutral-700">{stats?.orders}</p>
+                </div>
+                <div className="rounded-2xl bg-neutral-50 p-4">
+                  <p className="text-xs font-semibold">Loyalty points</p>
+                  <p className="mt-1 text-sm text-neutral-700">{data.loyaltyPoints ?? 0}</p>
                 </div>
                 <div className="rounded-2xl bg-neutral-50 p-4">
                   <p className="text-xs font-semibold">Last order</p>

@@ -3,6 +3,12 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/adminAuth";
 
+const BlogProductSelectionSchema = z.object({
+  productId: z.number().int().positive(),
+  placement: z.enum(["top", "middle", "bottom"]),
+  sortOrder: z.number().int().min(0).optional(),
+});
+
 const CreateBlogSchema = z.object({
   title: z.string().min(2),
   slug: z.string().min(2),
@@ -15,6 +21,7 @@ const CreateBlogSchema = z.object({
   metaKeywords: z.string().optional(),
   isPublished: z.boolean().optional(),
   publishedAt: z.string().optional(),
+  productSelections: z.array(BlogProductSelectionSchema).optional(),
 });
 
 const UpdateBlogSchema = z.object({
@@ -29,6 +36,7 @@ const UpdateBlogSchema = z.object({
   metaKeywords: z.string().optional(),
   isPublished: z.boolean().optional(),
   publishedAt: z.string().nullable().optional(),
+  productSelections: z.array(BlogProductSelectionSchema).optional(),
 });
 
 function parseDate(input?: string | null) {
@@ -48,11 +56,43 @@ export async function GET(req: NextRequest) {
     const slug = searchParams.get("slug");
 
     if (slug) {
-      const item = await prisma.blog.findUnique({ where: { slug } });
+      const item = await prisma.blog.findUnique({
+        where: { slug },
+        include: {
+          blogProducts: {
+            orderBy: { sortOrder: "asc" },
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                  price: true,
+                  compareAt: true,
+                  isActive: true,
+                  images: {
+                    orderBy: { sortOrder: "asc" },
+                    take: 1,
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
       if (!item) {
         return NextResponse.json({ ok: false, error: "Blog not found" }, { status: 404 });
       }
-      return NextResponse.json({ ok: true, data: item });
+
+      const productSelections = item.blogProducts.map((row) => ({
+        productId: row.productId,
+        placement: row.placement.toLowerCase(),
+        sortOrder: row.sortOrder,
+        product: row.product,
+      }));
+
+      const { blogProducts: _ignored, ...clean } = item;
+      return NextResponse.json({ ok: true, data: { ...clean, productSelections } });
     }
 
     const items = await prisma.blog.findMany({ orderBy: { createdAt: "desc" } });
@@ -73,6 +113,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const data = CreateBlogSchema.parse(body);
     const publishedAt = parseDate(data.publishedAt);
+    const productSelections = data.productSelections ?? [];
 
     const created = await prisma.blog.create({
       data: {
@@ -90,6 +131,15 @@ export async function POST(req: NextRequest) {
           data.isPublished === true
             ? publishedAt ?? new Date()
             : publishedAt ?? null,
+        blogProducts: productSelections.length
+          ? {
+              create: productSelections.map((p, idx) => ({
+                productId: p.productId,
+                placement: p.placement.toUpperCase() as any,
+                sortOrder: p.sortOrder ?? idx,
+              })),
+            }
+          : undefined,
       },
     });
 
@@ -125,6 +175,7 @@ export async function PUT(req: NextRequest) {
     const body = await req.json();
     const data = UpdateBlogSchema.parse(body);
     const publishedAt = parseDate(data.publishedAt ?? undefined);
+    const productSelections = data.productSelections;
 
     const existing = await prisma.blog.findUnique({
       where: { slug },
@@ -154,6 +205,16 @@ export async function PUT(req: NextRequest) {
             : data.isPublished === false
             ? null
             : publishedAt,
+        blogProducts: productSelections
+          ? {
+              deleteMany: {},
+              create: productSelections.map((p, idx) => ({
+                productId: p.productId,
+                placement: p.placement.toUpperCase() as any,
+                sortOrder: p.sortOrder ?? idx,
+              })),
+            }
+          : undefined,
       },
     });
 

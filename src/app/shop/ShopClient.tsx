@@ -1,54 +1,20 @@
 ﻿// src/app/shop/page.tsx
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import ProductCard, { Product } from "@/components/ProductCard";
-import { Fetch } from "@/lib/fetch";
 
 type FilterState = {
   q: string;
   sort: "relevance" | "price_asc" | "price_desc" | "rating_desc" | "newest";
-  category: string[];
-  brand: string[];
-  condition: ("New" | "Pre-Owned")[];
-  minPrice: number;
-  maxPrice: number;
-  minRating: number;
-  inStockOnly: boolean;
+  categorySlug: string | null;
+  subcategorySlug: string | null;
+  isSale: boolean;
 };
 
-const CATEGORIES = [
-  "Luxury Watches",
-  "Accessories",
-  "Jewelry",
-  "New Arrivals",
-  "Best Sellers",
-  "Pre-Owned",
-];
-
-const BRANDS = [
-  "Rolex",
-  "Patek Philippe",
-  "Audemars Piguet",
-  "Omega",
-  "Cartier",
-  "Jaeger-LeCoultre",
-];
-
-function parsePrice(value: string) {
-  const cleaned = value.replace(/[^\d.]/g, "").trim();
-  const n = Number(cleaned);
-  return Number.isFinite(n) ? n : 0;
-}
-
 export type ShopProduct = Product & {
-  category: string;
-  brand: string;
-  condition: "New" | "Pre-Owned";
-  inStock: boolean;
   createdAt: string; // ISO
 };
 
@@ -56,6 +22,16 @@ type ShopClientProps = {
   initialProducts: ShopProduct[];
   initialTotal: number;
   pageSize: number;
+  categories: Array<{
+    name: string;
+    slug: string;
+    subcategories: Array<{ name: string; slug: string }>;
+  }>;
+  richHtml: string;
+  title: string;
+  shortDescription: string;
+  featureImage?: string;
+  featureImageAlt?: string;
 };
 
 function Container({ children }: { children: ReactNode }) {
@@ -143,23 +119,25 @@ export default function ShopClient({
   initialProducts,
   initialTotal,
   pageSize,
+  categories,
+  richHtml,
+  title,
+  shortDescription,
+  featureImage,
+  featureImageAlt,
 }: ShopClientProps) {
-  const router = useRouter();
   const [filters, setFilters] = useState<FilterState>({
     q: "",
     sort: "relevance",
-    category: [],
-    brand: [],
-    condition: [],
-    minPrice: 0,
-    maxPrice: 400000,
-    minRating: 0,
-    inStockOnly: false,
+    categorySlug: null,
+    subcategorySlug: null,
+    isSale: false,
   });
 
   const [products, setProducts] = useState<ShopProduct[]>(initialProducts);
   const [total, setTotal] = useState(initialTotal);
   const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
@@ -168,7 +146,6 @@ export default function ShopClient({
   const mapApiProduct = (p: any): ShopProduct => {
     const img = p.images?.[0]?.url || "https://images.unsplash.com/photo-1523275335684-37898b6baf30";
     const slug = p.slug ?? String(p.id ?? "");
-    const brand = p.name ? String(p.name).split(" ")[0] : "LuxStore";
     return {
       id: slug,
       name: p.name ?? "Untitled product",
@@ -178,51 +155,74 @@ export default function ShopClient({
       rating: typeof p.rating === "number" ? p.rating : 0,
       reviews: typeof p.reviewsCount === "number" ? p.reviewsCount : 0,
       image: img,
-      category: p.categorySlug ?? "Luxury Watches",
-      brand,
-      condition: p.isSale ? "Pre-Owned" : "New",
-      inStock: true,
       createdAt: p.createdAt ?? "",
     };
   };
+
+  async function fetchProducts(nextPage: number, append: boolean) {
+    const sort =
+      filters.sort === "price_asc"
+        ? "price_asc"
+        : filters.sort === "price_desc"
+        ? "price_desc"
+        : filters.sort === "rating_desc"
+        ? "rating_desc"
+        : filters.sort === "newest"
+        ? "createdAt_desc"
+        : "createdAt_desc";
+    const q = filters.q.trim();
+    const params = new URLSearchParams({
+      page: String(nextPage),
+      pageSize: String(pageSize),
+      sort,
+      isActive: "1",
+    });
+    if (q) params.set("q", q);
+    if (filters.categorySlug) params.set("categorySlug", filters.categorySlug);
+    if (filters.subcategorySlug) params.set("subcategorySlug", filters.subcategorySlug);
+    if (filters.isSale) params.set("isSale", "1");
+
+    const res = await fetch(`/api/products?${params.toString()}`, { cache: "no-store" });
+    const payload = await res.json().catch(() => null);
+    if (!res.ok || !payload?.ok) return null;
+    const items = Array.isArray(payload.data) ? payload.data : [];
+    const nextItems = items.map(mapApiProduct);
+    const totalCount = payload.meta?.total ?? (append ? total : items.length);
+
+    setProducts((prev) => (append ? [...prev, ...nextItems] : nextItems));
+    setTotal(totalCount);
+    setPage(nextPage);
+    return nextItems;
+  }
 
   async function loadMore() {
     if (loadingMore || !hasMore) return;
     setLoadingMore(true);
     try {
       const nextPage = page + 1;
-      const sort =
-        filters.sort === "price_asc"
-          ? "price_asc"
-          : filters.sort === "price_desc"
-          ? "price_desc"
-          : filters.sort === "rating_desc"
-          ? "rating_desc"
-          : filters.sort === "newest"
-          ? "createdAt_desc"
-          : "createdAt_desc";
-      const q = filters.q.trim();
-      const res = await Fetch(
-        `/api/products?page=${nextPage}&pageSize=${pageSize}&sort=${sort}${
-          q ? `&q=${encodeURIComponent(q)}` : ""
-        }`,
-        { cache: "no-store" }
-      );
-      if (!res.ok) return;
-      const items = Array.isArray(res.data) ? res.data : [];
-      const nextItems = items.map(mapApiProduct);
-      setProducts((prev) => {
-        const merged = [...prev, ...nextItems];
-        if (nextItems.length < pageSize) {
-          setTotal(merged.length);
-        }
-        return merged;
-      });
-      setPage(nextPage);
+      await fetchProducts(nextPage, true);
     } finally {
       setLoadingMore(false);
     }
   }
+
+  useEffect(() => {
+    let active = true;
+    const delay = setTimeout(async () => {
+      if (!active) return;
+      setLoading(true);
+      try {
+        await fetchProducts(1, false);
+      } finally {
+        if (active) setLoading(false);
+      }
+    }, 250);
+
+    return () => {
+      active = false;
+      clearTimeout(delay);
+    };
+  }, [filters, pageSize]);
 
   const activeChips = useMemo(() => {
     const chips: { key: string; label: string; remove: () => void }[] = [];
@@ -234,117 +234,39 @@ export default function ShopClient({
         remove: () => setFilters((f) => ({ ...f, q: "" })),
       });
     }
-    filters.category.forEach((c) =>
-      chips.push({
-        key: `cat:${c}`,
-        label: c,
-        remove: () =>
-          setFilters((f) => ({ ...f, category: f.category.filter((x) => x !== c) })),
-      })
-    );
-    filters.brand.forEach((b) =>
-      chips.push({
-        key: `brand:${b}`,
-        label: b,
-        remove: () =>
-          setFilters((f) => ({ ...f, brand: f.brand.filter((x) => x !== b) })),
-      })
-    );
-    filters.condition.forEach((c) =>
-      chips.push({
-        key: `cond:${c}`,
-        label: c,
-        remove: () =>
-          setFilters((f) => ({ ...f, condition: f.condition.filter((x) => x !== c) })),
-      })
-    );
 
-    if (filters.minRating > 0) {
+    if (filters.categorySlug) {
+      const category = categories.find((c) => c.slug === filters.categorySlug);
       chips.push({
-        key: "rating",
-        label: `Rating ${filters.minRating}+`,
-        remove: () => setFilters((f) => ({ ...f, minRating: 0 })),
+        key: `cat:${filters.categorySlug}`,
+        label: category?.name || "Category",
+        remove: () => setFilters((f) => ({ ...f, categorySlug: null, subcategorySlug: null })),
       });
     }
 
-    if (filters.inStockOnly) {
+    if (filters.subcategorySlug) {
+      const category = categories.find((c) => c.slug === filters.categorySlug);
+      const sub = category?.subcategories.find((s) => s.slug === filters.subcategorySlug);
       chips.push({
-        key: "stock",
-        label: "In stock",
-        remove: () => setFilters((f) => ({ ...f, inStockOnly: false })),
+        key: `sub:${filters.subcategorySlug}`,
+        label: sub?.name || "Subcategory",
+        remove: () => setFilters((f) => ({ ...f, subcategorySlug: null })),
       });
     }
 
-    // price chip only if changed from defaults
-    if (filters.minPrice !== 0 || filters.maxPrice !== 400000) {
+    if (filters.isSale) {
       chips.push({
-        key: "price",
-        label: `PKR ${filters.minPrice.toLocaleString()}-${filters.maxPrice.toLocaleString()}`,
-        remove: () => setFilters((f) => ({ ...f, minPrice: 0, maxPrice: 400000 })),
+        key: "sale",
+        label: "On sale",
+        remove: () => setFilters((f) => ({ ...f, isSale: false })),
       });
     }
 
     return chips;
-  }, [filters, products]);
-
-  const results = useMemo(() => {
-    const q = filters.q.trim().toLowerCase();
-
-    let list = products.filter((p) => {
-      const price = parsePrice(p.price);
-
-      const matchesQ =
-        !q ||
-        p.name.toLowerCase().includes(q) ||
-        p.brand.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q);
-
-      const matchesCat =
-        filters.category.length === 0 || filters.category.includes(p.category);
-
-      const matchesBrand =
-        filters.brand.length === 0 || filters.brand.includes(p.brand);
-
-      const matchesCondition =
-        filters.condition.length === 0 || filters.condition.includes(p.condition);
-
-      const matchesPrice = price >= filters.minPrice && price <= filters.maxPrice;
-
-      const matchesRating = p.rating >= filters.minRating;
-
-      const matchesStock = !filters.inStockOnly || p.inStock;
-
-      return (
-        matchesQ &&
-        matchesCat &&
-        matchesBrand &&
-        matchesCondition &&
-        matchesPrice &&
-        matchesRating &&
-        matchesStock
-      );
-    });
-
-    // Sorting
-    if (filters.sort === "price_asc") {
-      list = [...list].sort((a, b) => parsePrice(a.price) - parsePrice(b.price));
-    } else if (filters.sort === "price_desc") {
-      list = [...list].sort((a, b) => parsePrice(b.price) - parsePrice(a.price));
-    } else if (filters.sort === "rating_desc") {
-      list = [...list].sort((a, b) => b.rating - a.rating);
-    } else if (filters.sort === "newest") {
-      list = [...list].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
-    } // relevance leaves as-is
-
-    return list;
-  }, [filters]);
-
-  function toggleInArray<T>(arr: T[], value: T) {
-    return arr.includes(value) ? arr.filter((x) => x !== value) : [...arr, value];
-  }
+  }, [filters, categories]);
 
   const FiltersPanel = (
-    <div className="rounded-3xl border border-neutral-200 bg-white p-5 shadow-sm">
+    <div className="rounded-3xl border border-neutral-200 bg-white p-5 shadow-sm lg:sticky lg:top-20">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold tracking-tight">Filters</h2>
@@ -357,13 +279,9 @@ export default function ShopClient({
             setFilters({
               q: "",
               sort: "relevance",
-              category: [],
-              brand: [],
-              condition: [],
-              minPrice: 0,
-              maxPrice: 400000,
-              minRating: 0,
-              inStockOnly: false,
+              categorySlug: null,
+              subcategorySlug: null,
+              isSale: false,
             })
           }
           className="rounded-xl border border-neutral-200 px-3 py-2 text-xs font-medium hover:bg-neutral-50"
@@ -382,13 +300,6 @@ export default function ShopClient({
             onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
             className="w-full bg-transparent text-sm outline-none placeholder:text-neutral-400"
             placeholder="Rolex, Nautilus, strap..."
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                const q = filters.q.trim();
-                if (q) router.push(`/search?q=${encodeURIComponent(q)}`);
-              }
-            }}
           />
         </div>
       </div>
@@ -413,136 +324,53 @@ export default function ShopClient({
       <div className="mt-5">
         <SectionTitle>Category</SectionTitle>
         <div className="mt-2 space-y-1">
-          {CATEGORIES.map((c) => (
+          {categories.map((c) => (
             <CheckboxRow
-              key={c}
-              checked={filters.category.includes(c)}
-              label={c}
-              onChange={() => setFilters((f) => ({ ...f, category: toggleInArray(f.category, c) }))}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Brand */}
-      <div className="mt-5">
-        <SectionTitle>Brand</SectionTitle>
-        <div className="mt-2 grid grid-cols-2 gap-2">
-          {BRANDS.map((b) => {
-            const active = filters.brand.includes(b);
-            return (
-              <button
-                key={b}
-                type="button"
-                onClick={() => setFilters((f) => ({ ...f, brand: toggleInArray(f.brand, b) }))}
-                className={[
-                  "rounded-2xl border px-3 py-2 text-xs font-medium transition",
-                  active
-                    ? "border-neutral-900 bg-neutral-900 text-white"
-                    : "border-neutral-200 bg-white text-neutral-900 hover:bg-neutral-50",
-                ].join(" ")}
-              >
-                {b}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Condition */}
-      <div className="mt-5">
-        <SectionTitle>Condition</SectionTitle>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {(["New", "Pre-Owned"] as const).map((c) => (
-            <TogglePill
-              key={c}
-              label={c}
-              active={filters.condition.includes(c)}
-              onClick={() =>
-                setFilters((f) => ({ ...f, condition: toggleInArray(f.condition, c) }))
+              key={c.slug}
+              checked={filters.categorySlug === c.slug}
+              label={c.name}
+              onChange={() =>
+                setFilters((f) => ({
+                  ...f,
+                  categorySlug: f.categorySlug === c.slug ? null : c.slug,
+                  subcategorySlug: null,
+                }))
               }
             />
           ))}
         </div>
       </div>
-
-      {/* Price */}
-      <div className="mt-5">
-        <SectionTitle>Price range</SectionTitle>
-        <div className="mt-2 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-          <div className="flex items-center justify-between text-xs text-neutral-600">
-            <span>PKR {filters.minPrice.toLocaleString()}</span>
-            <span>PKR {filters.maxPrice.toLocaleString()}</span>
-          </div>
-
-          <div className="mt-4 grid grid-cols-2 gap-3">
-            <div className="rounded-2xl border border-neutral-200 bg-white px-3 py-2">
-              <p className="text-[11px] text-neutral-500">Min</p>
-              <input
-                type="number"
-                value={filters.minPrice}
-                onChange={(e) => setFilters((f) => ({ ...f, minPrice: Number(e.target.value || 0) }))}
-                className="mt-1 w-full bg-transparent text-sm outline-none"
-                min={0}
-                step={100}
-              />
-            </div>
-            <div className="rounded-2xl border border-neutral-200 bg-white px-3 py-2">
-              <p className="text-[11px] text-neutral-500">Max</p>
-              <input
-                type="number"
-                value={filters.maxPrice}
-                onChange={(e) =>
-                  setFilters((f) => ({ ...f, maxPrice: Number(e.target.value || 0) }))
-                }
-                className="mt-1 w-full bg-transparent text-sm outline-none"
-                min={0}
-                step={100}
-              />
-            </div>
-          </div>
-
-          <div className="mt-3 text-[11px] text-neutral-500">
-            Tip: keep max under PKR 60,000 to see more options.
+      {filters.categorySlug ? (
+        <div className="mt-5">
+          <SectionTitle>Subcategory</SectionTitle>
+          <div className="mt-2 space-y-1">
+            {(categories.find((c) => c.slug === filters.categorySlug)?.subcategories || []).map(
+              (s) => (
+                <CheckboxRow
+                  key={s.slug}
+                  checked={filters.subcategorySlug === s.slug}
+                  label={s.name}
+                  onChange={() =>
+                    setFilters((f) => ({
+                      ...f,
+                      subcategorySlug: f.subcategorySlug === s.slug ? null : s.slug,
+                    }))
+                  }
+                />
+              )
+            )}
           </div>
         </div>
-      </div>
+      ) : null}
 
-      {/* Rating + Stock */}
       <div className="mt-5">
-        <SectionTitle>Rating</SectionTitle>
+        <SectionTitle>Deals</SectionTitle>
         <div className="mt-2 flex flex-wrap gap-2">
-          {[0, 4, 4.5, 4.8].map((r) => (
-            <TogglePill
-              key={r}
-              label={r === 0 ? "Any" : `${r}+`}
-              active={filters.minRating === r}
-              onClick={() => setFilters((f) => ({ ...f, minRating: r }))}
-            />
-          ))}
-        </div>
-
-        <div className="mt-4 rounded-2xl border border-neutral-200 bg-white p-3">
-          <button
-            type="button"
-            onClick={() => setFilters((f) => ({ ...f, inStockOnly: !f.inStockOnly }))}
-            className="flex w-full items-center justify-between"
-          >
-            <span className="text-sm text-neutral-800">In stock only</span>
-            <span
-              className={[
-                "h-6 w-11 rounded-full border p-1 transition",
-                filters.inStockOnly ? "border-neutral-900 bg-neutral-900" : "border-neutral-300 bg-white",
-              ].join(" ")}
-            >
-              <span
-                className={[
-                  "block h-4 w-4 rounded-full bg-white transition",
-                  filters.inStockOnly ? "translate-x-5" : "translate-x-0",
-                ].join(" ")}
-              />
-            </span>
-          </button>
+          <TogglePill
+            label="On sale"
+            active={filters.isSale}
+            onClick={() => setFilters((f) => ({ ...f, isSale: !f.isSale }))}
+          />
         </div>
       </div>
     </div>
@@ -557,36 +385,47 @@ export default function ShopClient({
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-                Shop
+                {title}
               </h1>
               <p className="mt-2 text-sm text-neutral-600">
-                Browse premium pieces. Use filters to find the perfect match.
+                {shortDescription}
               </p>
             </div>
 
             {/* Quick chips */}
             <div className="flex flex-wrap gap-2">
-              <TogglePill
-                label="Watches"
-                active={filters.category.includes("Luxury Watches")}
-                onClick={() =>
-                  setFilters((f) => ({ ...f, category: toggleInArray(f.category, "Luxury Watches") }))
-                }
-              />
-              <TogglePill
-                label="Accessories"
-                active={filters.category.includes("Accessories")}
-                onClick={() =>
-                  setFilters((f) => ({ ...f, category: toggleInArray(f.category, "Accessories") }))
-                }
-              />
+              {categories.slice(0, 2).map((c) => (
+                <TogglePill
+                  key={c.slug}
+                  label={c.name}
+                  active={filters.categorySlug === c.slug}
+                  onClick={() =>
+                    setFilters((f) => ({
+                      ...f,
+                      categorySlug: f.categorySlug === c.slug ? null : c.slug,
+                      subcategorySlug: null,
+                    }))
+                  }
+                />
+              ))}
               <TogglePill
                 label="Deals"
-                active={filters.sort === "price_asc"}
-                onClick={() => setFilters((f) => ({ ...f, sort: "price_asc" }))}
+                active={filters.isSale}
+                onClick={() => setFilters((f) => ({ ...f, isSale: !f.isSale }))}
               />
             </div>
           </div>
+
+          {featureImage ? (
+            <div className="mt-6 overflow-hidden rounded-3xl border border-neutral-200 bg-white">
+              <img
+                src={featureImage}
+                alt={featureImageAlt || title}
+                className="h-56 w-full object-cover sm:h-64"
+                loading="lazy"
+              />
+            </div>
+          ) : null}
 
           {/* Layout */}
           <div className="mt-8 grid gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
@@ -599,8 +438,8 @@ export default function ShopClient({
               <div className="rounded-3xl border border-neutral-200 bg-white p-5 shadow-sm">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="rounded-2xl bg-neutral-100 px-3 py-2 text-sm">
-                      <span className="font-semibold">{results.length}</span>{" "}
+                  <div className="rounded-2xl bg-neutral-100 px-3 py-2 text-sm">
+                      <span className="font-semibold">{products.length}</span>{" "}
                       <span className="text-neutral-600">results</span>
                     </div>
 
@@ -608,8 +447,6 @@ export default function ShopClient({
                       className="hidden sm:flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white px-3 py-2"
                       onSubmit={(e) => {
                         e.preventDefault();
-                        const q = filters.q.trim();
-                        if (q) router.push(`/search?q=${encodeURIComponent(q)}`);
                       }}
                     >
                       <span className="h-2 w-2 rounded-full bg-neutral-900" />
@@ -658,7 +495,7 @@ export default function ShopClient({
 
               {/* Grid */}
               <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {results.map((p) => (
+                {products.map((p) => (
                   <ProductCard
                     key={p.id}
                     p={{
@@ -680,7 +517,7 @@ export default function ShopClient({
               {/* Footer / pagination placeholder */}
               <div className="mt-8 flex flex-col items-center justify-between gap-3 rounded-3xl border border-neutral-200 bg-white p-5 text-sm text-neutral-600 shadow-sm sm:flex-row">
                 <p>
-                  Showing <span className="font-semibold text-neutral-900">{Math.min(results.length, pageSize * page)}</span> of{" "}
+                  Showing <span className="font-semibold text-neutral-900">{Math.min(products.length, pageSize * page)}</span> of{" "}
                   <span className="font-semibold text-neutral-900">{total}</span>
                 </p>
                 <div className="flex items-center gap-2">
@@ -692,7 +529,7 @@ export default function ShopClient({
                   </button>
                   <button
                     onClick={loadMore}
-                    disabled={!hasMore || loadingMore}
+                    disabled={!hasMore || loadingMore || loading}
                     className="rounded-xl bg-neutral-900 px-4 py-2 text-white hover:bg-neutral-800 disabled:opacity-60"
                   >
                     {loadingMore ? "Loading..." : "Next"}
@@ -703,6 +540,14 @@ export default function ShopClient({
           </div>
         </Container>
       </main>
+
+      <section className="border-t border-neutral-200 bg-neutral-50 py-14">
+        <Container>
+          <div className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8">
+            <div className="rt-content" dangerouslySetInnerHTML={{ __html: richHtml }} />
+          </div>
+        </Container>
+      </section>
 
       {/* Mobile filters drawer */}
       {mobileFiltersOpen ? (

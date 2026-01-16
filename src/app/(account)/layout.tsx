@@ -2,6 +2,7 @@
 import AccountSidebar from "@/components/account/AccountSidebar";
 import AccountHeader from "@/components/account/AccountHeader";
 import AccountGuard from "@/components/account/AccountGuard";
+import Link from "next/link";
 
 export const metadata = {
   title: "Your account",
@@ -28,9 +29,9 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
               <a className="hover:text-neutral-900" href="/contact">
                 Support
               </a>
-              <a className="hover:text-neutral-900" href="/account/orders">
+              <Link className="hover:text-neutral-900" href="/account/orders">
                 Track Order
-              </a>
+              </Link>
               <a className="hover:text-neutral-900" href="/logout">
                 Logout
               </a>

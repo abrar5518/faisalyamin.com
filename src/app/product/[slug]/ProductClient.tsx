@@ -24,11 +24,22 @@ export type ProductData = {
   name: string;
   rating: number;
   reviews: number;
+  reviewItems: ReviewItem[];
   shortDescription: string;
   seoDescription: string;
   sizes: string[];
   variants: Variant[];
   hasVariants?: boolean;
+};
+
+export type ReviewItem = {
+  id: number;
+  rating: number;
+  title?: string | null;
+  body: string;
+  createdAt: string;
+  user: { name: string };
+  images: Array<{ url: string; alt?: string | null }>;
 };
 
 
@@ -60,6 +71,17 @@ function StarIcon({ filled }: { filled: boolean }) {
     >
       <path d="M10 15.27l-5.18 3.05 1.4-5.92L1.6 8.82l6.06-.52L10 2.7l2.34 5.6 6.06.52-4.62 3.58 1.4 5.92z" />
     </svg>
+  );
+}
+
+function StarRow({ rating }: { rating: number }) {
+  const full = Math.round(rating);
+  return (
+    <div className="flex items-center gap-1">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <StarIcon key={i} filled={i < full} />
+      ))}
+    </div>
   );
 }
 
@@ -129,6 +151,12 @@ export default function ProductClient({ product }: { product: ProductData }) {
   const [freeShippingThreshold, setFreeShippingThreshold] = useState<string>("1,000");
   const [wishlisted, setWishlisted] = useState(false);
   const [wishlistBusy, setWishlistBusy] = useState(false);
+  const [isAuthed, setIsAuthed] = useState<boolean | null>(null);
+  const [reviewForm, setReviewForm] = useState({ rating: 5, title: "", body: "" });
+  const [reviewImages, setReviewImages] = useState<Array<{ url: string; alt?: string }>>([]);
+  const [reviewMsg, setReviewMsg] = useState<string | null>(null);
+  const [reviewBusy, setReviewBusy] = useState(false);
+  const [reviewUploading, setReviewUploading] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -170,6 +198,22 @@ export default function ProductClient({ product }: { product: ProductData }) {
       active = false;
     };
   }, [product.id]);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/account/me", { cache: "no-store" });
+        if (!active) return;
+        setIsAuthed(res.ok);
+      } catch {
+        if (active) setIsAuthed(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const images = useMemo(() => variant.images, [variant]);
   const imageAlts = useMemo(() => variant.imageAlts, [variant]);
@@ -236,6 +280,91 @@ export default function ProductClient({ product }: { product: ProductData }) {
     } finally {
       setWishlistBusy(false);
     }
+  };
+
+  const onSelectReviewImages = async (files: FileList | null) => {
+    if (!files || reviewUploading) return;
+    if (isAuthed === false) {
+      router.push("/login");
+      return;
+    }
+    const remaining = Math.max(0, 6 - reviewImages.length);
+    const list = Array.from(files).slice(0, remaining);
+    if (!list.length) return;
+
+    setReviewUploading(true);
+    setReviewMsg(null);
+    try {
+      for (const file of list) {
+        const form = new FormData();
+        form.append("file", file);
+        form.append("kind", "review");
+        const res = await fetch("/api/account/uploads", { method: "POST", body: form });
+        if (res.status === 401) {
+          router.push("/login");
+          return;
+        }
+        const payload = await res.json().catch(() => ({}));
+        if (!res.ok || !payload?.data?.url) {
+          setReviewMsg(payload?.error || "Failed to upload image.");
+          continue;
+        }
+        setReviewImages((prev) => [
+          ...prev,
+          { url: payload.data.url, alt: product.name },
+        ]);
+      }
+    } finally {
+      setReviewUploading(false);
+    }
+  };
+
+  const submitReview = async () => {
+    if (reviewBusy) return;
+    if (isAuthed === false) {
+      router.push("/login");
+      return;
+    }
+    const slug = product.slug?.trim();
+    if (!slug) {
+      setReviewMsg("Unable to submit review right now.");
+      return;
+    }
+    setReviewBusy(true);
+    setReviewMsg(null);
+    try {
+      const res = await fetch(`/api/products/${encodeURIComponent(slug)}/reviews`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug,
+          rating: reviewForm.rating,
+          title: reviewForm.title || undefined,
+          body: reviewForm.body,
+          images: reviewImages,
+        }),
+      });
+      if (res.status === 401) {
+        router.push("/login");
+        return;
+      }
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok || payload?.ok === false) {
+        setReviewMsg(payload?.error || "Failed to submit review.");
+        return;
+      }
+      setReviewMsg("Thanks! Your review has been submitted for approval.");
+      setReviewForm({ rating: 5, title: "", body: "" });
+      setReviewImages([]);
+    } finally {
+      setReviewBusy(false);
+    }
+  };
+
+  const formattedDate = (iso: string) => {
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) return "";
+    return date.toLocaleDateString("en-PK", { year: "numeric", month: "short", day: "numeric" });
   };
 
   return (
@@ -537,7 +666,7 @@ export default function ProductClient({ product }: { product: ProductData }) {
                 })}
               </div>
 
-              <div className="mt-8 max-w-4xl">
+              <div className={`mt-8 w-full ${tab === "reviews" ? "max-w-none" : "max-w-4xl"}`}>
                 {tab === "description" && (
                   <div
                     className="rt-content"
@@ -546,13 +675,200 @@ export default function ProductClient({ product }: { product: ProductData }) {
                 )}
 
                 {tab === "reviews" && (
-                  <div className="space-y-3">
-                    <p className="text-sm text-neutral-700">
-                      Reviews system coming soon.
-                    </p>
-                    <p className="text-xs text-neutral-500">
-                      Tip: add photo reviews + verified purchase badge for higher trust.
-                    </p>
+                  <div className="space-y-6">
+                    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+                      <div className="space-y-5">
+                        <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-5">
+                          <p className="text-sm font-semibold text-neutral-900">Customer reviews</p>
+                          <div className="mt-2 flex items-center gap-3">
+                            <StarRow rating={product.rating} />
+                            <p className="text-sm text-neutral-600">
+                              <span className="font-semibold text-neutral-900">
+                                {product.rating.toFixed(1)}
+                              </span>{" "}
+                              from {product.reviews} reviews
+                            </p>
+                          </div>
+                          <p className="mt-2 text-xs text-neutral-500">
+                            Real customer feedback to help you shop with confidence.
+                          </p>
+                        </div>
+
+                        {product.reviewItems.length ? (
+                          product.reviewItems.map((r) => (
+                            <div
+                              key={r.id}
+                              className="rounded-2xl border border-neutral-200 bg-white p-5"
+                            >
+                              <div className="flex flex-wrap items-center justify-between gap-2">
+                                <div className="flex items-center gap-3">
+                                  <StarRow rating={r.rating} />
+                                  <p className="text-sm font-semibold text-neutral-900">
+                                    {r.user.name}
+                                  </p>
+                                </div>
+                                <p className="text-xs text-neutral-500">
+                                  {formattedDate(r.createdAt)}
+                                </p>
+                              </div>
+                              {r.title ? (
+                                <p className="mt-3 text-sm font-semibold text-neutral-900">
+                                  {r.title}
+                                </p>
+                              ) : null}
+                              <p className="mt-2 text-sm leading-relaxed text-neutral-600">
+                                {r.body}
+                              </p>
+                              {r.images.length ? (
+                                <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                                  {r.images.map((img, idx) => (
+                                    <div
+                                      key={`${img.url}-${idx}`}
+                                      className="overflow-hidden rounded-xl border border-neutral-200"
+                                    >
+                                      <img
+                                        src={img.url}
+                                        alt={img.alt || product.name}
+                                        className="h-28 w-full object-cover"
+                                        loading="lazy"
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : null}
+                            </div>
+                          ))
+                        ) : (
+                          <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-5 text-sm text-neutral-600">
+                            No reviews yet. Be the first to share your experience.
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="rounded-2xl border border-neutral-200 bg-white p-5 lg:sticky lg:top-6">
+                        <p className="text-sm font-semibold text-neutral-900">Write a review</p>
+                        {isAuthed === false ? (
+                          <div className="mt-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-600">
+                            Please sign in to leave a review.
+                            <button
+                              className="mt-3 w-full rounded-2xl bg-neutral-900 px-4 py-3 text-sm font-medium text-white hover:bg-neutral-800"
+                              onClick={() => router.push("/login")}
+                            >
+                              Sign in to review
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="mt-4 space-y-4">
+                            <div>
+                              <label className="text-xs font-medium text-neutral-700">Rating</label>
+                              <div className="mt-2 flex gap-2">
+                                {[1, 2, 3, 4, 5].map((n) => (
+                                  <button
+                                    key={n}
+                                    type="button"
+                                    onClick={() =>
+                                      setReviewForm((f) => ({ ...f, rating: n }))
+                                    }
+                                    className={[
+                                      "flex h-10 w-10 items-center justify-center rounded-xl border text-sm font-semibold",
+                                      reviewForm.rating >= n
+                                        ? "border-neutral-900 bg-neutral-900 text-white"
+                                        : "border-neutral-200 text-neutral-700 hover:bg-neutral-50",
+                                    ].join(" ")}
+                                  >
+                                    {n}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="text-xs font-medium text-neutral-700">
+                                Title (optional)
+                              </label>
+                              <input
+                                value={reviewForm.title}
+                                onChange={(e) =>
+                                  setReviewForm((f) => ({ ...f, title: e.target.value }))
+                                }
+                                className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-900"
+                                placeholder="Great quality and fast shipping"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="text-xs font-medium text-neutral-700">Review</label>
+                              <textarea
+                                value={reviewForm.body}
+                                onChange={(e) =>
+                                  setReviewForm((f) => ({ ...f, body: e.target.value }))
+                                }
+                                className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-900"
+                                rows={4}
+                                placeholder="Share your experience with this product."
+                              />
+                            </div>
+
+                            <div>
+                              <label className="text-xs font-medium text-neutral-700">
+                                Photos (optional)
+                              </label>
+                              <div className="mt-2 rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-4 text-xs text-neutral-600">
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  multiple
+                                  onChange={(e) => onSelectReviewImages(e.target.files)}
+                                />
+                                <p className="mt-2">Up to 6 images. JPG/PNG/WEBP.</p>
+                              </div>
+                              {reviewImages.length ? (
+                                <div className="mt-3 grid grid-cols-3 gap-2">
+                                  {reviewImages.map((img, idx) => (
+                                    <div
+                                      key={`${img.url}-${idx}`}
+                                      className="relative overflow-hidden rounded-xl border border-neutral-200"
+                                    >
+                                      <img
+                                        src={img.url}
+                                        alt={img.alt || product.name}
+                                        className="h-20 w-full object-cover"
+                                        loading="lazy"
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          setReviewImages((prev) =>
+                                            prev.filter((_, i) => i !== idx)
+                                          )
+                                        }
+                                        className="absolute right-1 top-1 rounded-full bg-black/70 px-2 py-1 text-[10px] text-white"
+                                      >
+                                        Remove
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : null}
+                            </div>
+
+                            {reviewMsg ? (
+                              <p className="text-xs text-neutral-600">{reviewMsg}</p>
+                            ) : null}
+
+                            <button
+                              type="button"
+                              onClick={submitReview}
+                              disabled={reviewBusy || reviewUploading || reviewForm.body.trim().length < 10}
+                              className="w-full rounded-2xl bg-neutral-900 px-4 py-3 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-60"
+                            >
+                              {reviewBusy ? "Submitting..." : "Submit review"}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
                   </div>
                 )}
 

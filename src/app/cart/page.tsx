@@ -4,7 +4,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { withImageParams } from "@/lib/image";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useCart } from "@/components/cart/CartProvider";
 
 function Container({ children }: { children: React.ReactNode }) {
@@ -40,7 +40,14 @@ function Row({ label, value, muted }: { label: string; value: React.ReactNode; m
 export default function CartPage() {
   const { items, updateQty, removeItem } = useCart();
   const [coupon, setCoupon] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    discount: number;
+    description?: string | null;
+    freeShippingApplied?: boolean;
+  } | null>(null);
+  const [couponMsg, setCouponMsg] = useState<string | null>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
 
   const subtotal = useMemo(
     () => items.reduce((sum, it) => sum + it.price * it.qty, 0),
@@ -49,27 +56,60 @@ export default function CartPage() {
 
   // simple rules (you can replace with real logic)
   const shipping = useMemo(() => (subtotal >= 1000 || subtotal === 0 ? 0 : 50), [subtotal]);
-  const discount = useMemo(() => {
-    if (!appliedCoupon) return 0;
-    if (appliedCoupon.toLowerCase() === "lux10") return Math.round(subtotal * 0.1);
-    if (appliedCoupon.toLowerCase() === "shipfree") return shipping;
-    return 0;
-  }, [appliedCoupon, subtotal, shipping]);
+  const discount = useMemo(() => appliedCoupon?.discount ?? 0, [appliedCoupon]);
 
   const total = Math.max(0, subtotal + shipping - discount);
+
+  const validateCoupon = async (code: string) => {
+    setCouponLoading(true);
+    setCouponMsg(null);
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code,
+          subtotal,
+          shipping,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data?.ok) {
+        throw new Error(data?.error || "Invalid coupon.");
+      }
+      setAppliedCoupon({
+        code: data.data.code,
+        discount: data.data.discount ?? 0,
+        description: data.data.description ?? null,
+        freeShippingApplied: Boolean(data.data.freeShippingApplied),
+      });
+      setCoupon(data.data.code);
+    } catch (err: any) {
+      setAppliedCoupon(null);
+      setCouponMsg(err?.message || "Failed to apply coupon.");
+    } finally {
+      setCouponLoading(false);
+    }
+  };
 
   const applyCoupon = () => {
     const code = coupon.trim();
     if (!code) return;
-    setAppliedCoupon(code);
+    validateCoupon(code);
   };
 
   const clearCoupon = () => {
     setAppliedCoupon(null);
     setCoupon("");
+    setCouponMsg(null);
   };
 
   const empty = items.length === 0;
+
+  useEffect(() => {
+    if (!appliedCoupon?.code) return;
+    validateCoupon(appliedCoupon.code);
+  }, [subtotal, shipping]);
 
   return (
     <div className="min-h-screen bg-white text-neutral-900">
@@ -350,10 +390,9 @@ export default function CartPage() {
                     {/* Coupon */}
                     <div className="mt-6 rounded-3xl border border-neutral-200 bg-neutral-50 p-4">
                       <p className="text-sm font-medium">Coupon</p>
-                      <p className="mt-1 text-xs text-neutral-500">
-                        Try <span className="font-medium">LUX10</span> or{" "}
-                        <span className="font-medium">SHIPFREE</span>
-                      </p>
+                    <p className="mt-1 text-xs text-neutral-500">
+                      Enter a coupon code to apply discounts or free shipping.
+                    </p>
 
                       <div className="mt-3 flex gap-2">
                         <input
@@ -364,16 +403,17 @@ export default function CartPage() {
                         />
                         <button
                           onClick={applyCoupon}
-                          className="rounded-2xl bg-neutral-900 px-5 py-3 text-sm font-medium text-white hover:bg-neutral-800"
+                          disabled={couponLoading}
+                          className="rounded-2xl bg-neutral-900 px-5 py-3 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-60"
                         >
-                          Apply
+                          {couponLoading ? "Applying..." : "Apply"}
                         </button>
                       </div>
 
                       {appliedCoupon ? (
                         <div className="mt-3 flex items-center justify-between">
                           <span className="text-xs text-neutral-600">
-                            Applied: <span className="font-medium">{appliedCoupon}</span>
+                            Applied: <span className="font-medium">{appliedCoupon.code}</span>
                           </span>
                           <button
                             onClick={clearCoupon}
@@ -381,6 +421,12 @@ export default function CartPage() {
                           >
                             Remove
                           </button>
+                        </div>
+                      ) : null}
+
+                      {couponMsg ? (
+                        <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                          {couponMsg}
                         </div>
                       ) : null}
                     </div>
@@ -410,7 +456,7 @@ export default function CartPage() {
                   <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-6 sm:p-7">
                     <p className="text-sm font-semibold">Need help?</p>
                     <p className="mt-2 text-sm text-neutral-600">
-                      Share your budget + preferred brands. We'll recommend the best options.
+                      Share your budget + preferred brands. We&apos;ll recommend the best options.
                     </p>
                     <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
                       <Link

@@ -138,6 +138,14 @@ export default function CheckoutPage() {
     freeShippingThreshold?: string | null;
     defaultShippingFee?: string | null;
   } | null>(null);
+  const [loyaltySettings, setLoyaltySettings] = useState<{
+    enabled: boolean;
+    pointsPerCurrency: number;
+    currencyPerPoint: number;
+    minRedeemPoints: number;
+    maxRedeemPercent: number;
+  } | null>(null);
+  const [availablePoints, setAvailablePoints] = useState(0);
   const [user, setUser] = useState<{
     id: number;
     email: string;
@@ -172,7 +180,16 @@ export default function CheckoutPage() {
 
   // Coupon
   const [coupon, setCoupon] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    discount: number;
+    description?: string | null;
+    freeShippingApplied?: boolean;
+  } | null>(null);
+  const [couponMsg, setCouponMsg] = useState<string | null>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [redeemPoints, setRedeemPoints] = useState("");
+  const [redeemMsg, setRedeemMsg] = useState<string | null>(null);
 
   // Totals
   const subtotal = useMemo(
@@ -189,6 +206,25 @@ export default function CheckoutPage() {
         if (!active) return;
         if (res.ok && payload?.ok) {
           setSettings(payload.data || null);
+        }
+      } catch {
+        // ignore
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/loyalty-settings", { cache: "no-store" });
+        const payload = await res.json().catch(() => ({}));
+        if (!active) return;
+        if (res.ok && payload?.ok) {
+          setLoyaltySettings(payload.data || null);
         }
       } catch {
         // ignore
@@ -279,14 +315,33 @@ export default function CheckoutPage() {
     return defaultShippingFee;
   }, [defaultShippingFee, freeShippingThreshold, subtotal]);
 
-  const discount = useMemo(() => {
-    if (!appliedCoupon) return 0;
-    if (appliedCoupon.toLowerCase() === "lux10") return Math.round(subtotal * 0.1);
-    if (appliedCoupon.toLowerCase() === "shipfree") return shippingCost;
-    return 0;
-  }, [appliedCoupon, subtotal, shippingCost]);
+  const discount = useMemo(() => appliedCoupon?.discount ?? 0, [appliedCoupon]);
+  const discountForLoyalty = useMemo(
+    () => (appliedCoupon?.freeShippingApplied ? 0 : discount),
+    [appliedCoupon?.freeShippingApplied, discount]
+  );
 
-  const total = Math.max(0, subtotal + shippingCost - discount);
+  const maxRedeemPoints = useMemo(() => {
+    if (!loyaltySettings?.enabled) return 0;
+    if (availablePoints < loyaltySettings.minRedeemPoints) return 0;
+    const base = Math.max(0, subtotal - discountForLoyalty);
+    const maxValue = Math.max(0, (base * loyaltySettings.maxRedeemPercent) / 100);
+    const maxPointsByValue =
+      loyaltySettings.currencyPerPoint > 0
+        ? Math.floor(maxValue / loyaltySettings.currencyPerPoint)
+        : 0;
+    const points = Math.min(availablePoints, maxPointsByValue);
+    return points >= loyaltySettings.minRedeemPoints ? points : 0;
+  }, [availablePoints, discount, loyaltySettings, subtotal]);
+
+  const redeemPointsValue = useMemo(() => {
+    if (!loyaltySettings?.enabled) return 0;
+    const points = Math.max(0, Math.floor(Number(redeemPoints) || 0));
+    const clamped = Math.min(points, maxRedeemPoints);
+    return clamped * (loyaltySettings.currencyPerPoint || 0);
+  }, [loyaltySettings, maxRedeemPoints, redeemPoints]);
+
+  const total = Math.max(0, subtotal + shippingCost - discount - redeemPointsValue);
 
   const canPlaceOrder = useMemo(() => {
     const basic =
@@ -298,15 +353,54 @@ export default function CheckoutPage() {
     return Boolean(basic && items.length > 0);
   }, [phone, firstName, address1, city, country, items.length]);
 
+  const customerEmail = useMemo(
+    () => user?.email || email.trim() || undefined,
+    [user?.email, email]
+  );
+
+  const validateCoupon = async (code: string) => {
+    setCouponLoading(true);
+    setCouponMsg(null);
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code,
+          subtotal,
+          shipping: shippingCost,
+          customerEmail,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data?.ok) {
+        throw new Error(data?.error || "Invalid coupon.");
+      }
+      setAppliedCoupon({
+        code: data.data.code,
+        discount: data.data.discount ?? 0,
+        description: data.data.description ?? null,
+        freeShippingApplied: Boolean(data.data.freeShippingApplied),
+      });
+      setCoupon(data.data.code);
+    } catch (err: any) {
+      setAppliedCoupon(null);
+      setCouponMsg(err?.message || "Failed to apply coupon.");
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
   const applyCoupon = () => {
     const code = coupon.trim();
     if (!code) return;
-    setAppliedCoupon(code);
+    validateCoupon(code);
   };
 
   const clearCoupon = () => {
     setAppliedCoupon(null);
     setCoupon("");
+    setCouponMsg(null);
   };
 
   const placeOrder = async () => {
@@ -337,6 +431,10 @@ export default function CheckoutPage() {
           shippingMethod: "standard",
           paymentMethod: payment,
           items,
+          couponCode: appliedCoupon?.code ?? undefined,
+          redeemPoints: loyaltySettings?.enabled && user
+            ? Math.floor(Number(redeemPoints) || 0)
+            : undefined,
         }),
       });
 
@@ -354,6 +452,48 @@ export default function CheckoutPage() {
       setSubmitting(false);
     }
   };
+
+  useEffect(() => {
+    if (!appliedCoupon?.code) return;
+    validateCoupon(appliedCoupon.code);
+  }, [subtotal, shippingCost, customerEmail]);
+
+  useEffect(() => {
+    const raw = Math.floor(Number(redeemPoints) || 0);
+    if (!redeemPoints || raw <= 0) {
+      setRedeemMsg(null);
+      return;
+    }
+    if (maxRedeemPoints > 0 && raw > maxRedeemPoints) {
+      setRedeemMsg(`Max redeemable points: ${maxRedeemPoints}.`);
+      return;
+    }
+    if (loyaltySettings?.minRedeemPoints && raw < loyaltySettings.minRedeemPoints) {
+      setRedeemMsg(`Minimum redeem points: ${loyaltySettings.minRedeemPoints}.`);
+      return;
+    }
+    setRedeemMsg(null);
+  }, [loyaltySettings?.minRedeemPoints, maxRedeemPoints, redeemPoints]);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      if (!customerEmail) return;
+      try {
+        const res = await fetch("/api/account/loyalty", { cache: "no-store" });
+        const payload = await res.json().catch(() => ({}));
+        if (!active) return;
+        if (res.ok && payload?.ok) {
+          setAvailablePoints(payload.data?.points ?? 0);
+        }
+      } catch {
+        // ignore
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [customerEmail]);
 
   return (
     <div className="min-h-screen bg-white text-neutral-900">
@@ -648,8 +788,7 @@ export default function CheckoutPage() {
                   <div className="mt-6 rounded-3xl border border-neutral-200 bg-neutral-50 p-4">
                     <p className="text-sm font-medium">Coupon</p>
                     <p className="mt-1 text-xs text-neutral-500">
-                      Try <span className="font-medium">LUX10</span> or{" "}
-                      <span className="font-medium">SHIPFREE</span>
+                      Enter a coupon code to apply discounts or free shipping.
                     </p>
 
                     <div className="mt-3 flex gap-2">
@@ -661,16 +800,17 @@ export default function CheckoutPage() {
                       />
                       <button
                         onClick={applyCoupon}
-                        className="rounded-2xl bg-neutral-900 px-5 py-3 text-sm font-medium text-white hover:bg-neutral-800"
+                        disabled={couponLoading}
+                        className="rounded-2xl bg-neutral-900 px-5 py-3 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-60"
                       >
-                        Apply
+                        {couponLoading ? "Applying..." : "Apply"}
                       </button>
                     </div>
 
                     {appliedCoupon ? (
                       <div className="mt-3 flex items-center justify-between">
                         <span className="text-xs text-neutral-600">
-                          Applied: <span className="font-medium">{appliedCoupon}</span>
+                          Applied: <span className="font-medium">{appliedCoupon.code}</span>
                         </span>
                         <button
                           onClick={clearCoupon}
@@ -680,7 +820,58 @@ export default function CheckoutPage() {
                         </button>
                       </div>
                     ) : null}
+
+                    {couponMsg ? (
+                      <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                        {couponMsg}
+                      </div>
+                    ) : null}
                   </div>
+
+                  {loyaltySettings?.enabled ? (
+                    <div className="mt-6 rounded-3xl border border-neutral-200 bg-neutral-50 p-4">
+                      <p className="text-sm font-medium">Loyalty points</p>
+                      {user ? (
+                        <>
+                          <p className="mt-1 text-xs text-neutral-500">
+                            You have <span className="font-medium">{availablePoints}</span> points.
+                          </p>
+
+                          <div className="mt-3 flex gap-2">
+                            <input
+                              value={redeemPoints}
+                              onChange={(e) => setRedeemPoints(e.target.value)}
+                              className="w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none placeholder:text-neutral-400"
+                              placeholder={`Max ${maxRedeemPoints}`}
+                              inputMode="numeric"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setRedeemPoints(String(maxRedeemPoints))}
+                              className="rounded-2xl border border-neutral-200 px-4 py-3 text-xs font-medium text-neutral-900 hover:bg-neutral-50"
+                            >
+                              Use max
+                            </button>
+                          </div>
+
+                          <div className="mt-2 flex items-center justify-between text-xs text-neutral-500">
+                            <span>Value</span>
+                            <span>PKR {Math.round(redeemPointsValue).toLocaleString("en-PK")}</span>
+                          </div>
+
+                          {redeemMsg ? (
+                            <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                              {redeemMsg}
+                            </div>
+                          ) : null}
+                        </>
+                      ) : (
+                        <p className="mt-2 text-xs text-neutral-500">
+                          Log in to redeem points during checkout.
+                        </p>
+                      )}
+                    </div>
+                  ) : null}
 
                   {/* Totals */}
                 <div className="mt-6 space-y-3">
@@ -700,6 +891,14 @@ export default function CheckoutPage() {
                         {discount > 0 ? `- ${formatMoney(discount)}` : "0"}
                       </p>
                     </div>
+                    {redeemPointsValue > 0 ? (
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm text-neutral-500">Loyalty</p>
+                        <p className="text-sm text-neutral-700">
+                          - {formatMoney(redeemPointsValue)}
+                        </p>
+                      </div>
+                    ) : null}
 
                     <div className="my-4 border-t border-neutral-200" />
 

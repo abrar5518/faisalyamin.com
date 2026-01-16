@@ -408,7 +408,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
                 Explore {title} Collections
               </h2>
               <p className="mt-2 text-sm text-neutral-600">
-                Browse specific subcategories to find exactly what you're looking for
+                Browse specific subcategories to find exactly what you&apos;re looking for
               </p>
             </div>
 
@@ -448,7 +448,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-sm font-semibold text-neutral-900">
-                    Can't find what you're looking for?
+                    Can&apos;t find what you&apos;re looking for?
                   </p>
                   <p className="mt-1 text-sm text-neutral-600">
                     Browse all products in {title} or contact our team for personalized recommendations.
@@ -487,11 +487,11 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
               </div>
             </div>
 
-            <aside className="lg:col-span-4 lg:self-start">
+            <aside className="lg:col-span-4 lg:self-start lg:sticky lg:top-6">
               <div className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-7 lg:sticky lg:top-24">
                 <p className="text-sm font-semibold">Need help choosing?</p>
                 <p className="mt-2 text-sm text-neutral-600">
-                  Share your budget + preferred brand, we'll recommend the best options in this category.
+                  Share your budget + preferred brand, we&apos;ll recommend the best options in this category.
                 </p>
 
                 <div className="mt-5 grid gap-2">

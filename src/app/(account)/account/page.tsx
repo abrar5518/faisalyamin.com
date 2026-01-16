@@ -94,6 +94,8 @@ export default function AccountOverviewPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [wishlistCount, setWishlistCount] = useState<number | null>(null);
+  const [loyaltyPoints, setLoyaltyPoints] = useState<number | null>(null);
+  const [pointValue, setPointValue] = useState<number | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -139,6 +141,28 @@ export default function AccountOverviewPage() {
       }
     }
     loadWishlist();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    async function loadLoyalty() {
+      try {
+        const res = await fetch("/api/account/loyalty", { cache: "no-store" });
+        const payload = await res.json();
+        if (!res.ok) return;
+        if (active) {
+          setLoyaltyPoints(payload?.data?.points ?? 0);
+          const rule = payload?.data?.settings;
+          setPointValue(rule?.currencyPerPoint ?? null);
+        }
+      } catch {
+        if (active) setLoyaltyPoints(0);
+      }
+    }
+    loadLoyalty();
     return () => {
       active = false;
     };
@@ -193,6 +217,16 @@ export default function AccountOverviewPage() {
           title="Total spend"
           value={loading ? "..." : `PKR ${stats.totalSpend.toLocaleString()}`}
           hint="Lifetime account value"
+          href="/account/orders"
+        />
+        <StatCard
+          title="Points"
+          value={loyaltyPoints === null ? "..." : String(loyaltyPoints)}
+          hint={
+            pointValue
+              ? `Worth PKR ${Math.round((loyaltyPoints ?? 0) * pointValue).toLocaleString()}`
+              : "Rewards balance"
+          }
           href="/account/orders"
         />
         <StatCard

@@ -39,6 +39,7 @@ export async function GET(req: NextRequest) {
         phone: u.profile?.phone ?? customer?.phone ?? null,
         city: u.profile?.city ?? customer?.city ?? null,
         country: u.profile?.country ?? customer?.country ?? null,
+        loyaltyPoints: customer?.loyaltyPoints ?? 0,
         totalOrders,
         totalSpent,
         lastOrderAt,

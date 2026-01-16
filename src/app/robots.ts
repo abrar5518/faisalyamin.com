@@ -14,8 +14,18 @@ export default function robots(): MetadataRoute.Robots {
           "/login",
           "/signup",
           "/api",
+          "/portal",
         ],
       },
+    ],
+    sitemap: [
+      "https://sahoolat.pk/sitemap.xml",
+      "https://sahoolat.pk/sitemap/pages.xml",
+      "https://sahoolat.pk/sitemap/products.xml",
+      "https://sahoolat.pk/sitemap/categories.xml",
+      "https://sahoolat.pk/sitemap/subcategories.xml",
+      "https://sahoolat.pk/sitemap/blogs.xml",
+      "https://sahoolat.pk/sitemap/authors.xml",
     ],
   };
 }

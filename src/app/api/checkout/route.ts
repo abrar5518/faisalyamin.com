@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/customerAuth";
+import { getLoyaltySettings, clampRedeem, computeEarnedPoints } from "@/lib/loyalty";
+import { validateCoupon } from "@/lib/coupons";
 
 const ItemSchema = z.object({
   id: z.string().min(1),
@@ -32,6 +34,8 @@ const CheckoutSchema = z.object({
   shippingMethod: z.enum(["standard", "express"]),
   paymentMethod: z.literal("cod"),
   items: z.array(ItemSchema).min(1),
+  couponCode: z.string().optional(),
+  redeemPoints: z.number().int().nonnegative().optional(),
 });
 
 function parseMoney(value: string | number | null | undefined, fallback = 0) {
@@ -97,7 +101,65 @@ export async function POST(req: NextRequest) {
     const freeShippingThreshold = parseMoney(storeSettings?.freeShippingThreshold, 1000);
     const defaultShippingFee = parseMoney(storeSettings?.defaultShippingFee, 500);
     const shipping = subtotal >= freeShippingThreshold ? 0 : defaultShippingFee;
-    const total = Math.max(0, subtotal + shipping);
+    let discount = 0;
+    let normalizedCoupon: string | null = null;
+    let couponDiscountForLoyalty = 0;
+    let loyaltyDiscount = 0;
+    let loyaltyPointsRedeemed = 0;
+    let loyaltyPointsEarned = 0;
+
+    if (payload.couponCode) {
+      const validation = await validateCoupon({
+        code: payload.couponCode,
+        subtotal,
+        shipping,
+        customerEmail: payload.customer.email,
+      });
+
+      if (!validation.ok || !validation.coupon) {
+        return NextResponse.json(
+          { ok: false, error: validation.error || "Invalid coupon." },
+          { status: 400 }
+        );
+      }
+
+      discount = validation.discount;
+      couponDiscountForLoyalty = validation.freeShippingApplied ? 0 : discount;
+      normalizedCoupon = validation.code ?? validation.coupon.code;
+    }
+
+    const loyaltySettings = await getLoyaltySettings();
+    const isLoggedIn = Boolean(loggedInUserId);
+    if (payload.redeemPoints && payload.redeemPoints > 0) {
+      if (!isLoggedIn) {
+        return NextResponse.json(
+          { ok: false, error: "Login required to redeem points." },
+          { status: 401 }
+        );
+      }
+      if (!payload.customer.email) {
+        return NextResponse.json({ ok: false, error: "Email required for redemption." }, { status: 400 });
+      }
+      const existingCustomer = await prisma.customer.findUnique({
+        where: { email: payload.customer.email },
+      });
+      const availablePoints = existingCustomer?.loyaltyPoints ?? 0;
+      const redeem = clampRedeem({
+        requestedPoints: payload.redeemPoints,
+        availablePoints,
+        subtotal: Math.max(0, subtotal - couponDiscountForLoyalty),
+        rule: loyaltySettings,
+      });
+      if (redeem.redeemPoints <= 0) {
+        return NextResponse.json({ ok: false, error: "Not enough points to redeem." }, { status: 400 });
+      }
+      loyaltyPointsRedeemed = redeem.redeemPoints;
+      loyaltyDiscount = redeem.redeemValue;
+    }
+
+    const netSubtotal = Math.max(0, subtotal - couponDiscountForLoyalty - loyaltyDiscount);
+    loyaltyPointsEarned = computeEarnedPoints(netSubtotal, loyaltySettings);
+    const total = Math.max(0, subtotal + shipping - discount - loyaltyDiscount);
 
     const fullName = [payload.customer.firstName, payload.customer.lastName]
       .filter((x) => (x ?? "").trim().length > 0)
@@ -141,25 +203,49 @@ export async function POST(req: NextRequest) {
           },
         });
 
-    const order = await prisma.order.create({
-      data: {
-        customerId: customer.id,
-        status: "PENDING",
-        subtotal,
-        shipping,
-        total,
-        paymentMethod: "cod",
-        items: {
-          create: items.map((it) => ({
-            productId: it.productId,
-            qty: it.qty,
-            priceAtPurchase: it.priceAtPurchase,
-            variantLabel: it.variantLabel,
-            sizeLabel: it.sizeLabel,
-          })),
+    const order = await prisma.$transaction(async (tx) => {
+      if (normalizedCoupon) {
+        await tx.coupon.update({
+          where: { code: normalizedCoupon },
+          data: { usedCount: { increment: 1 } },
+        });
+      }
+
+      if (payload.customer.email && loyaltySettings.enabled) {
+        const deltaPoints = loyaltyPointsEarned - loyaltyPointsRedeemed;
+        if (deltaPoints !== 0) {
+          await tx.customer.update({
+            where: { email: payload.customer.email },
+            data: { loyaltyPoints: { increment: deltaPoints } },
+          });
+        }
+      }
+
+      return tx.order.create({
+        data: {
+          customerId: customer.id,
+          status: "PENDING",
+          subtotal,
+          shipping,
+          discount,
+          loyaltyDiscount,
+          loyaltyPointsRedeemed,
+          loyaltyPointsEarned,
+          total,
+          paymentMethod: "cod",
+          couponCode: normalizedCoupon ?? undefined,
+          items: {
+            create: items.map((it) => ({
+              productId: it.productId,
+              qty: it.qty,
+              priceAtPurchase: it.priceAtPurchase,
+              variantLabel: it.variantLabel,
+              sizeLabel: it.sizeLabel,
+            })),
+          },
         },
-      },
-      select: { id: true },
+        select: { id: true },
+      });
     });
 
     return NextResponse.json({ ok: true, data: { orderId: String(order.id) } });

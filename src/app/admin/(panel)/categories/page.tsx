@@ -31,14 +31,6 @@ type AdminCategoryRow = {
   updatedAt?: string | null;
 };
 
-function readToken() {
-  if (typeof window !== "undefined") {
-    const saved = window.localStorage.getItem("adminToken");
-    if (saved) return saved;
-  }
-  return process.env.NEXT_PUBLIC_ADMIN_TOKEN ?? "";
-}
-
 export default function AdminCategoriesPage() {
   const searchParams = useSearchParams();
   const q = (searchParams?.get("q") ?? "").toString();
@@ -46,12 +38,6 @@ export default function AdminCategoriesPage() {
   const [items, setItems] = useState<AdminCategoryRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState<string | null>(null);
-  const [adminToken, setAdminToken] = useState("");
-
-  useEffect(() => {
-    setAdminToken(readToken());
-  }, []);
-
   useEffect(() => {
     let cancelled = false;
     const run = async () => {
@@ -126,15 +112,6 @@ export default function AdminCategoriesPage() {
             </Link>
           </div>
         </div>
-
-        {!adminToken ? (
-          <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
-            Admin token missing. Set `NEXT_PUBLIC_ADMIN_TOKEN` in `.env` and restart, or run in console:
-            <span className="ml-2 rounded bg-white px-2 py-1 text-xs text-amber-800">
-              localStorage.setItem("adminToken", "YOUR_TOKEN")
-            </span>
-          </div>
-        ) : null}
 
         <div className="mt-6">
           {loading ? (

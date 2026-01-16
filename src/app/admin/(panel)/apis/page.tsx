@@ -54,6 +54,16 @@ const ADMIN_APIS = [
     ],
   },
   {
+    group: "Coupons",
+    items: [
+      "GET /api/admin/coupons",
+      "GET /api/admin/coupons?id={id}",
+      "POST /api/admin/coupons",
+      "PUT /api/admin/coupons?id={id}",
+      "DELETE /api/admin/coupons?id={id}",
+    ],
+  },
+  {
     group: "Uploads",
     items: ["POST /api/admin/uploads"],
   },
@@ -72,6 +82,10 @@ const ADMIN_APIS = [
   {
     group: "Store Settings",
     items: ["GET /api/admin/store-settings", "PUT /api/admin/store-settings"],
+  },
+  {
+    group: "Loyalty Settings",
+    items: ["GET /api/admin/loyalty-settings", "PUT /api/admin/loyalty-settings"],
   },
 ];
 
@@ -112,6 +126,14 @@ const PUBLIC_APIS = [
   {
     group: "Store Settings",
     items: ["GET /api/store-settings"],
+  },
+  {
+    group: "Loyalty Settings",
+    items: ["GET /api/loyalty-settings"],
+  },
+  {
+    group: "Coupons",
+    items: ["POST /api/coupons/validate"],
   },
 ];
 

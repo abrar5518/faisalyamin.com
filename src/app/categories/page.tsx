@@ -243,7 +243,7 @@ export default async function CategoriesPage() {
             <div className="lg:col-span-8">
               <p className="text-sm font-semibold">Need help choosing the right collection?</p>
               <p className="mt-2 text-sm text-neutral-600">
-                Tell us your budget and preferred brand. We'll shortlist the best options for you.
+                Tell us your budget and preferred brand. We&apos;ll shortlist the best options for you.
               </p>
             </div>
             <div className="lg:col-span-4 flex gap-2">

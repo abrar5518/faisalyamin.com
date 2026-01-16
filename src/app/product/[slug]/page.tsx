@@ -81,6 +81,16 @@ type RelatedProduct = {
   href: string;
 };
 
+type ReviewItem = {
+  id: number;
+  rating: number;
+  title?: string | null;
+  body: string;
+  createdAt: string;
+  user: { name: string };
+  images: Array<{ url: string; alt?: string | null }>;
+};
+
 function formatPKR(n: number) {
   return `PKR ${n.toLocaleString("en-PK")}`;
 }
@@ -228,6 +238,25 @@ export default async function ProductPage({ params }: PageProps) {
     },
   ];
 
+  const reviewRows = await prisma.productReview.findMany({
+    where: { productId: typedProduct.id, status: "APPROVED" },
+    orderBy: [{ approvedAt: "desc" }, { createdAt: "desc" }],
+    include: {
+      user: { select: { name: true } },
+      images: { orderBy: { sortOrder: "asc" } },
+    },
+  });
+
+  const reviewItems: ReviewItem[] = reviewRows.map((r) => ({
+    id: r.id,
+    rating: r.rating,
+    title: r.title,
+    body: r.body,
+    createdAt: r.createdAt.toISOString(),
+    user: { name: r.user?.name || "Customer" },
+    images: r.images.map((img) => ({ url: img.url, alt: img.alt || undefined })),
+  }));
+
   const productData: ProductData = {
     id: String(typedProduct.id),
     slug,
@@ -235,6 +264,7 @@ export default async function ProductPage({ params }: PageProps) {
     name: typedProduct.name,
     rating: typedProduct.rating ?? 0,
     reviews: typedProduct.reviewsCount ?? 0,
+    reviewItems,
     shortDescription:
       typedProduct.shortDesc ??
       "A premium product with verified authenticity and quality checks.",
@@ -280,6 +310,12 @@ export default async function ProductPage({ params }: PageProps) {
   const descriptionText = typedProduct.shortDesc || stripHtml(typedProduct.descriptionHtml || "");
   const priceValue = Number(typedProduct.price ?? 0);
   const reviewsCount = typedProduct.reviewsCount ?? 0;
+  const schemaReviews = reviewItems.slice(0, 4).map((r) => ({
+    author: r.user.name,
+    ratingValue: r.rating,
+    reviewBody: r.body,
+    datePublished: r.createdAt,
+  }));
 
   return (
     <div className="bg-white text-neutral-900">
@@ -305,6 +341,7 @@ export default async function ProductPage({ params }: PageProps) {
           aggregateRating: reviewsCount
             ? { ratingValue: typedProduct.rating ?? 0, reviewCount: reviewsCount }
             : undefined,
+          reviews: schemaReviews.length ? schemaReviews : undefined,
         })}
       />
       {/* Breadcrumb */}

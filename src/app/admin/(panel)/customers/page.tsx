@@ -11,6 +11,7 @@ type CustomerRow = {
   phone?: string;
   city?: string;
   country?: string;
+  loyaltyPoints: number;
   totalOrders: number;
   totalSpent: number;
   lastOrderAt?: string;
@@ -67,6 +68,7 @@ export default function AdminCustomersPage() {
           phone: c.phone ?? undefined,
           city: c.city ?? undefined,
           country: c.country ?? undefined,
+          loyaltyPoints: c.loyaltyPoints ?? 0,
           totalOrders: c.totalOrders ?? 0,
           totalSpent: Number(c.totalSpent ?? 0),
           lastOrderAt: c.lastOrderAt ?? undefined,
@@ -143,6 +145,9 @@ export default function AdminCustomersPage() {
                   </span>
                   <span className="rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-xs text-neutral-700">
                     Spent: PKR {c.totalSpent.toLocaleString()}
+                  </span>
+                  <span className="rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-xs text-neutral-700">
+                    Points: {c.loyaltyPoints}
                   </span>
                   <span className="rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-xs text-neutral-700">
                     Last: {c.lastOrderAt ?? "-"}

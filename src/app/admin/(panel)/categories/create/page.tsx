@@ -28,6 +28,7 @@ export default function AdminCategoryCreatePage() {
     "<h2>Category details</h2><p>Add long description content here.</p>"
   );
   const [image, setImage] = useState<AdminImage | null>(null);
+  const [isFeatured, setIsFeatured] = useState(false);
   const [metaTitle, setMetaTitle] = useState("");
   const [metaDescription, setMetaDescription] = useState("");
   const [metaKeywords, setMetaKeywords] = useState("");
@@ -54,6 +55,7 @@ export default function AdminCategoryCreatePage() {
           descriptionHtml: descriptionHtml || undefined,
           image: image?.url || undefined,
           imageAlt: image?.alt || undefined,
+          isFeatured,
           metaTitle: metaTitle || undefined,
           metaDescription: metaDescription || undefined,
           metaKeywords: metaKeywords || undefined,
@@ -152,6 +154,19 @@ export default function AdminCategoryCreatePage() {
                   rows={4}
                   placeholder="Short description for this category"
                 />
+              </div>
+
+              <div className="mt-4 flex items-center gap-3 rounded-2xl border border-neutral-200 px-4 py-3">
+                <input
+                  id="featured"
+                  type="checkbox"
+                  checked={isFeatured}
+                  onChange={(e) => setIsFeatured(e.target.checked)}
+                  className="h-4 w-4 rounded border-neutral-300"
+                />
+                <label htmlFor="featured" className="text-sm text-neutral-700">
+                  Featured on home page
+                </label>
               </div>
             </div>
 

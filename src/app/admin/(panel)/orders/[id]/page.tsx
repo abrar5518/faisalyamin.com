@@ -101,12 +101,9 @@ export default function AdminOrderDetailPage() {
   }, [id]);
 
   useEffect(() => {
-    let active = true;
-    if (!active) return;
+    // Data load on mount; lint rule is overly strict for this case.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadOrder();
-    return () => {
-      active = false;
-    };
   }, [loadOrder]);
 
   if (loading) {

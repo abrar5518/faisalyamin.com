@@ -12,9 +12,6 @@ export default function AdminTopbar({ title }: { title: string }) {
     try {
       await Fetch("/api/admin/auth/logout", { method: "POST" });
     } finally {
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("adminToken");
-      }
       router.push("/admin/login");
       router.refresh();
     }
@@ -42,7 +39,7 @@ export default function AdminTopbar({ title }: { title: string }) {
             >
               Logout
             </button>
-            <button className="btn-primary px-4 py-2 text-sm">New</button>
+            <Link href={"/admin/products/create"} className="btn-primary px-4 py-2 text-sm">New</Link>
           </div>
         </div>
       </div>

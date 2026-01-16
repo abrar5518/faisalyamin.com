@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Schema from "@/components/seo/Schema";
+import { breadcrumbSchema } from "@/components/seo/schemas";
 
 const baseUrl = process.env.SITE_URL ?? "http://localhost:3000";
 
@@ -18,8 +20,16 @@ function Container({ children }: { children: React.ReactNode }) {
 }
 
 export default function ReturnsPage() {
+  const baseUrlResolved = baseUrl.replace(/\/$/, "");
+  const breadcrumbItems = baseUrlResolved
+    ? [
+        { name: "Home", item: baseUrlResolved },
+        { name: "Returns", item: `${baseUrlResolved}/returns` },
+      ]
+    : [];
   return (
     <div className="min-h-screen bg-white text-neutral-900">
+      {breadcrumbItems.length ? <Schema data={breadcrumbSchema(breadcrumbItems)} /> : null}
       <div className="border-b border-neutral-200 bg-neutral-50">
         <Container>
           <div className="flex h-10 items-center gap-2 text-xs text-neutral-600">

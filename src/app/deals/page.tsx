@@ -4,6 +4,8 @@ import { withImageParams } from "@/lib/image";
 import { prisma } from "@/lib/prisma";
 import ProductCard, { Product } from "@/components/ProductCard";
 import type { Metadata } from "next";
+import Schema from "@/components/seo/Schema";
+import { absoluteUrl, breadcrumbSchema, collectionPageSchema, itemListSchema } from "@/components/seo/schemas";
 
 const baseUrl = process.env.SITE_URL ?? "";
 
@@ -79,17 +81,38 @@ function buildProducts(rows: any[]): Product[] {
 }
 
 export default async function DealsPage() {
-  const [rows, pageRow] = await Promise.all([
+  const [rows, pageRow, siteSettings] = await Promise.all([
     prisma.product.findMany({
-      where: { isSale: true, isActive: true },
+      where: {
+        isActive: true,
+        OR: [{ isSale: true }, { compareAt: { not: null } }],
+      },
       orderBy: { createdAt: "desc" },
       take: 60,
       include: { images: true },
     }),
     prisma.page.findUnique({ where: { slug: "deals" } }),
+    prisma.siteSettings.findFirst({ orderBy: { id: "asc" } }),
   ]);
 
   const products = buildProducts(rows);
+  const baseUrlResolved = (siteSettings?.siteUrl || baseUrl).replace(/\/$/, "");
+  const pageUrl = baseUrlResolved ? `${baseUrlResolved}/deals` : "";
+  const productItems = baseUrlResolved
+    ? products
+        .map((p) => ({
+          name: p.name,
+          url: absoluteUrl(p.href || `/product/${p.id}`, baseUrlResolved),
+          image: p.image,
+        }))
+        .filter((item) => item.url)
+    : [];
+  const breadcrumbItems = baseUrlResolved
+    ? [
+        { name: "Home", item: baseUrlResolved },
+        { name: "Deals", item: pageUrl },
+      ]
+    : [];
   const richHtml =
     pageRow?.contentHtml ||
     `
@@ -108,6 +131,19 @@ export default async function DealsPage() {
 
   return (
     <div className="min-h-screen bg-white text-neutral-900">
+      {breadcrumbItems.length ? <Schema data={breadcrumbSchema(breadcrumbItems)} /> : null}
+      {pageUrl ? (
+        <Schema
+          data={collectionPageSchema({
+            name: pageRow?.title || "Deals",
+            description: pageRow?.shortDescription || pageRow?.metaDescription || undefined,
+            url: pageUrl,
+          })}
+        />
+      ) : null}
+      {pageUrl && productItems.length ? (
+        <Schema data={itemListSchema({ url: pageUrl, items: productItems })} />
+      ) : null}
       <div className="border-b border-neutral-200 bg-neutral-50">
         <Container>
           <div className="flex h-10 items-center gap-2 text-xs text-neutral-600">
