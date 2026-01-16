@@ -1,5 +1,5 @@
 -- AlterTable
-ALTER TABLE `user` MODIFY `role` ENUM('ADMIN', 'STAFF', 'CUSTOMER') NOT NULL DEFAULT 'CUSTOMER';
+ALTER TABLE `User` MODIFY `role` ENUM('ADMIN', 'STAFF', 'CUSTOMER') NOT NULL DEFAULT 'CUSTOMER';
 
 -- CreateTable
 CREATE TABLE `Session` (
@@ -82,3 +82,4 @@ ALTER TABLE `UserSettings` ADD CONSTRAINT `UserSettings_userId_fkey` FOREIGN KEY
 
 -- AddForeignKey
 ALTER TABLE `AccountAddress` ADD CONSTRAINT `AccountAddress_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+

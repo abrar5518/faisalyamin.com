@@ -1,2 +1,3 @@
 -- AlterTable
-ALTER TABLE `category` ADD COLUMN `isFeatured` BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE `Category` ADD COLUMN `isFeatured` BOOLEAN NOT NULL DEFAULT false;
+

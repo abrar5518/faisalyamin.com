@@ -20,7 +20,6 @@ export async function generateMetadata({ searchParams }: SearchPageProps) {
   const description = query
     ? `Search results for "${query}" on LuxStore.`
     : "Search LuxStore products by name, brand, or keyword.";
-  const shouldIndex = query.length >= 3;
 
   const qs = new URLSearchParams();
   if (query) qs.set("q", query);
@@ -31,7 +30,6 @@ export async function generateMetadata({ searchParams }: SearchPageProps) {
     title,
     description,
     alternates: { canonical },
-    robots: { index: shouldIndex, follow: true },
     openGraph: {
       type: "website",
       title,
