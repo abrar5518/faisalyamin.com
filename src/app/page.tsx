@@ -580,7 +580,7 @@ export default async function HomePage() {
               </p>
             </div>
             <Link href="/categories" className="text-sm font-medium text-neutral-900 hover:underline">
-              View all Categories
+              View all Test
             </Link>
           </div>
 
