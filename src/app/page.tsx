@@ -576,7 +576,7 @@ export default async function HomePage() {
             <div>
               <h2 className="text-2xl font-semibold tracking-tight">Shop by category</h2>
               <p className="mt-2 text-sm text-neutral-600">
-                Browse curated collections made for premium tastes.
+                Browse curated collections made for premium tastes. test
               </p>
             </div>
             <Link href="/categories" className="text-sm font-medium text-neutral-900 hover:underline">
