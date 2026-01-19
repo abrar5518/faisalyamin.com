@@ -360,7 +360,7 @@ export default function SiteFooter() {
 
           {/* Final bar */}
           <div className="mt-10 flex flex-col gap-2 border-t border-neutral-200 pt-6 text-xs text-neutral-500 sm:flex-row sm:items-center sm:justify-between">
-            <p>copyright © {new Date().getFullYear()} Softtex Solution. All rights reserved.</p>
+            <p>Copyright © {new Date().getFullYear()} Softtex Solution. All rights reserved.</p>
             <div className="flex flex-wrap items-center gap-3">
               <Link href="/privacy" className="hover:text-neutral-900">Privacy</Link>
               <span className="text-neutral-300">/</span>

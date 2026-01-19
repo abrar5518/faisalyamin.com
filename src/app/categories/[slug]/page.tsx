@@ -487,8 +487,8 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
               </div>
             </div>
 
-            <aside className="lg:col-span-4 lg:self-start lg:sticky lg:top-6">
-              <div className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-7 lg:sticky lg:top-24">
+            <aside className="lg:col-span-4 lg:self-start">
+              <div className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-7 lg:sticky lg:top-5">
                 <p className="text-sm font-semibold">Need help choosing?</p>
                 <p className="mt-2 text-sm text-neutral-600">
                   Share your budget + preferred brand, we&apos;ll recommend the best options in this category.
