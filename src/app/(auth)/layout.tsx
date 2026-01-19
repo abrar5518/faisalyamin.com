@@ -1,12 +1,19 @@
 // src/app/(auth)/layout.tsx
 import Link from "next/link";
+import Image from "next/image";
+import { prisma } from "@/lib/prisma";
 
 export const metadata = {
   title: "Account access",
   robots: { index: false, follow: false },
 };
 
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
+export default async function AuthLayout({ children }: { children: React.ReactNode }) {
+  const siteSettings = await prisma.siteSettings.findFirst({ orderBy: { id: "asc" } });
+  const siteName = siteSettings?.siteName || "LuxStore";
+  const logoUrl = siteSettings?.logoUrl || null;
+  const logoAlt = siteSettings?.logoAlt || siteName;
+
   return (
     <div className="min-h-screen bg-white text-neutral-900">
       {/* Top bar */}
@@ -32,14 +39,23 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           {/* Left brand panel (desktop) */}
           <div className="hidden lg:col-span-5 lg:block">
             <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-8">
-              <Link href="/" className="flex items-center gap-3">
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-900 text-white text-sm font-semibold">
-                  LX
-                </span>
-                <div className="leading-tight">
-                  <p className="text-sm font-semibold">LuxStore</p>
-                  <p className="text-xs text-neutral-500">Premium eCommerce</p>
-                </div>
+              <Link href="/" aria-label={siteName} className="inline-flex">
+                {logoUrl ? (
+                  <span className="inline-flex h-16 w-40 items-center justify-center overflow-hidden">
+                    <Image
+                      src={logoUrl}
+                      alt={logoAlt}
+                      width={160}
+                      height={64}
+                      className="h-full w-full object-contain"
+                      priority
+                    />
+                  </span>
+                ) : (
+                  <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-neutral-900 text-white text-base font-semibold">
+                    {siteName.slice(0, 2).toUpperCase()}
+                  </span>
+                )}
               </Link>
 
               <h2 className="mt-8 text-2xl font-semibold tracking-tight">

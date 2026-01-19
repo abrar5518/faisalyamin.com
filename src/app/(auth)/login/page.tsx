@@ -54,6 +54,23 @@ function LoginForm() {
   const canSubmit = useMemo(() => {
     return email.trim().length > 3 && password.trim().length >= 6;
   }, [email, password]);
+  const oauthError = useMemo(() => {
+    const code = searchParams.get("error");
+    if (!code) return null;
+    if (code === "google_not_configured") {
+      return "Google login is not configured yet. Please try email login or contact support.";
+    }
+    if (code === "oauth_state") {
+      return "Your login session expired. Please try again.";
+    }
+    if (code === "oauth_failed") {
+      return "Google login failed. Please try again.";
+    }
+    if (code === "oauth_role") {
+      return "This Google account cannot be used for customer login.";
+    }
+    return "Unable to complete Google login. Please try again.";
+  }, [searchParams]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -85,38 +102,25 @@ function LoginForm() {
 
   return (
     <div className="mx-auto w-full max-w-xl">
-      {/* Mobile brand header */}
-      <div className="mb-6 lg:hidden">
-        <Link href="/" className="flex items-center gap-3">
-          <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-900 text-white text-sm font-semibold">
-            LX
-          </span>
-          <div className="leading-tight">
-            <p className="text-sm font-semibold">LuxStore</p>
-            <p className="text-xs text-neutral-500">Premium eCommerce</p>
-          </div>
-        </Link>
-      </div>
-
       <Card>
         <div className="flex items-end justify-between gap-6">
           <div>
             <p className="text-sm font-semibold">Welcome back</p>
             <p className="mt-1 text-sm text-neutral-600">
-              Sign in to manage orders, addresses and security.
+              Sign in to track orders, save favorites, and manage your account.
             </p>
           </div>
           <Link
             href="/signup"
-            className="text-sm font-medium text-neutral-900 hover:underline"
+            className="rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-neutral-800 whitespace-nowrap"
           >
             Create account
           </Link>
         </div>
 
-        {error ? (
+        {error || oauthError ? (
           <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-700">
-            {error}
+            {error || oauthError}
           </div>
         ) : null}
 
@@ -176,19 +180,16 @@ function LoginForm() {
             </div>
           </div>
 
-          {/* Social buttons UI (optional) */}
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid gap-2">
             <button
               type="button"
+              onClick={() => {
+                const next = searchParams.get("next") || "/account";
+                window.location.href = `/api/auth/google?next=${encodeURIComponent(next)}`;
+              }}
               className="rounded-2xl border border-neutral-200 px-5 py-3 text-sm font-medium hover:bg-neutral-50"
             >
-              Google
-            </button>
-            <button
-              type="button"
-              className="rounded-2xl border border-neutral-200 px-5 py-3 text-sm font-medium hover:bg-neutral-50"
-            >
-              Apple
+              Continue with Google
             </button>
           </div>
 
