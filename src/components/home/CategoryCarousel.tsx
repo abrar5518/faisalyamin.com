@@ -80,7 +80,7 @@ export default function CategoryCarousel({
             Shop by category
           </h2>
           <p className="mt-2 text-sm text-neutral-600">
-            Browse curated collections made for premium tastes. test
+            Browse curated collections made for premium tastes.
           </p>
         </div>
 
@@ -89,7 +89,7 @@ export default function CategoryCarousel({
             href="/categories"
             className="text-sm font-medium text-neutral-900 hover:underline"
           >
-            View all Test
+            View all
           </Link>
 
           <button

@@ -395,7 +395,7 @@ export default function ProductClient({ product }: { product: ProductData }) {
               </div>
 
               {/* Thumbnails */}
-              <div className="mt-4 grid grid-cols-4 gap-3">
+              <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
                 {images.map((img, idx) => {
                   const active = image === img;
                   return (
@@ -446,7 +446,7 @@ export default function ProductClient({ product }: { product: ProductData }) {
                     {product.name}
                   </h1>
 
-                  <div className="mt-3 flex items-center justify-between gap-3">
+                  <div className="mt-3 flex flex-wrap items-center gap-3 sm:flex-nowrap sm:justify-between">
                     <Stars rating={product.rating} reviews={product.reviews} />
                     <button
                       type="button"
@@ -471,7 +471,7 @@ export default function ProductClient({ product }: { product: ProductData }) {
 
                   {/* Price block */}
                   <div className="mt-6 rounded-2xl border border-neutral-200 bg-neutral-50 p-5">
-                    <div className="flex items-start justify-between gap-3">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                       <div>
                         <p className="text-xs text-neutral-500">Price</p>
                         <div className="mt-1 flex items-baseline gap-3">
@@ -549,7 +549,7 @@ export default function ProductClient({ product }: { product: ProductData }) {
                   {product.sizes.length ? (
                     <div className="mt-7">
                       <p className="text-sm font-medium">Size</p>
-                      <div className="mt-3 flex gap-2">
+                      <div className="mt-3 flex flex-wrap gap-2">
                         {product.sizes.map((s) => {
                           const active = size === s;
                           return (

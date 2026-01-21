@@ -609,7 +609,7 @@ export default async function HomePage() {
 
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {featuredList.map((p) => (
-              <ProductCard key={p.id} p={p} variant="compact" />
+              <ProductCard key={p.id} p={p} variant="sale" />
             ))}
           </div>
         </Container>
