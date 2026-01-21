@@ -17,22 +17,14 @@ export type CategoryCardVariant = "default" | "premium" | "compact";
 function DefaultCard({ c }: { c: Category }) {
   return (
     <Link
-      href={c.href}
-      className="group overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-    >
-      <div className="p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <p className="text-lg font-semibold">{c.name}</p>
-            <p className="mt-1 text-sm text-neutral-600">{c.description}</p>
-          </div>
-          <span className="shrink-0 rounded-2xl bg-neutral-100 px-3 py-2 text-xs text-neutral-700 group-hover:bg-neutral-900 group-hover:text-white">
-            Explore
-          </span>
-        </div>
-      </div>
+  href={c.href}
+  className="group block rounded-3xl border border-neutral-200 bg-white
+             shadow-sm transition hover:shadow-md"
+>
 
-      <div className="h-36 overflow-hidden bg-neutral-100">
+      {/* Image wrapper */}
+      <div className="relative h-28 overflow-hidden rounded-t-3xl bg-neutral-100 sm:h-36">
+
         <Image
           src={withImageParams(c.image, "auto=format&fit=crop&w=900&q=80")}
           alt={c.imageAlt || c.name}
@@ -42,7 +34,23 @@ function DefaultCard({ c }: { c: Category }) {
           loading="lazy"
         />
       </div>
+
+      {/* Content */}
+      <div className="flex h-[calc(100%-7rem)] items-center justify-between gap-3 p-4 sm:p-6">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold sm:text-lg">{c.name}</p>
+          <p className="mt-1 hidden text-sm text-neutral-600 sm:block">
+            {c.description}
+          </p>
+        </div>
+
+        <span className="hidden shrink-0 rounded-2xl bg-neutral-100 px-3 py-2 text-xs text-neutral-700
+                     group-hover:bg-neutral-900 group-hover:text-white sm:inline-flex">
+          Explore
+        </span>
+      </div>
     </Link>
+
   );
 }
 

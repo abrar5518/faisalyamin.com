@@ -10,6 +10,8 @@ import { prisma } from "@/lib/prisma";
 import type { Metadata } from "next";
 import Schema from "@/components/seo/Schema";
 import { absoluteUrl, faqSchema, itemListSchema, organizationSchema, websiteSchema } from "@/components/seo/schemas";
+import CategoryCarousel from "@/components/home/CategoryCarousel";
+
 type Testimonial = {
   name: string;
   title: string;
@@ -295,12 +297,12 @@ export default async function HomePage() {
   const categoryList: Category[] =
     categoryRows.length > 0
       ? categoryRows.map((c) => ({
-          name: c.name ?? "Category",
-          description: c.description ?? "",
-          href: `/categories/${c.slug ?? ""}`,
-          image: c.image || IMAGES.catWatches,
-          imageAlt: c.imageAlt || c.name || "Category",
-        }))
+        name: c.name ?? "Category",
+        description: c.description ?? "",
+        href: `/categories/${c.slug ?? ""}`,
+        image: c.image || IMAGES.catWatches,
+        imageAlt: c.imageAlt || c.name || "Category",
+      }))
       : [];
 
   const featuredList: Product[] =
@@ -359,47 +361,47 @@ export default async function HomePage() {
     items:
       pageRow?.homeBenefits && pageRow.homeBenefits.length
         ? pageRow.homeBenefits.map((item) => ({
-            title: item.title ?? "Benefit",
-            desc: item.desc ?? "",
-          }))
+          title: item.title ?? "Benefit",
+          desc: item.desc ?? "",
+        }))
         : [
-            {
-              title: "Durable stainless steel build",
-              desc:
-                "Rugged, rust-resistant bodies that handle gym bags, travel days, and daily commutes with ease.",
-            },
-            {
-              title: "Insulation that lasts",
-              desc:
-                "Vacuum insulation keeps water cold for hours and helps hot drinks stay warm on long days.",
-            },
-            {
-              title: "Eco-friendly by design",
-              desc:
-                "Reusable, BPA-free materials reduce single-use plastic and fit a sustainable lifestyle.",
-            },
-          ],
+          {
+            title: "Durable stainless steel build",
+            desc:
+              "Rugged, rust-resistant bodies that handle gym bags, travel days, and daily commutes with ease.",
+          },
+          {
+            title: "Insulation that lasts",
+            desc:
+              "Vacuum insulation keeps water cold for hours and helps hot drinks stay warm on long days.",
+          },
+          {
+            title: "Eco-friendly by design",
+            desc:
+              "Reusable, BPA-free materials reduce single-use plastic and fit a sustainable lifestyle.",
+          },
+        ],
   };
   const homeFaqItems =
     pageRow?.homeFaqItems && pageRow.homeFaqItems.length
       ? pageRow.homeFaqItems.map((item) => ({
-          q: item.question ?? "Question",
-          a: item.answer ?? "",
-        }))
+        q: item.question ?? "Question",
+        a: item.answer ?? "",
+      }))
       : [
-          {
-            q: "Are these bottles BPA-free and safe for daily use?",
-            a: "Yes. Our premium water bottles are made with food-grade, BPA-free materials.",
-          },
-          {
-            q: "How long does the insulation keep water cold?",
-            a: "Most bottles keep drinks cold for up to 24 hours, depending on size and usage.",
-          },
-          {
-            q: "Do you offer sizes for travel or gym use?",
-            a: "We stock multiple sizes so you can choose a compact travel bottle or a larger fitness bottle.",
-          },
-        ];
+        {
+          q: "Are these bottles BPA-free and safe for daily use?",
+          a: "Yes. Our premium water bottles are made with food-grade, BPA-free materials.",
+        },
+        {
+          q: "How long does the insulation keep water cold?",
+          a: "Most bottles keep drinks cold for up to 24 hours, depending on size and usage.",
+        },
+        {
+          q: "Do you offer sizes for travel or gym use?",
+          a: "We stock multiple sizes so you can choose a compact travel bottle or a larger fitness bottle.",
+        },
+      ];
   const homeFaq = {
     title: pageRow?.homeFaqTitle || "FAQs about our water bottles",
     intro: pageRow?.homeFaqIntro || "Quick answers to help you choose the right bottle for your routine.",
@@ -412,55 +414,55 @@ export default async function HomePage() {
   const testimonialsList: Testimonial[] =
     pageRow?.homeTestimonials && pageRow.homeTestimonials.length
       ? pageRow.homeTestimonials.map((item) => ({
-          name: item.name ?? "Customer",
-          title: item.title ?? "",
-          quote: item.quote ?? "",
-          avatar: item.avatarUrl || IMAGES.a1,
-          rating: typeof item.rating === "number" ? item.rating : 5,
-        }))
+        name: item.name ?? "Customer",
+        title: item.title ?? "",
+        quote: item.quote ?? "",
+        avatar: item.avatarUrl || IMAGES.a1,
+        rating: typeof item.rating === "number" ? item.rating : 5,
+      }))
       : testimonialsFallback;
   const baseUrlResolved = (siteSettings?.siteUrl || baseUrl).replace(/\/$/, "");
   const brandName = siteSettings?.siteName?.trim() || "LuxStore";
   const logoUrl = siteSettings?.logoUrl || siteSettings?.siteIconUrl || "/favicon.ico";
   const orgAddress = contact
     ? {
-        streetAddress: [contact.addressLine1, contact.addressLine2].filter(Boolean).join(", ") || undefined,
-        addressLocality: contact.city || undefined,
-        addressRegion: contact.state || undefined,
-        postalCode: contact.postalCode || undefined,
-        addressCountry: contact.country || "PK",
-      }
+      streetAddress: [contact.addressLine1, contact.addressLine2].filter(Boolean).join(", ") || undefined,
+      addressLocality: contact.city || undefined,
+      addressRegion: contact.state || undefined,
+      postalCode: contact.postalCode || undefined,
+      addressCountry: contact.country || "PK",
+    }
     : { addressCountry: "PK" };
   const productListSource = [...featuredList, ...saleList];
   const seenProductUrls = new Set<string>();
   const productListItems = baseUrlResolved
     ? productListSource
-        .map((p) => {
-          const href = p.href || `/product/${p.id}`;
-          const url = absoluteUrl(href, baseUrlResolved);
-          return { name: p.name, url, image: p.image };
-        })
-        .filter((item) => {
-          if (!item.url || seenProductUrls.has(item.url)) return false;
-          seenProductUrls.add(item.url);
-          return true;
-        })
+      .map((p) => {
+        const href = p.href || `/product/${p.id}`;
+        const url = absoluteUrl(href, baseUrlResolved);
+        return { name: p.name, url, image: p.image };
+      })
+      .filter((item) => {
+        if (!item.url || seenProductUrls.has(item.url)) return false;
+        seenProductUrls.add(item.url);
+        return true;
+      })
     : [];
   const faqSchemaItems = homeFaq.items.filter((f) => f.q && f.a);
   const orgReviewSchema = baseUrlResolved
     ? {
-        "@context": "https://schema.org",
-        "@type": "Organization",
-        name: brandName,
-        url: baseUrlResolved,
-        review: testimonialsList.map((t) => ({
-          "@type": "Review",
-          name: `Review from ${t.name}`,
-          reviewBody: t.quote,
-          author: { "@type": "Person", name: t.name },
-          reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5" },
-        })),
-      }
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: brandName,
+      url: baseUrlResolved,
+      review: testimonialsList.map((t) => ({
+        "@type": "Review",
+        name: `Review from ${t.name}`,
+        reviewBody: t.quote,
+        author: { "@type": "Person", name: t.name },
+        reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5" },
+      })),
+    }
     : null;
 
   return (
@@ -515,7 +517,7 @@ export default async function HomePage() {
                 </Link>
               </div>
 
-              <div className="mt-10 grid grid-cols-3 gap-3 sm:gap-4">
+              <div className="mt-10 grid gap-3 sm:grid-cols-3 sm:gap-4">
                 {hero.highlights.map((x) => (
                   <div key={x.k} className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
                     <p className="text-sm font-semibold">{x.k}</p>
@@ -532,12 +534,12 @@ export default async function HomePage() {
                   alt="Luxury watch hero"
                   width={1400}
                   height={900}
-                  className="h-[440px] w-full object-cover"
+                  className="h-64 w-full object-cover sm:h-80 lg:h-[440px]"
                   loading="lazy"
                 />
               </div>
 
-              <div className="absolute bottom-6 left-6 rounded-2xl border border-white/30 bg-white/90 p-4 backdrop-blur">
+              <div className="relative mt-4 w-full max-w-lg rounded-2xl border border-white/30 bg-white/90 p-4 backdrop-blur sm:absolute sm:bottom-6 sm:left-6 sm:mt-0 sm:w-auto sm:max-w-none">
                 <p className="text-sm font-semibold">{hero.cardTitle}</p>
                 <p className="mt-1 text-xs text-neutral-600">
                   {hero.cardSubtitle}
@@ -572,30 +574,21 @@ export default async function HomePage() {
       {/* ? Categories (now after Sale) */}
       <section className="border-t border-neutral-200 bg-white py-14">
         <Container>
-          <div className="flex items-end justify-between gap-6">
-            <div>
-              <h2 className="text-2xl font-semibold tracking-tight">Shop by category</h2>
-              <p className="mt-2 text-sm text-neutral-600">
-                Browse curated collections made for premium tastes. test
-              </p>
-            </div>
-            <Link href="/categories" className="text-sm font-medium text-neutral-900 hover:underline">
-              View all Test
-            </Link>
-          </div>
+          <CategoryCarousel
+            items={categoryList}
+            // title="Shop by category"
+            // subtitle="Browse curated collections made for premium tastes. test"
+            // viewAllHref="/categories"
+            // viewAllLabel="View all Test"
+          />
 
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {categoryList.map((c) => (
-              <CategoryCard key={c.name} c={c} />
-            ))}
-          </div>
         </Container>
       </section>
 
       {/* ? Featured Products (now after Categories) */}
       <section className="border-t border-neutral-200 bg-neutral-50 py-14">
         <Container>
-          <div className="flex items-end justify-between gap-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h2 className="text-2xl font-semibold tracking-tight">Featured products</h2>
               <p className="mt-2 text-sm text-neutral-600">
@@ -616,7 +609,7 @@ export default async function HomePage() {
 
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {featuredList.map((p) => (
-              <ProductCard key={p.id} p={p} variant="compact"  />
+              <ProductCard key={p.id} p={p} variant="compact" />
             ))}
           </div>
         </Container>
@@ -643,110 +636,110 @@ export default async function HomePage() {
       {/* Testimonials */}
       <section className="border-t border-neutral-200 bg-white py-14">
         <Container>
-  {/* Section shell (adds premium separation without changing page layout) */}
-  <section className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8">
-    <div className="flex items-end justify-between gap-6">
-      <div>
-        <p className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-[11px] font-medium text-neutral-700">
-          <span className="h-1.5 w-1.5 rounded-full bg-neutral-900" />
-          Trusted by buyers
-        </p>
+          {/* Section shell (adds premium separation without changing page layout) */}
+          <section className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-[11px] font-medium text-neutral-700">
+                  <span className="h-1.5 w-1.5 rounded-full bg-neutral-900" />
+                  Trusted by buyers
+                </p>
 
-        <h2 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl">
-          What customers say
-        </h2>
-        <p className="mt-2 text-sm text-neutral-600">
-          Real reviews from real buyers.
-        </p>
-      </div>
-
-      <Link
-        href="/reviews"
-        className="inline-flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-50"
-      >
-        Read more
-        <span className="text-neutral-400">→</span>
-      </Link>
-    </div>
-
-    <div className="mt-8 grid gap-4 lg:grid-cols-3">
-      {testimonialsList.map((t) => (
-        <article
-          key={t.name}
-          className="group rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-        >
-          {/* top row */}
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <Image
-                src={withImageParams(t.avatar, "auto=format&fit=crop&w=160&q=80")}
-                alt={t.name}
-                width={160}
-                height={160}
-                className="h-11 w-11 rounded-2xl object-cover"
-                loading="lazy"
-              />
-              <div className="leading-tight">
-                <p className="text-sm font-semibold text-neutral-900">{t.name}</p>
-                <div className="mt-1 inline-flex items-center gap-2">
-                  <span className="rounded-full border border-neutral-200 bg-neutral-50 px-2.5 py-1 text-[11px] text-neutral-700">
-                    {t.title}
-                  </span>
-                  <span className="hidden sm:inline text-neutral-300">•</span>
-                  <span className="hidden sm:inline text-[11px] text-neutral-500">
-                    Verified buyer
-                  </span>
-                </div>
+                <h2 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl">
+                  What customers say
+                </h2>
+                <p className="mt-2 text-sm text-neutral-600">
+                  Real reviews from real buyers.
+                </p>
               </div>
+
+              <Link
+                href="/reviews"
+                className="inline-flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-50"
+              >
+                Read more
+                <span className="text-neutral-400">→</span>
+              </Link>
             </div>
 
-            {/* rating */}
-            <div className="flex items-center gap-1" aria-label={`${t.rating} star rating`}>
-              {Array.from({ length: 5 }).map((_, i) => {
-                const filled = i < Math.round(t.rating);
-                return (
-                  <svg
-                    key={i}
-                    viewBox="0 0 20 20"
-                    className={filled ? "h-4 w-4 text-neutral-900" : "h-4 w-4 text-neutral-300"}
-                    fill="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path d="M10 2.25l2.47 5.01 5.53.8-4 3.9.94 5.52L10 14.8l-4.94 2.68.94-5.52-4-3.9 5.53-.8L10 2.25z" />
-                  </svg>
-                );
-              })}
+            <div className="mt-8 grid gap-4 lg:grid-cols-3">
+              {testimonialsList.map((t) => (
+                <article
+                  key={t.name}
+                  className="group rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                >
+                  {/* top row */}
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <Image
+                        src={withImageParams(t.avatar, "auto=format&fit=crop&w=160&q=80")}
+                        alt={t.name}
+                        width={160}
+                        height={160}
+                        className="h-11 w-11 rounded-2xl object-cover"
+                        loading="lazy"
+                      />
+                      <div className="leading-tight">
+                        <p className="text-sm font-semibold text-neutral-900">{t.name}</p>
+                        <div className="mt-1 inline-flex items-center gap-2">
+                          <span className="rounded-full border border-neutral-200 bg-neutral-50 px-2.5 py-1 text-[11px] text-neutral-700">
+                            {t.title}
+                          </span>
+                          <span className="hidden sm:inline text-neutral-300">•</span>
+                          <span className="hidden sm:inline text-[11px] text-neutral-500">
+                            Verified buyer
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* rating */}
+                    <div className="flex items-center gap-1" aria-label={`${t.rating} star rating`}>
+                      {Array.from({ length: 5 }).map((_, i) => {
+                        const filled = i < Math.round(t.rating);
+                        return (
+                          <svg
+                            key={i}
+                            viewBox="0 0 20 20"
+                            className={filled ? "h-4 w-4 text-neutral-900" : "h-4 w-4 text-neutral-300"}
+                            fill="currentColor"
+                            aria-hidden="true"
+                          >
+                            <path d="M10 2.25l2.47 5.01 5.53.8-4 3.9.94 5.52L10 14.8l-4.94 2.68.94-5.52-4-3.9 5.53-.8L10 2.25z" />
+                          </svg>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* quote */}
+                  <div className="mt-5">
+                    <p className="text-sm text-neutral-700 leading-relaxed">
+                      <span className="mr-1 align-top text-xl font-semibold text-neutral-300">
+                        “
+                      </span>
+                      {t.quote}
+                      <span className="ml-1 align-bottom text-xl font-semibold text-neutral-300">
+                        ”
+                      </span>
+                    </p>
+                  </div>
+
+                  {/* bottom micro */}
+                  <div className="mt-6 flex items-center justify-between border-t border-neutral-200 pt-4">
+                    <p className="text-xs text-neutral-500">Fast delivery • Secure checkout</p>
+                    <Link
+                      href="/reviews"
+                      className="text-xs font-medium text-neutral-900 group-hover:underline"
+                    >
+                      Read story
+                    </Link>
+                  </div>
+                </article>
+              ))}
             </div>
-          </div>
-
-          {/* quote */}
-          <div className="mt-5">
-            <p className="text-sm text-neutral-700 leading-relaxed">
-              <span className="mr-1 align-top text-xl font-semibold text-neutral-300">
-                “
-              </span>
-              {t.quote}
-              <span className="ml-1 align-bottom text-xl font-semibold text-neutral-300">
-                ”
-              </span>
-            </p>
-          </div>
-
-          {/* bottom micro */}
-          <div className="mt-6 flex items-center justify-between border-t border-neutral-200 pt-4">
-            <p className="text-xs text-neutral-500">Fast delivery • Secure checkout</p>
-            <Link
-              href="/reviews"
-              className="text-xs font-medium text-neutral-900 group-hover:underline"
-            >
-              Read story
-            </Link>
-          </div>
-        </article>
-      ))}
-    </div>
-  </section>
-</Container>
+          </section>
+        </Container>
 
       </section>
 
@@ -797,7 +790,7 @@ export default async function HomePage() {
       {/* FAQs */}
       <section className="border-t border-neutral-200 bg-white py-14">
         <Container>
-          <div className="flex items-end justify-between gap-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h2 className="text-2xl font-semibold tracking-tight">{homeFaq.title}</h2>
               <p className="mt-2 text-sm text-neutral-600">

@@ -165,15 +165,15 @@ function FeaturedCard({ p }: { p: Product }) {
 /** ✅ Variant 3: Compact (BIG image, clean, minimal, modern) */
 function CompactCard({ p }: { p: Product }) {
   return (
-    <div className="group rounded-3xl border border-neutral-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-5">
+    <div className="group rounded-3xl border border-neutral-200 bg-white p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-5">
       <Link href={p.href ?? `/product/${p.id}`} >
-        <div className="relative h-64 overflow-hidden rounded-2xl bg-neutral-100 sm:h-72">
+        <div className="relative h-80 overflow-hidden rounded-2xl bg-neutral-100 sm:h-64 lg:h-72">
           <Image
             src={withImageParams(p.image, "auto=format&fit=crop&w=1200&q=85")}
             alt={p.imageAlt || p.name}
             width={1200}
             height={900}
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+            className="h-full w-full object-contain object-top transition duration-500 group-hover:scale-105 sm:object-cover sm:object-center"
             loading="lazy"
           />
           {p.badge ? (
@@ -205,7 +205,7 @@ function CompactCard({ p }: { p: Product }) {
       </div>
 
       <div className="mt-4">
-        <Link href={p.href ?? `/product/${p.id}`} className="btn-primary w-full px-4 py-3 text-sm">
+        <Link href={p.href ?? `/product/${p.id}`} className="btn-primary w-full px-4 py-2.5 text-xs sm:py-3 sm:text-sm">
           View details
         </Link>
       </div>
