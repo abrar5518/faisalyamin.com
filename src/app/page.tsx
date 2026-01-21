@@ -517,7 +517,7 @@ export default async function HomePage() {
                 </Link>
               </div>
 
-              <div className="mt-10 grid gap-3 sm:grid-cols-3 sm:gap-4">
+              <div className="mt-10 hidden sm:grid gap-3 sm:grid-cols-3 sm:gap-4 ">
                 {hero.highlights.map((x) => (
                   <div key={x.k} className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
                     <p className="text-sm font-semibold">{x.k}</p>
@@ -527,7 +527,7 @@ export default async function HomePage() {
               </div>
             </div>
 
-            <div className="relative">
+            <div className="relative hidden md:block">
               <div className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm">
                 <Image
                   src={withImageParams(hero.image, "auto=format&fit=crop&w=1400&q=80")}
