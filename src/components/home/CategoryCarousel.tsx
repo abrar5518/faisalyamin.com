@@ -1,10 +1,10 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import CategoryCard, { Category } from "@/components/CategoryCard";
+import CategoryCard, { type Category } from "@/components/CategoryCard";
 
-const GAP = 16;
+const GAP = 16; // gap-4 = 16px
 
 export default function CategoryCarousel({
   items,
@@ -15,7 +15,18 @@ export default function CategoryCarousel({
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(false);
 
-  const update = () => {
+  /* ----------------------------
+     Helpers
+  -----------------------------*/
+
+  const getCardWidth = () => {
+    const el = scrollerRef.current;
+    if (!el) return 0;
+    const card = el.querySelector<HTMLElement>("[data-category-card]");
+    return card ? card.offsetWidth : 0;
+  };
+
+  const updateControls = () => {
     const el = scrollerRef.current;
     if (!el) return;
     const max = el.scrollWidth - el.clientWidth - 1;
@@ -23,30 +34,53 @@ export default function CategoryCarousel({
     setCanNext(el.scrollLeft < max);
   };
 
-  const scrollBy = (dir: number) => {
+  const scrollByOneCard = (dir: number) => {
     const el = scrollerRef.current;
     if (!el) return;
-    el.scrollBy({ left: dir * (el.clientWidth / 2), behavior: "smooth" });
+
+    const cardWidth = getCardWidth();
+    if (!cardWidth) return;
+
+    el.scrollBy({
+      left: dir * (cardWidth + GAP),
+      behavior: "smooth",
+    });
   };
 
+  /* ----------------------------
+     Effects
+  -----------------------------*/
+
   useEffect(() => {
-    update();
+    updateControls();
     const el = scrollerRef.current;
     if (!el) return;
-    el.addEventListener("scroll", update, { passive: true });
-    return () => el.removeEventListener("scroll", update);
+
+    el.addEventListener("scroll", updateControls, { passive: true });
+    window.addEventListener("resize", updateControls);
+
+    return () => {
+      el.removeEventListener("scroll", updateControls);
+      window.removeEventListener("resize", updateControls);
+    };
   }, []);
+
+  if (!items?.length) return null;
+
+  /* ----------------------------
+     Render
+  -----------------------------*/
 
   return (
     <>
-      {/* HEADER (UNCHANGED, arrows back) */}
+      {/* HEADER */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight">
             Shop by category
           </h2>
           <p className="mt-2 text-sm text-neutral-600">
-            Browse curated collections made for premium tastes.
+            Browse curated collections made for premium tastes. test
           </p>
         </div>
 
@@ -59,21 +93,25 @@ export default function CategoryCarousel({
           </Link>
 
           <button
-            onClick={() => scrollBy(-1)}
+            type="button"
+            onClick={() => scrollByOneCard(-1)}
             disabled={!canPrev}
             className="inline-flex h-9 w-9 items-center justify-center rounded-xl
                        border border-neutral-200 bg-white text-neutral-700
-                       disabled:opacity-40"
+                       transition hover:bg-neutral-50 disabled:opacity-40"
+            aria-label="Scroll categories left"
           >
             ‹
           </button>
 
           <button
-            onClick={() => scrollBy(1)}
+            type="button"
+            onClick={() => scrollByOneCard(1)}
             disabled={!canNext}
             className="inline-flex h-9 w-9 items-center justify-center rounded-xl
                        border border-neutral-200 bg-white text-neutral-700
-                       disabled:opacity-40"
+                       transition hover:bg-neutral-50 disabled:opacity-40"
+            aria-label="Scroll categories right"
           >
             ›
           </button>
@@ -84,6 +122,7 @@ export default function CategoryCarousel({
       <div
         ref={scrollerRef}
         className="mt-8 overflow-x-auto scroll-smooth
+                   pt-3 pb-10
                    [-ms-overflow-style:none]
                    [scrollbar-width:none]
                    [&::-webkit-scrollbar]:hidden"
@@ -94,15 +133,15 @@ export default function CategoryCarousel({
             grid grid-flow-col gap-4
             auto-cols-[calc((100%-16px)/2)]
             lg:auto-cols-[calc((100%-32px)/3)]
-            pb-10 pt-2
           "
         >
           {items.map((c) => (
-            <div key={c.name} className="relative overflow-visible">
-              {/* SLIDE WRAPPER — IMPORTANT */}
-              <div className="relative">
-                <CategoryCard c={c} />
-              </div>
+            <div
+              key={c.name}
+              data-category-card
+              className="overflow-visible"
+            >
+              <CategoryCard c={c} />
             </div>
           ))}
         </div>
