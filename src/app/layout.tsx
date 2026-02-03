@@ -5,6 +5,7 @@ import { Inter, Playfair_Display } from "next/font/google";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import { CartProvider } from "@/components/cart/CartProvider";
+import WhatsAppFloatButton from "@/components/WhatsAppFloatButton";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -81,6 +82,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <SiteHeader />
           {children}
           <SiteFooter />
+          <WhatsAppFloatButton />
         </CartProvider>
       </body>
     </html>

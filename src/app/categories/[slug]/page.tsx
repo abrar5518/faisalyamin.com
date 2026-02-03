@@ -327,7 +327,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
           </div>
 
           {/* Grid */}
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="mt-8 grid gap-3 max-[420px]:grid-cols-1 min-[421px]:grid-cols-2 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {pageProducts.map((p) => (
               <ProductCard key={p.id} p={p} variant="compact" />
             ))}

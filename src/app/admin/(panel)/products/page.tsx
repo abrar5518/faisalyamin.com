@@ -137,9 +137,10 @@ export default function AdminProductsPage() {
               rows={pageItems.map((p) => {
                 const status = p.isActive ? "published" : "draft";
                 const category = p.categoryName || p.categorySlug || "-";
+                const displayName = p.name.length > 20 ? `${p.name.slice(0, 20)}...` : p.name;
                 return [
                   <div key={p.id} className="min-w-0">
-                    <p className="truncate font-medium">{p.name}</p>
+                    <p className="truncate font-medium">{displayName}</p>
                     <p className="text-xs text-neutral-500">{p.slug}</p>
                   </div>,
                   <span

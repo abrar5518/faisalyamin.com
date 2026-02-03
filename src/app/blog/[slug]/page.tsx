@@ -128,7 +128,7 @@ function ProductInsert({ title, items }: { title: string; items: ProductCardItem
           Shop all
         </Link>
       </div>
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+      <div className="mt-4 grid gap-3 max-[420px]:grid-cols-1 min-[421px]:grid-cols-2 sm:gap-4 sm:grid-cols-2">
         {items.map((p) => (
           <ProductCard key={p.id} p={p} variant="compact" />
         ))}

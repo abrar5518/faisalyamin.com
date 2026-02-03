@@ -167,7 +167,7 @@ export default function SiteHeader() {
                   alt={brandName}
                   width={160}
                   height={40}
-                  className="h-10 w-auto object-contain"
+                  className="h-10 w-auto max-w-[140px] sm:max-w-[160px] object-contain"
                   loading="lazy"
                 />
               ) : (
@@ -315,4 +315,3 @@ export default function SiteHeader() {
     </>
   );
 }
-

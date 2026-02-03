@@ -164,16 +164,17 @@ function FeaturedCard({ p }: { p: Product }) {
 
 /** ✅ Variant 3: Compact (BIG image, clean, minimal, modern) */
 function CompactCard({ p }: { p: Product }) {
+  const displayName = p.name.length > 28 ? `${p.name.slice(0, 28)}...` : p.name;
   return (
     <div className="group rounded-3xl border border-neutral-200 bg-white p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-5">
       <Link href={p.href ?? `/product/${p.id}`} >
-        <div className="relative h-80 overflow-hidden rounded-2xl bg-neutral-100 sm:h-64 lg:h-72">
+        <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-neutral-100 sm:h-64 sm:aspect-auto lg:h-72">
           <Image
             src={withImageParams(p.image, "auto=format&fit=crop&w=1200&q=85")}
             alt={p.imageAlt || p.name}
             width={1200}
             height={900}
-            className="h-full w-full object-contain object-top transition duration-500 group-hover:scale-105 sm:object-cover sm:object-center"
+            className="h-full w-full object-cover object-center transition duration-500 group-hover:scale-105"
             loading="lazy"
           />
           {p.badge ? (
@@ -185,7 +186,7 @@ function CompactCard({ p }: { p: Product }) {
       </Link>
       <div className="mt-4 flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold">{p.name}</p>
+          <p className="truncate text-sm font-semibold">{displayName}</p>
           <p className="mt-1 text-xs text-neutral-500">
             Verified • Box & Papers • Fast Shipping
           </p>

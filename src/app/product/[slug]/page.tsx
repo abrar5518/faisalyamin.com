@@ -378,7 +378,7 @@ export default async function ProductPage({ params }: PageProps) {
             </Link>
           </div>
 
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-6 grid gap-3 max-[420px]:grid-cols-1 min-[421px]:grid-cols-2 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {relatedProducts.map((p) => (
               <ProductCard key={p.id} p={p} variant="sale" />
             ))}

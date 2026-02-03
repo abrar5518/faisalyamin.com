@@ -300,7 +300,7 @@ export default async function SubcategoryPage({ params, searchParams }: PageProp
               </p>
             </div>
 
-            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-4 grid gap-3 max-[420px]:grid-cols-1 min-[421px]:grid-cols-2 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {pageProducts.map((p) => (
                 <ProductCard key={p.id} p={p} variant="compact" />
               ))}
