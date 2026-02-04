@@ -501,7 +501,7 @@ export default async function HomePage() {
               </div>
 
               <h1 className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
-                {hero.title}
+                {hero.title} Abrar Hussain
               </h1>
 
               <p className="mt-4 text-neutral-600 sm:text-lg">
