@@ -178,14 +178,14 @@ export default function SignupPage() {
               label="First name"
               value={firstName}
               onChange={setFirstName}
-              placeholder="Adil"
+              placeholder="Abrar"
               required
             />
             <Field
               label="Last name"
               value={lastName}
               onChange={setLastName}
-              placeholder="Khan"
+              placeholder="Hussain"
               required
             />
           </div>
