@@ -94,9 +94,9 @@ export default function SaleCarousel({
     <>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Sale & deals</h2>
+          <h2 className="text-2xl font-semibold tracking-tight">Latest Deals on Water Bottles in Pakistan</h2>
           <p className="mt-2 text-sm text-neutral-600">
-            Limited-time offers on verified pieces. Grab them before they&apos;re gone.
+            Discover trending designs at the best water bottle price in Pakistan. From stylish gym bottles to durable stainless steel options, choose what fits your lifestyle.
           </p>
         </div>
 
