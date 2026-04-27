@@ -30,6 +30,8 @@ type AdminProductRow = {
   price: string | number;
   categoryName?: string | null;
   categorySlug?: string | null;
+  categoryNames?: string[] | null;
+  categorySlugs?: string[] | null;
   updatedAt?: string | null;
 };
 
@@ -136,7 +138,10 @@ export default function AdminProductsPage() {
               headers={["Product", "Status", "Price", "Stock", "Category", "Updated", "Actions"]}
               rows={pageItems.map((p) => {
                 const status = p.isActive ? "published" : "draft";
-                const category = p.categoryName || p.categorySlug || "-";
+                const category =
+                  p.categoryNames?.length
+                    ? p.categoryNames.join(", ")
+                    : p.categoryName || p.categorySlug || "-";
                 const displayName = p.name.length > 20 ? `${p.name.slice(0, 20)}...` : p.name;
                 return [
                   <div key={p.id} className="min-w-0">

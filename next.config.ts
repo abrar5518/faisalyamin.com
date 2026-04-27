@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    unoptimized: false,
+    unoptimized: true,
     remotePatterns: [
       { protocol: "https", hostname: "sahoolat.pk" },
       { protocol: "https", hostname: "www.sahoolat.pk" },

@@ -6,6 +6,8 @@ import { requireAdmin } from "@/lib/adminAuth";
 const CreateProductSchema = z.object({
   categorySlug: z.string().min(2),
   subcategorySlug: z.string().min(2).optional(),
+  categorySlugs: z.array(z.string().min(2)).optional(),
+  subcategorySlugs: z.array(z.string().min(2)).optional(),
 
   name: z.string().min(2),
   slug: z.string().min(2),
@@ -63,6 +65,8 @@ const CreateProductSchema = z.object({
 const UpdateProductSchema = z.object({
   categorySlug: z.string().min(2).optional(),
   subcategorySlug: z.string().min(2).nullable().optional(),
+  categorySlugs: z.array(z.string().min(2)).optional(),
+  subcategorySlugs: z.array(z.string().min(2)).optional(),
 
   name: z.string().min(2).optional(),
   slug: z.string().min(2).optional(),
@@ -117,6 +121,40 @@ const UpdateProductSchema = z.object({
     .optional(),
 });
 
+function uniqueStrings(values: Array<string | null | undefined>) {
+  return Array.from(new Set(values.filter((value): value is string => Boolean(value))));
+}
+
+async function resolveCategoryIds(slugs: string[]) {
+  const categories = await prisma.category.findMany({
+    where: { slug: { in: slugs } },
+    select: { id: true, slug: true },
+  });
+  const found = new Set(categories.map((category) => category.slug));
+  const missing = slugs.filter((slug) => !found.has(slug));
+  return { categories, missing };
+}
+
+async function resolveSubcategoryIds(slugs: string[], categoryIds: number[]) {
+  const subcategories = await prisma.subcategory.findMany({
+    where: { slug: { in: slugs } },
+    select: { id: true, slug: true, categoryId: true },
+  });
+  const found = new Set(subcategories.map((subcategory) => subcategory.slug));
+  const missing = slugs.filter((slug) => !found.has(slug));
+  const allowedCategoryIds = new Set(categoryIds);
+  const invalid = subcategories.filter((subcategory) => !allowedCategoryIds.has(subcategory.categoryId));
+  return { subcategories, missing, invalid };
+}
+
+function productCategoryData(categoryIds: number[]) {
+  return categoryIds.map((categoryId) => ({ categoryId }));
+}
+
+function productSubcategoryData(subcategoryIds: number[]) {
+  return subcategoryIds.map((subcategoryId) => ({ subcategoryId }));
+}
+
 export async function GET(req: NextRequest) {
   const auth = requireAdmin(req);
   if (!auth.ok) {
@@ -136,6 +174,14 @@ export async function GET(req: NextRequest) {
         include: {
           category: { select: { name: true, slug: true } },
           subcategory: { select: { name: true, slug: true } },
+          productCategories: {
+            include: { category: { select: { name: true, slug: true } } },
+            orderBy: { id: "asc" },
+          },
+          productSubcategories: {
+            include: { subcategory: { select: { name: true, slug: true } } },
+            orderBy: { id: "asc" },
+          },
           images: true,
         },
       });
@@ -149,8 +195,18 @@ export async function GET(req: NextRequest) {
         subcategoryId,
         category,
         subcategory,
+        productCategories,
+        productSubcategories,
         ...clean
       } = item;
+      const categories = productCategories.length
+        ? productCategories.map((link) => link.category)
+        : [category];
+      const subcategories = productSubcategories.length
+        ? productSubcategories.map((link) => link.subcategory)
+        : subcategory
+          ? [subcategory]
+          : [];
 
       return NextResponse.json({
         ok: true,
@@ -160,6 +216,10 @@ export async function GET(req: NextRequest) {
           subcategorySlug: subcategory?.slug ?? null,
           categoryName: category.name,
           subcategoryName: subcategory?.name ?? null,
+          categorySlugs: categories.map((c) => c.slug),
+          subcategorySlugs: subcategories.map((s) => s.slug),
+          categoryNames: categories.map((c) => c.name),
+          subcategoryNames: subcategories.map((s) => s.name),
         },
       });
     }
@@ -169,6 +229,14 @@ export async function GET(req: NextRequest) {
       include: {
         category: { select: { name: true, slug: true } },
         subcategory: { select: { name: true, slug: true } },
+        productCategories: {
+          include: { category: { select: { name: true, slug: true } } },
+          orderBy: { id: "asc" },
+        },
+        productSubcategories: {
+          include: { subcategory: { select: { name: true, slug: true } } },
+          orderBy: { id: "asc" },
+        },
         images: true,
       },
     });
@@ -179,8 +247,18 @@ export async function GET(req: NextRequest) {
         subcategoryId,
         category,
         subcategory,
+        productCategories,
+        productSubcategories,
         ...clean
       } = item;
+      const categories = productCategories.length
+        ? productCategories.map((link) => link.category)
+        : [category];
+      const subcategories = productSubcategories.length
+        ? productSubcategories.map((link) => link.subcategory)
+        : subcategory
+          ? [subcategory]
+          : [];
 
       return {
         ...clean,
@@ -188,6 +266,10 @@ export async function GET(req: NextRequest) {
         subcategorySlug: subcategory?.slug ?? null,
         categoryName: category.name,
         subcategoryName: subcategory?.name ?? null,
+        categorySlugs: categories.map((c) => c.slug),
+        subcategorySlugs: subcategories.map((s) => s.slug),
+        categoryNames: categories.map((c) => c.name),
+        subcategoryNames: subcategories.map((s) => s.name),
       };
     });
 
@@ -211,43 +293,45 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const data = CreateProductSchema.parse(body);
 
-    // 1) Resolve category by slug -> id
-    const categoryRecord = await prisma.category.findUnique({
-      where: { slug: data.categorySlug },
-      select: { id: true },
-    });
-
-    if (!categoryRecord) {
+    const categorySlugs = uniqueStrings([...(data.categorySlugs ?? []), data.categorySlug]);
+    const { categories, missing: missingCategories } = await resolveCategoryIds(categorySlugs);
+    if (missingCategories.length || categories.length === 0) {
       return NextResponse.json(
         { ok: false, error: "Category not found" },
         { status: 404 }
       );
     }
 
-    // 2) Resolve optional subcategory by slug -> id (validate belongs to category)
+    const categoryRecord = categories.find((category) => category.slug === data.categorySlug) ?? categories[0];
+    const categoryIds = categories.map((category) => category.id);
+    const subcategorySlugs = uniqueStrings([...(data.subcategorySlugs ?? []), data.subcategorySlug]);
     let subcategoryId: number | null = null;
+    let subcategoryIds: number[] = [];
 
-    if (data.subcategorySlug) {
-      const sub = await prisma.subcategory.findUnique({
-        where: { slug: data.subcategorySlug },
-        select: { id: true, categoryId: true },
-      });
-
-      if (!sub) {
+    if (subcategorySlugs.length > 0) {
+      const {
+        subcategories,
+        missing: missingSubcategories,
+        invalid,
+      } = await resolveSubcategoryIds(subcategorySlugs, categoryIds);
+      if (missingSubcategories.length) {
         return NextResponse.json(
           { ok: false, error: "Subcategory not found" },
           { status: 404 }
         );
       }
-
-      if (sub.categoryId !== categoryRecord.id) {
+      if (invalid.length) {
         return NextResponse.json(
-          { ok: false, error: "Subcategory does not belong to category" },
+          { ok: false, error: "Subcategory does not belong to selected categories" },
           { status: 400 }
         );
       }
 
-      subcategoryId = sub.id;
+      subcategoryIds = subcategories.map((subcategory) => subcategory.id);
+      subcategoryId =
+        subcategories.find((subcategory) => subcategory.slug === data.subcategorySlug)?.id ??
+        subcategories[0]?.id ??
+        null;
     }
 
     // 3) Create product (+ optional images) and return slugs (not ids)
@@ -289,10 +373,26 @@ export async function POST(req: NextRequest) {
             })),
             }
           : undefined,
+        productCategories: {
+          create: productCategoryData(categoryIds),
+        },
+        productSubcategories: subcategoryIds.length
+          ? {
+              create: productSubcategoryData(subcategoryIds),
+            }
+          : undefined,
       },
       include: {
         category: { select: { name: true, slug: true } },
         subcategory: { select: { name: true, slug: true } },
+        productCategories: {
+          include: { category: { select: { name: true, slug: true } } },
+          orderBy: { id: "asc" },
+        },
+        productSubcategories: {
+          include: { subcategory: { select: { name: true, slug: true } } },
+          orderBy: { id: "asc" },
+        },
         images: true,
       },
     });
@@ -302,8 +402,12 @@ export async function POST(req: NextRequest) {
       subcategoryId: _subId,
       category: createdCategory,
       subcategory: createdSubcategory,
+      productCategories,
+      productSubcategories,
       ...clean
     } = created;
+    const createdCategories = productCategories.map((link) => link.category);
+    const createdSubcategories = productSubcategories.map((link) => link.subcategory);
 
     return NextResponse.json(
       {
@@ -314,6 +418,10 @@ export async function POST(req: NextRequest) {
           subcategorySlug: createdSubcategory?.slug ?? null,
           categoryName: createdCategory?.name ?? null,
           subcategoryName: createdSubcategory?.name ?? null,
+          categorySlugs: createdCategories.map((category) => category.slug),
+          subcategorySlugs: createdSubcategories.map((subcategory) => subcategory.slug),
+          categoryNames: createdCategories.map((category) => category.name),
+          subcategoryNames: createdSubcategories.map((subcategory) => subcategory.name),
         },
       },
       { status: 201 }
@@ -360,13 +468,21 @@ export async function PUT(req: NextRequest) {
     const {
       categorySlug: _categorySlug,
       subcategorySlug: _subcategorySlug,
+      categorySlugs: _categorySlugs,
+      subcategorySlugs: _subcategorySlugs,
       images,
       ...updateData
     } = data;
 
     const existing = await prisma.product.findUnique({
       where: { slug },
-      select: { id: true, categoryId: true },
+      select: {
+        id: true,
+        categoryId: true,
+        subcategoryId: true,
+        productCategories: { select: { categoryId: true } },
+        productSubcategories: { select: { subcategoryId: true } },
+      },
     });
 
     if (!existing) {
@@ -374,41 +490,55 @@ export async function PUT(req: NextRequest) {
     }
 
     let categoryId = existing.categoryId;
-    if (_categorySlug) {
-      const category = await prisma.category.findUnique({
-        where: { slug: _categorySlug },
-        select: { id: true },
-      });
-
-      if (!category) {
+    let categoryIds = existing.productCategories.length
+      ? existing.productCategories.map((link) => link.categoryId)
+      : [existing.categoryId];
+    const shouldSyncCategories = _categorySlugs !== undefined || _categorySlug !== undefined;
+    if (shouldSyncCategories) {
+      const slugs = uniqueStrings([...(_categorySlugs ?? []), _categorySlug]);
+      const { categories, missing } = await resolveCategoryIds(slugs);
+      if (missing.length || categories.length === 0) {
         return NextResponse.json({ ok: false, error: "Category not found" }, { status: 404 });
       }
 
-      categoryId = category.id;
+      categoryIds = categories.map((category) => category.id);
+      categoryId = categories.find((category) => category.slug === _categorySlug)?.id ?? categories[0].id;
     }
 
     let subcategoryId: number | null | undefined = undefined;
-    if (_subcategorySlug !== undefined) {
-      if (_subcategorySlug === null) {
+    let subcategoryIds = existing.productSubcategories.length
+      ? existing.productSubcategories.map((link) => link.subcategoryId)
+      : existing.subcategoryId
+        ? [existing.subcategoryId]
+        : [];
+    const shouldSyncSubcategories = _subcategorySlugs !== undefined || _subcategorySlug !== undefined;
+    if (shouldSyncSubcategories) {
+      if (_subcategorySlug === null && _subcategorySlugs === undefined) {
         subcategoryId = null;
+        subcategoryIds = [];
       } else {
-        const sub = await prisma.subcategory.findUnique({
-          where: { slug: _subcategorySlug },
-          select: { id: true, categoryId: true },
-        });
+        const slugs = uniqueStrings([...(_subcategorySlugs ?? []), _subcategorySlug]);
+        if (slugs.length === 0) {
+          subcategoryId = null;
+          subcategoryIds = [];
+        } else {
+          const { subcategories, missing, invalid } = await resolveSubcategoryIds(slugs, categoryIds);
+          if (missing.length) {
+            return NextResponse.json({ ok: false, error: "Subcategory not found" }, { status: 404 });
+          }
+          if (invalid.length) {
+            return NextResponse.json(
+              { ok: false, error: "Subcategory does not belong to selected categories" },
+              { status: 400 }
+            );
+          }
 
-        if (!sub) {
-          return NextResponse.json({ ok: false, error: "Subcategory not found" }, { status: 404 });
+          subcategoryIds = subcategories.map((subcategory) => subcategory.id);
+          subcategoryId =
+            subcategories.find((subcategory) => subcategory.slug === _subcategorySlug)?.id ??
+            subcategories[0]?.id ??
+            null;
         }
-
-        if (sub.categoryId !== categoryId) {
-          return NextResponse.json(
-            { ok: false, error: "Subcategory does not belong to category" },
-            { status: 400 }
-          );
-        }
-
-        subcategoryId = sub.id;
       }
     }
 
@@ -418,6 +548,18 @@ export async function PUT(req: NextRequest) {
         ...updateData,
         categoryId,
         subcategoryId,
+        productCategories: shouldSyncCategories
+          ? {
+              deleteMany: {},
+              create: productCategoryData(categoryIds),
+            }
+          : undefined,
+        productSubcategories: shouldSyncSubcategories || shouldSyncCategories
+          ? {
+              deleteMany: {},
+              create: productSubcategoryData(subcategoryIds),
+            }
+          : undefined,
         images: images
           ? {
               deleteMany: {},
@@ -432,6 +574,14 @@ export async function PUT(req: NextRequest) {
       include: {
         category: { select: { name: true, slug: true } },
         subcategory: { select: { name: true, slug: true } },
+        productCategories: {
+          include: { category: { select: { name: true, slug: true } } },
+          orderBy: { id: "asc" },
+        },
+        productSubcategories: {
+          include: { subcategory: { select: { name: true, slug: true } } },
+          orderBy: { id: "asc" },
+        },
         images: true,
       },
     });
@@ -441,8 +591,12 @@ export async function PUT(req: NextRequest) {
       subcategoryId: _subId,
       category,
       subcategory,
+      productCategories,
+      productSubcategories,
       ...clean
     } = updated;
+    const categories = productCategories.map((link) => link.category);
+    const subcategories = productSubcategories.map((link) => link.subcategory);
 
     return NextResponse.json({
       ok: true,
@@ -452,6 +606,10 @@ export async function PUT(req: NextRequest) {
         subcategorySlug: subcategory?.slug ?? null,
         categoryName: category.name,
         subcategoryName: subcategory?.name ?? null,
+        categorySlugs: categories.map((c) => c.slug),
+        subcategorySlugs: subcategories.map((s) => s.slug),
+        categoryNames: categories.map((c) => c.name),
+        subcategoryNames: subcategories.map((s) => s.name),
       },
     });
   } catch (err: any) {

@@ -36,6 +36,8 @@ export type AdminProduct = {
   // dropdowns
   categoryId: string;
   subcategoryId?: string;
+  categoryIds?: string[];
+  subcategoryIds?: string[];
 
   // sizes via chips
   sizes: string[];

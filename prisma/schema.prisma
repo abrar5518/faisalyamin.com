@@ -54,6 +54,7 @@ model Category {
   metaKeywords  String?       @db.Text
   subcategories Subcategory[]
   products      Product[]
+  productCategories ProductCategory[]
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 }
@@ -73,6 +74,7 @@ model Subcategory {
 
   category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   products    Product[]
+  productSubcategories ProductSubcategory[]
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -111,6 +113,8 @@ model Product {
 
   category        Category      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   subcategory     Subcategory?  @relation(fields: [subcategoryId], references: [id], onDelete: SetNull)
+  productCategories ProductCategory[]
+  productSubcategories ProductSubcategory[]
 
   images          ProductImage[]
   orderItems      OrderItem[]
@@ -123,6 +127,34 @@ model Product {
 
   @@index([categoryId])
   @@index([subcategoryId])
+}
+
+model ProductCategory {
+  id         Int      @id @default(autoincrement())
+  productId  Int
+  categoryId Int
+  createdAt  DateTime @default(now())
+
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, categoryId])
+  @@index([categoryId])
+  @@index([productId])
+}
+
+model ProductSubcategory {
+  id            Int         @id @default(autoincrement())
+  productId     Int
+  subcategoryId Int
+  createdAt     DateTime    @default(now())
+
+  product       Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  subcategory   Subcategory @relation(fields: [subcategoryId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, subcategoryId])
+  @@index([subcategoryId])
+  @@index([productId])
 }
 
 enum BlogProductPlacement {

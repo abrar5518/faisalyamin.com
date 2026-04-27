@@ -131,6 +131,8 @@ export default function AdminProductEditPage() {
           metaKeywords: "",
           categoryId: "",
           subcategoryId: "",
+          categoryIds: [],
+          subcategoryIds: [],
           sizes: [],
           heroImage: undefined,
           gallery: [],
@@ -175,6 +177,12 @@ export default function AdminProductEditPage() {
           metaKeywords: api.metaKeywords ?? "",
           categoryId: api.categorySlug ?? "",
           subcategoryId: api.subcategorySlug ?? "",
+          categoryIds: Array.isArray(api.categorySlugs) ? api.categorySlugs : api.categorySlug ? [api.categorySlug] : [],
+          subcategoryIds: Array.isArray(api.subcategorySlugs)
+            ? api.subcategorySlugs
+            : api.subcategorySlug
+              ? [api.subcategorySlug]
+              : [],
           status: api.isActive ? "active" : "draft",
           isFeatured: Boolean(api.isFeatured),
           ratingAvg: api.rating ?? 0,
@@ -213,7 +221,7 @@ export default function AdminProductEditPage() {
     if (!p.price.trim()) return "Price required";
     if (!p.shortDescription.trim()) return "Short description required";
     if (!p.seoDescriptionHtml.trim()) return "Long description (HTML) required";
-    if (!p.categoryId) return "Category required";
+    if (!(p.categoryIds?.length || p.categoryId)) return "Category required";
     if (!p.heroImage) return "Hero image required";
     for (const v of p.variants) {
       if (!v.label.trim()) return "Each variant needs a name";
@@ -236,8 +244,10 @@ export default function AdminProductEditPage() {
       const compareAt = p.compareAt ? parseMoney(p.compareAt) : null;
 
       const payload = {
-        categorySlug: p.categoryId,
-        subcategorySlug: p.subcategoryId || null,
+        categorySlug: p.categoryIds?.[0] || p.categoryId,
+        subcategorySlug: p.subcategoryIds?.[0] || p.subcategoryId || null,
+        categorySlugs: p.categoryIds?.length ? p.categoryIds : p.categoryId ? [p.categoryId] : [],
+        subcategorySlugs: p.subcategoryIds?.length ? p.subcategoryIds : p.subcategoryId ? [p.subcategoryId] : [],
         name: p.name,
         slug: p.slug,
         price,
@@ -487,9 +497,21 @@ export default function AdminProductEditPage() {
 
           <aside className="lg:col-span-4 space-y-6">
             <CategorySelector
-              categoryId={p.categoryId}
-              subcategoryId={p.subcategoryId}
-              onChange={({ categoryId, subcategoryId }) => setP((x) => (x ? { ...x, categoryId, subcategoryId } : x))}
+              categoryIds={p.categoryIds?.length ? p.categoryIds : p.categoryId ? [p.categoryId] : []}
+              subcategoryIds={p.subcategoryIds?.length ? p.subcategoryIds : p.subcategoryId ? [p.subcategoryId] : []}
+              onChange={({ categoryIds, subcategoryIds }) =>
+                setP((x) =>
+                  x
+                    ? {
+                        ...x,
+                        categoryIds,
+                        subcategoryIds,
+                        categoryId: categoryIds[0] ?? "",
+                        subcategoryId: subcategoryIds[0] ?? "",
+                      }
+                    : x
+                )
+              }
             />
 
             <ImageUploader

@@ -166,15 +166,20 @@ export default async function SubcategoryPage({ params, searchParams }: PageProp
   }
 
   const pageSize = 9;
-  const total = await prisma.product.count({
-    where: { subcategory: { slug: sub }, isActive: true },
-  });
+  const productWhere = {
+    isActive: true,
+    OR: [
+      { subcategory: { slug: sub } },
+      { productSubcategories: { some: { subcategory: { slug: sub } } } },
+    ],
+  };
+  const total = await prisma.product.count({ where: productWhere });
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const page = clampInt(sp?.page, 1, 1, totalPages);
   const skip = (page - 1) * pageSize;
 
   const products = await prisma.product.findMany({
-    where: { subcategory: { slug: sub }, isActive: true },
+    where: productWhere,
     orderBy: { createdAt: "desc" },
     skip,
     take: pageSize,

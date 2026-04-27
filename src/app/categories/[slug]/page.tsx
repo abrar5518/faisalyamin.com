@@ -132,7 +132,14 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
   }
 
   const pageSize = 12;
-  const total = await prisma.product.count({ where: { category: { slug } } });
+  const productWhere = {
+    isActive: true,
+    OR: [
+      { category: { slug } },
+      { productCategories: { some: { category: { slug } } } },
+    ],
+  };
+  const total = await prisma.product.count({ where: productWhere });
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const page = clampInt(sp?.page, 1, 1, totalPages);
 
@@ -140,7 +147,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
   const end = start + pageSize;
 
   const products = await prisma.product.findMany({
-    where: { category: { slug }, isActive: true },
+    where: productWhere,
     orderBy: { createdAt: "desc" },
     skip: start,
     take: pageSize,

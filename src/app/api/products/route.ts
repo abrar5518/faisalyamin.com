@@ -22,6 +22,14 @@ export async function GET(req: NextRequest) {
         include: {
           category: { select: { slug: true } },
           subcategory: { select: { slug: true } },
+          productCategories: {
+            include: { category: { select: { slug: true } } },
+            orderBy: { id: "asc" },
+          },
+          productSubcategories: {
+            include: { subcategory: { select: { slug: true } } },
+            orderBy: { id: "asc" },
+          },
           images: true,
         },
       });
@@ -35,8 +43,18 @@ export async function GET(req: NextRequest) {
         subcategoryId,
         category,
         subcategory,
+        productCategories,
+        productSubcategories,
         ...clean
       } = item;
+      const categorySlugs = productCategories.length
+        ? productCategories.map((link) => link.category.slug)
+        : [category.slug];
+      const subcategorySlugs = productSubcategories.length
+        ? productSubcategories.map((link) => link.subcategory.slug)
+        : subcategory?.slug
+          ? [subcategory.slug]
+          : [];
 
       return NextResponse.json({
         ok: true,
@@ -44,31 +62,50 @@ export async function GET(req: NextRequest) {
           ...clean,
           categorySlug: category.slug,
           subcategorySlug: subcategory?.slug ?? null,
+          categorySlugs,
+          subcategorySlugs,
         },
       });
     }
 
-    const where =
+    const andFilters: Prisma.ProductWhereInput[] = [];
+    if (categorySlug) {
+      andFilters.push({
+        OR: [
+          { category: { slug: categorySlug } },
+          { productCategories: { some: { category: { slug: categorySlug } } } },
+        ],
+      });
+    }
+    if (subcategorySlug) {
+      andFilters.push({
+        OR: [
+          { subcategory: { slug: subcategorySlug } },
+          { productSubcategories: { some: { subcategory: { slug: subcategorySlug } } } },
+        ],
+      });
+    }
+    if (q) {
+      andFilters.push({
+        OR: [
+          { name: { contains: q } },
+          { slug: { contains: q } },
+          { shortDesc: { contains: q } },
+        ],
+      });
+    }
+
+    const where: Prisma.ProductWhereInput | undefined =
       categorySlug || subcategorySlug || q || isSale || isFeatured || isActive
         ? {
-            ...(categorySlug ? { category: { slug: categorySlug } } : {}),
-            ...(subcategorySlug ? { subcategory: { slug: subcategorySlug } } : {}),
+            ...(andFilters.length ? { AND: andFilters } : {}),
             ...(isSale === "1" || isSale === "true" ? { isSale: true } : {}),
             ...(isFeatured === "1" || isFeatured === "true" ? { isFeatured: true } : {}),
             ...(isActive === "0" || isActive === "false"
               ? { isActive: false }
               : isActive === "1" || isActive === "true"
-              ? { isActive: true }
-              : {}),
-            ...(q
-              ? {
-                  OR: [
-                    { name: { contains: q, mode: "insensitive" } },
-                    { slug: { contains: q, mode: "insensitive" } },
-                    { shortDesc: { contains: q, mode: "insensitive" } },
-                  ],
-                }
-              : {}),
+                ? { isActive: true }
+                : {}),
           }
         : undefined;
 
@@ -96,6 +133,14 @@ export async function GET(req: NextRequest) {
         include: {
           category: { select: { slug: true } },
           subcategory: { select: { slug: true } },
+          productCategories: {
+            include: { category: { select: { slug: true } } },
+            orderBy: { id: "asc" },
+          },
+          productSubcategories: {
+            include: { subcategory: { select: { slug: true } } },
+            orderBy: { id: "asc" },
+          },
           images: true,
         },
       }),
@@ -108,13 +153,25 @@ export async function GET(req: NextRequest) {
         subcategoryId,
         category,
         subcategory,
+        productCategories,
+        productSubcategories,
         ...clean
       } = item;
+      const categorySlugs = productCategories.length
+        ? productCategories.map((link) => link.category.slug)
+        : [category.slug];
+      const subcategorySlugs = productSubcategories.length
+        ? productSubcategories.map((link) => link.subcategory.slug)
+        : subcategory?.slug
+          ? [subcategory.slug]
+          : [];
 
       return {
         ...clean,
         categorySlug: category.slug,
         subcategorySlug: subcategory?.slug ?? null,
+        categorySlugs,
+        subcategorySlugs,
       };
     });
 
