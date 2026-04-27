@@ -24,14 +24,14 @@ function buildHref(page: number, q: string) {
 
 type AdminProductRow = {
   id: number;
-  name: string;
-  slug: string;
+  name?: string | null;
+  slug?: string | null;
   isActive: boolean;
   price: string | number;
   categoryName?: string | null;
   categorySlug?: string | null;
-  categoryNames?: string[] | null;
-  categorySlugs?: string[] | null;
+  categoryNames?: string[] | string | null;
+  categorySlugs?: string[] | string | null;
   updatedAt?: string | null;
 };
 
@@ -41,6 +41,11 @@ function formatPrice(value: string | number) {
     return `PKR ${num.toLocaleString("en-PK")}`;
   }
   return String(value ?? "");
+}
+
+function formatList(value: string[] | string | null | undefined) {
+  if (Array.isArray(value)) return value.filter(Boolean).join(", ");
+  return value || "";
 }
 
 export default function AdminProductsPage() {
@@ -76,7 +81,10 @@ export default function AdminProductsPage() {
   }, []);
 
   const filtered = useMemo(
-    () => (q ? items.filter((x) => x.name.toLowerCase().includes(q.toLowerCase())) : items),
+    () =>
+      q
+        ? items.filter((x) => (x.name ?? "").toLowerCase().includes(q.toLowerCase()))
+        : items,
     [items, q]
   );
 
@@ -139,14 +147,21 @@ export default function AdminProductsPage() {
               rows={pageItems.map((p) => {
                 const status = p.isActive ? "published" : "draft";
                 const category =
-                  p.categoryNames?.length
-                    ? p.categoryNames.join(", ")
-                    : p.categoryName || p.categorySlug || "-";
-                const displayName = p.name.length > 20 ? `${p.name.slice(0, 20)}...` : p.name;
+                  formatList(p.categoryNames) ||
+                  formatList(p.categorySlugs) ||
+                  p.categoryName ||
+                  p.categorySlug ||
+                  "-";
+                const productName = p.name || "Untitled product";
+                const productSlug = p.slug || String(p.id);
+                const displayName =
+                  productName.length > 20
+                    ? `${productName.slice(0, 20)}...`
+                    : productName;
                 return [
                   <div key={p.id} className="min-w-0">
                     <p className="truncate font-medium">{displayName}</p>
-                    <p className="text-xs text-neutral-500">{p.slug}</p>
+                    <p className="text-xs text-neutral-500">{productSlug}</p>
                   </div>,
                   <span
                     key={status}
@@ -159,38 +174,38 @@ export default function AdminProductsPage() {
                   >
                     {status}
                   </span>,
-                  <span key={`${p.slug}-price`}>{formatPrice(p.price)}</span>,
-                  <span key={`${p.slug}-stock`}>-</span>,
-                  <span key={`${p.slug}-cat`}>{category}</span>,
-                  <span key={`${p.slug}-updated`} className="text-xs text-neutral-500">
+                  <span key={`${productSlug}-price`}>{formatPrice(p.price)}</span>,
+                  <span key={`${productSlug}-stock`}>-</span>,
+                  <span key={`${productSlug}-cat`}>{category}</span>,
+                  <span key={`${productSlug}-updated`} className="text-xs text-neutral-500">
                     {p.updatedAt ? new Date(p.updatedAt).toLocaleDateString() : "-"}
                   </span>,
-                  <div key={`${p.slug}-a`} className="flex gap-2">
+                  <div key={`${productSlug}-a`} className="flex gap-2">
                     <Link
-                      href={`/product/${p.slug}`}
+                      href={`/product/${productSlug}`}
                       className="rounded-xl border border-neutral-200 px-3 py-2 text-xs hover:bg-neutral-50"
                     >
                       View
                     </Link>
                     <Link
-                      href={`/admin/products/${p.slug}/edit`}
+                      href={`/admin/products/${productSlug}/edit`}
                       className="rounded-xl bg-neutral-900 px-3 py-2 text-xs text-white hover:bg-neutral-800"
                     >
                       Edit
                     </Link>
                     <button
                       onClick={async () => {
-                        if (!confirm(`Delete product "${p.name}"?`)) return;
+                        if (!confirm(`Delete product "${productName}"?`)) return;
                         try {
                           const res = await Fetch(
-                            `/api/admin/products?slug=${encodeURIComponent(p.slug)}`,
+                            `/api/admin/products?slug=${encodeURIComponent(productSlug)}`,
                             { method: "DELETE", auth: true }
                           );
                           if (res.status === 401) {
                             throw new Error("Unauthorized. Please sign in again.");
                           }
                           if (!res.ok) throw new Error(res.error || `Delete failed (${res.status})`);
-                          setItems((prev) => prev.filter((x) => x.slug !== p.slug));
+                          setItems((prev) => prev.filter((x) => (x.slug || String(x.id)) !== productSlug));
                         } catch (err: any) {
                           setMsg(err?.message || "Failed to delete product.");
                         }
