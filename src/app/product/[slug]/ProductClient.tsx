@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import { withImageParams } from "@/lib/image";
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/components/cart/CartProvider";
+import { trackAddToCart, trackViewContent } from "@/lib/metaPixel";
 
 export type Variant = {
   id: string;
@@ -157,6 +158,7 @@ export default function ProductClient({ product }: { product: ProductData }) {
   const [reviewMsg, setReviewMsg] = useState<string | null>(null);
   const [reviewBusy, setReviewBusy] = useState(false);
   const [reviewUploading, setReviewUploading] = useState(false);
+  const viewContentTracked = useRef(false);
 
   useEffect(() => {
     let active = true;
@@ -226,6 +228,18 @@ export default function ProductClient({ product }: { product: ProductData }) {
     return pct > 0 ? pct : null;
   }, [compareAt, activePrice]);
 
+  useEffect(() => {
+    if (viewContentTracked.current) return;
+    viewContentTracked.current = true;
+
+    trackViewContent({
+      id: product.id,
+      slug: product.slug,
+      name: product.name,
+      price: activePrice,
+    });
+  }, [activePrice, product.id, product.name, product.slug]);
+
   const onSelectVariant = (v: Variant) => {
     setVariant(v);
     setImage(v.images[0]);
@@ -253,6 +267,12 @@ export default function ProductClient({ product }: { product: ProductData }) {
       variantLabel: variant.label,
       sizeLabel: size || undefined,
       currency: "PKR",
+    });
+    trackAddToCart({
+      id: product.id,
+      slug: product.slug,
+      name: product.name,
+      price,
     });
   };
 

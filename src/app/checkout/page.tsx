@@ -4,8 +4,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import { withImageParams } from "@/lib/image";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useCart } from "@/components/cart/CartProvider";
+import { trackInitiateCheckout } from "@/lib/metaPixel";
 
 function Container({ children }: { children: React.ReactNode }) {
   return (
@@ -132,6 +134,7 @@ function RadioCard({
 
 export default function CheckoutPage() {
   const { items, clearCart } = useCart();
+  const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [settings, setSettings] = useState<{
@@ -190,6 +193,7 @@ export default function CheckoutPage() {
   const [couponLoading, setCouponLoading] = useState(false);
   const [redeemPoints, setRedeemPoints] = useState("");
   const [redeemMsg, setRedeemMsg] = useState<string | null>(null);
+  const initiateCheckoutTracked = useRef(false);
 
   // Totals
   const subtotal = useMemo(
@@ -358,6 +362,17 @@ export default function CheckoutPage() {
     [user?.email, email]
   );
 
+  useEffect(() => {
+    if (initiateCheckoutTracked.current || items.length === 0) return;
+    initiateCheckoutTracked.current = true;
+
+    trackInitiateCheckout({
+      items,
+      total,
+      totalItems: items.reduce((sum, item) => sum + item.qty, 0),
+    });
+  }, [items, total]);
+
   const validateCoupon = async (code: string) => {
     setCouponLoading(true);
     setCouponMsg(null);
@@ -441,11 +456,26 @@ export default function CheckoutPage() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || "Checkout failed");
 
-      clearCart();
-      const orderId = data?.data?.orderId ? ` Order ID: ${data.data.orderId}.` : "";
-      setMsg(
-        `Thank you! Your order has been placed.${orderId} We will contact you shortly to confirm delivery details.`
+      const orderId = data?.data?.orderId ? String(data.data.orderId) : "";
+      if (!orderId) throw new Error("Order placed, but confirmation ID was missing.");
+
+      window.sessionStorage.setItem(
+        `meta_order_${orderId}`,
+        JSON.stringify({
+          id: orderId,
+          total,
+          items: items.map((item) => ({
+            id: item.productId ?? item.slug ?? item.id,
+            slug: item.slug,
+            name: item.name,
+            price: item.price,
+            qty: item.qty,
+          })),
+        })
       );
+
+      clearCart();
+      router.push(`/checkout/success?orderId=${encodeURIComponent(orderId)}`);
     } catch (err: any) {
       setMsg(err?.message ? `Order failed: ${err.message}` : "Order failed. Please try again.");
     } finally {

@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { useCart } from "@/components/cart/CartProvider";
+import { trackAddToCart } from "@/lib/metaPixel";
 
 function parsePriceLabel(label: string) {
   const parts = label.trim().split(/\s+/);
@@ -52,7 +53,7 @@ export default function AddToCartButton({
     <button
       type="button"
       className={className}
-      onClick={() =>
+      onClick={() => {
         addItem({
           id,
           productId,
@@ -68,8 +69,14 @@ export default function AddToCartButton({
           variantLabel,
           sizeLabel,
           currency: price.currency,
-        })
-      }
+        });
+        trackAddToCart({
+          id: productId ?? id,
+          slug,
+          name,
+          price: price.amount,
+        });
+      }}
     >
       Add to Cart
     </button>
