@@ -134,6 +134,21 @@ function normalizeVariants(
   return list;
 }
 
+function collectVariantImageUrls(raw: unknown) {
+  const urls = new Set<string>();
+  if (!Array.isArray(raw)) return urls;
+
+  for (const variant of raw) {
+    if (!Array.isArray(variant?.images)) continue;
+    for (const image of variant.images) {
+      const url = typeof image === "string" ? image : image?.url;
+      if (url) urls.add(url);
+    }
+  }
+
+  return urls;
+}
+
 const RELATED_FALLBACK: RelatedProduct[] = [
   {
     id: "omega-seamaster-300m",
@@ -213,8 +228,12 @@ export default async function ProductPage({ params }: PageProps) {
   const sortedImages = [...typedProduct.images].sort(
     (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)
   );
-  const imageUrls = sortedImages.map((img) => img.url);
-  const imageAlts = sortedImages.map((img) => img.alt || typedProduct.name);
+  const variantImageUrls = collectVariantImageUrls(typedProduct.variants);
+  const defaultGalleryImages = sortedImages.filter(
+    (img, index) => index === 0 || !variantImageUrls.has(img.url)
+  );
+  const imageUrls = defaultGalleryImages.map((img) => img.url);
+  const imageAlts = defaultGalleryImages.map((img) => img.alt || typedProduct.name);
 
   const price = formatPKR(Number(typedProduct.price));
   const compareAt = typedProduct.compareAt ? formatPKR(Number(typedProduct.compareAt)) : undefined;
