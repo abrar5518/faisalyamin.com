@@ -2,7 +2,12 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    unoptimized: true,
+    localPatterns: [
+      { pathname: "/uploads/**" },
+      { pathname: "/favicon.ico" },
+    ],
+    qualities: [75],
+    unoptimized: false,
     remotePatterns: [
       { protocol: "https", hostname: "sahoolat.pk" },
       { protocol: "https", hostname: "www.sahoolat.pk" },
