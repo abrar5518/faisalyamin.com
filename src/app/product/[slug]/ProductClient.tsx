@@ -28,6 +28,8 @@ export type ProductData = {
   reviewItems: ReviewItem[];
   shortDescription: string;
   seoDescription: string;
+  images: string[];
+  imageAlts: string[];
   sizes: string[];
   variants: Variant[];
   hasVariants?: boolean;
@@ -144,7 +146,8 @@ export default function ProductClient({ product }: { product: ProductData }) {
   const router = useRouter();
   const initialVariant = product.variants[0];
   const [variant, setVariant] = useState<Variant>(initialVariant);
-  const [image, setImage] = useState(initialVariant.images[0] ?? "");
+  const [variantSelected, setVariantSelected] = useState(false);
+  const [image, setImage] = useState(product.images[0] ?? initialVariant.images[0] ?? "");
   const [imageIndex, setImageIndex] = useState(0);
   const [size, setSize] = useState(product.sizes[0] || "");
   const [qty, setQty] = useState(1);
@@ -217,8 +220,14 @@ export default function ProductClient({ product }: { product: ProductData }) {
     };
   }, []);
 
-  const images = useMemo(() => variant.images, [variant]);
-  const imageAlts = useMemo(() => variant.imageAlts, [variant]);
+  const images = useMemo(
+    () => (variantSelected ? variant.images : product.images),
+    [product.images, variant.images, variantSelected]
+  );
+  const imageAlts = useMemo(
+    () => (variantSelected ? variant.imageAlts : product.imageAlts),
+    [product.imageAlts, variant.imageAlts, variantSelected]
+  );
   const activePrice = useMemo(() => parsePKR(variant.price) ?? 0, [variant]);
   const compareAt = useMemo(() => parsePKR(variant.compareAt), [variant]);
 
@@ -241,6 +250,7 @@ export default function ProductClient({ product }: { product: ProductData }) {
   }, [activePrice, product.id, product.name, product.slug]);
 
   const onSelectVariant = (v: Variant) => {
+    setVariantSelected(true);
     setVariant(v);
     setImage(v.images[0]);
     setImageIndex(0);

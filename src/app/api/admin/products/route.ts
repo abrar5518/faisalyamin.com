@@ -11,6 +11,7 @@ const CreateProductSchema = z.object({
 
   name: z.string().min(2),
   slug: z.string().min(2),
+  brand: z.string().optional(),
   price: z.number().positive(),
   compareAt: z.number().positive().optional(),
   badge: z.string().optional(),
@@ -70,6 +71,7 @@ const UpdateProductSchema = z.object({
 
   name: z.string().min(2).optional(),
   slug: z.string().min(2).optional(),
+  brand: z.string().optional(),
   price: z.number().positive().optional(),
   compareAt: z.number().positive().optional(),
   badge: z.string().optional(),
@@ -342,6 +344,7 @@ export async function POST(req: NextRequest) {
 
         name: data.name,
         slug: data.slug,
+        brand: data.brand,
 
         price: data.price,
         compareAt: data.compareAt,

@@ -140,6 +140,7 @@ export default function AdminProductCreatePage() {
         subcategorySlugs: p.subcategoryIds?.length ? p.subcategoryIds : p.subcategoryId ? [p.subcategoryId] : [],
         name: p.name,
         slug: p.slug,
+        brand: p.brand.trim(),
         price,
         compareAt: compareAt ?? undefined,
         badge: p.badge || undefined,

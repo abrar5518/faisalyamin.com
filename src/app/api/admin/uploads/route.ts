@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireAdmin } from "@/lib/adminAuth";
 import path from "path";
 import { promises as fs } from "fs";
+import { randomUUID } from "crypto";
 
 const UploadSchema = z.object({
   dataUrl: z.string().min(20),
@@ -23,6 +24,17 @@ function getExtensionFromMime(mime: string) {
     default:
       return "";
   }
+}
+
+function cleanBaseName(input?: string | null) {
+  const rawName = (input || "upload").replace(/\.[^/.]+$/, "");
+  return rawName.replace(/[^a-zA-Z0-9_-]/g, "") || "upload";
+}
+
+function uniqueFileName(input: string | undefined | null, ext: string) {
+  const safeBase = cleanBaseName(input);
+  const safeExt = ext.toLowerCase().replace(/[^a-z0-9]/g, "");
+  return `${safeBase}-${Date.now()}-${randomUUID().slice(0, 8)}.${safeExt}`;
 }
 
 export async function POST(req: NextRequest) {
@@ -46,17 +58,13 @@ export async function POST(req: NextRequest) {
       }
 
       const extFromMime = getExtensionFromMime(file.type || "");
-      const rawName = file.name?.replace(/\.[^/.]+$/, "") || "upload";
-      const safeName =
-        rawName.replace(/[^a-zA-Z0-9_-]/g, "") ||
-        `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const ext = extFromMime || path.extname(file.name || "").replace(".", "");
 
       if (!ext) {
         return NextResponse.json({ ok: false, error: "Unsupported image type" }, { status: 400 });
       }
 
-      const fileName = `${safeName}.${ext}`;
+      const fileName = uniqueFileName(file.name, ext);
       const uploadDir = path.join(process.cwd(), "public", "uploads", kind);
       await fs.mkdir(uploadDir, { recursive: true });
 
@@ -86,10 +94,7 @@ export async function POST(req: NextRequest) {
     }
 
     const kind = allowedKinds.has(data.kind ?? "") ? (data.kind as string) : "product";
-    const safeName =
-      data.filename?.replace(/[^a-zA-Z0-9_-]/g, "") ||
-      `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    const fileName = `${safeName}.${ext}`;
+    const fileName = uniqueFileName(data.filename, ext);
 
     const uploadDir = path.join(process.cwd(), "public", "uploads", kind);
     await fs.mkdir(uploadDir, { recursive: true });

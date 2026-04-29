@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import AdminTopbar from "@/components/admin/AdminTopbar";
 import { Fetch } from "@/lib/fetch";
 
@@ -52,9 +52,11 @@ export default function AdminReviewsPage() {
     return `?status=${status}`;
   }, [status]);
 
-  const loadReviews = async () => {
-    setLoading(true);
-    setMsg(null);
+  const loadReviews = useCallback(async (showLoading = true) => {
+    if (showLoading) {
+      setLoading(true);
+      setMsg(null);
+    }
     const res = await Fetch<ReviewRow[]>(`/api/admin/reviews${query}`, {
       auth: true,
       cache: "no-store",
@@ -66,11 +68,34 @@ export default function AdminReviewsPage() {
       setRows((res.data as ReviewRow[]) ?? []);
     }
     setLoading(false);
-  };
+  }, [query]);
 
   useEffect(() => {
-    loadReviews();
+    let active = true;
+    (async () => {
+      const res = await Fetch<ReviewRow[]>(`/api/admin/reviews${query}`, {
+        auth: true,
+        cache: "no-store",
+      });
+      if (!active) return;
+      if (!res.ok) {
+        setMsg(res.error || "Failed to load reviews.");
+        setRows([]);
+      } else {
+        setRows((res.data as ReviewRow[]) ?? []);
+      }
+      setLoading(false);
+    })();
+    return () => {
+      active = false;
+    };
   }, [query]);
+
+  const handleStatusChange = (nextStatus: (typeof STATUS_TABS)[number]) => {
+    setStatus(nextStatus);
+    setLoading(true);
+    setMsg(null);
+  };
 
   const updateStatus = async (id: number, nextStatus: "APPROVED" | "REJECTED") => {
     if (busyId) return;
@@ -121,7 +146,7 @@ export default function AdminReviewsPage() {
             {STATUS_TABS.map((tab) => (
               <button
                 key={tab}
-                onClick={() => setStatus(tab)}
+                onClick={() => handleStatusChange(tab)}
                 className={[
                   "rounded-2xl border px-4 py-2 text-xs font-medium",
                   status === tab

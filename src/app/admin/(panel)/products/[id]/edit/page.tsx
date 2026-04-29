@@ -113,7 +113,9 @@ export default function AdminProductEditPage() {
         const api = res.data as any;
 
         const cached = loadCache(api.slug ?? id);
-        const images = Array.isArray(api.images) ? api.images : [];
+        const images = Array.isArray(api.images)
+          ? [...api.images].sort((a: any, b: any) => (a?.sortOrder ?? 0) - (b?.sortOrder ?? 0))
+          : [];
 
         const defaults: AdminProduct = {
           id: String(api.id ?? ""),
@@ -165,6 +167,7 @@ export default function AdminProductEditPage() {
 
         const apiFields: Partial<AdminProduct> = {
           id: String(api.id ?? ""),
+          brand: api.brand ?? "",
           name: api.name ?? "",
           slug: api.slug ?? id,
           badge: api.badge ?? "",
@@ -191,11 +194,17 @@ export default function AdminProductEditPage() {
           variants: apiVariants,
         };
 
+        const variantImageUrls = new Set(
+          apiVariants.flatMap((variant: any) => variant.images.map((img: any) => img.url))
+        );
         const imageFields =
           images.length > 0
             ? {
                 heroImage: images[0]?.url ? { url: images[0].url, alt: images[0].alt ?? "" } : undefined,
-                gallery: images.slice(1).map((img: any) => ({ url: img.url, alt: img.alt ?? "" })),
+                gallery: images
+                  .slice(1)
+                  .filter((img: any) => img.url && !variantImageUrls.has(img.url))
+                  .map((img: any) => ({ url: img.url, alt: img.alt ?? "" })),
               }
             : {};
 
@@ -250,6 +259,7 @@ export default function AdminProductEditPage() {
         subcategorySlugs: p.subcategoryIds?.length ? p.subcategoryIds : p.subcategoryId ? [p.subcategoryId] : [],
         name: p.name,
         slug: p.slug,
+        brand: p.brand.trim(),
         price,
         compareAt: compareAt ?? undefined,
         badge: p.badge || undefined,

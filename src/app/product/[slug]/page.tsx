@@ -200,6 +200,7 @@ export default async function ProductPage({ params }: PageProps) {
 
   const typedProduct = product as
     | (Prisma.ProductGetPayload<{ include: { images: true; category: true } }> & {
+        brand?: string | null;
         sizes?: unknown;
         variants?: unknown;
       })
@@ -260,7 +261,7 @@ export default async function ProductPage({ params }: PageProps) {
   const productData: ProductData = {
     id: String(typedProduct.id),
     slug,
-    brand: typedProduct.category?.name ?? "LuxStore",
+    brand: typedProduct.brand || typedProduct.category?.name || "LuxStore",
     name: typedProduct.name,
     rating: typedProduct.rating ?? 0,
     reviews: typedProduct.reviewsCount ?? 0,
@@ -269,6 +270,8 @@ export default async function ProductPage({ params }: PageProps) {
       typedProduct.shortDesc ??
       "A premium product with verified authenticity and quality checks.",
     seoDescription: typedProduct.descriptionHtml || "<p>Product details will appear here.</p>",
+    images: defaultImages,
+    imageAlts: defaultAlts,
     sizes: sizeList,
     variants: hasVariants ? apiVariants : fallbackVariants,
     hasVariants,
@@ -331,7 +334,7 @@ export default async function ProductPage({ params }: PageProps) {
           name: typedProduct.name,
           description: descriptionText || "Premium product details.",
           sku: String(typedProduct.id),
-          brand: typedProduct.category?.name ?? "LuxStore",
+          brand: typedProduct.brand || typedProduct.category?.name || "LuxStore",
           images: productImages.map((img) => absoluteUrl(img, baseUrlResolved)),
           url: pageUrl,
           price: priceValue,

@@ -29,15 +29,6 @@ function FooterLink({ href, children }: { href: string; children: ReactNode }) {
   );
 }
 
-function TrustPill({ title, desc }: { title: string; desc: string }) {
-  return (
-    <div className="rounded-2xl border border-neutral-200 bg-white px-4 py-3">
-      <p className="text-xs font-semibold text-neutral-900">{title}</p>
-      <p className="mt-0.5 text-xs text-neutral-600">{desc}</p>
-    </div>
-  );
-}
-
 export default function SiteFooter() {
   const pathname = usePathname();
 
