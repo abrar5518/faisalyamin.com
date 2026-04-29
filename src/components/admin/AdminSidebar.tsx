@@ -2,6 +2,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
+import { toOptimizableImageSrc } from "@/lib/image";
 
 const NAV = [
   { href: "/admin/dashboard", label: "Dashboard" },
@@ -33,7 +34,7 @@ export default async function AdminSidebar() {
         {logoUrl && (
           <div className="relative h-10 w-auto shrink-0">
             <Image
-              src={logoUrl}
+              src={toOptimizableImageSrc(logoUrl)}
               alt={siteName}
               width={120}
               height={40}

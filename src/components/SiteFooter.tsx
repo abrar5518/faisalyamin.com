@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { toOptimizableImageSrc } from "@/lib/image";
 import { usePathname } from "next/navigation";
 import type { FormEvent, ReactNode } from "react";
 import { useEffect, useState } from "react";
@@ -226,7 +227,7 @@ export default function SiteFooter() {
               <Link href="/" className="inline-flex items-center">
                 {branding?.logoUrl ? (
                   <Image
-                    src={branding.logoUrl}
+                    src={toOptimizableImageSrc(branding.logoUrl)}
                     alt={brandName}
                     width={180}
                     height={48}

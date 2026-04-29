@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { toOptimizableImageSrc } from "@/lib/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { useCart } from "@/components/cart/CartProvider";
@@ -163,7 +164,7 @@ export default function SiteHeader() {
             <Link href="/" className="flex items-center shrink-0">
               {branding?.logoUrl ? (
                 <Image
-                  src={branding.logoUrl}
+                  src={toOptimizableImageSrc(branding.logoUrl)}
                   alt={brandName}
                   width={160}
                   height={40}
