@@ -2,6 +2,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
+import { toOptimizableImageSrc } from "@/lib/image";
 
 export const metadata = {
   title: "Account access",
@@ -43,7 +44,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
                 {logoUrl ? (
                   <span className="inline-flex h-16 w-40 items-center justify-center overflow-hidden">
                     <Image
-                      src={logoUrl}
+                      src={toOptimizableImageSrc(logoUrl)}
                       alt={logoAlt}
                       width={160}
                       height={64}
@@ -90,4 +91,3 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
     </div>
   );
 }
-
