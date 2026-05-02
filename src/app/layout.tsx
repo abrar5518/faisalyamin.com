@@ -56,7 +56,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: siteName,
     description:
       "Premium eCommerce store with curated products, secure checkout, and fast delivery.",
-    robots: { index: true, follow: true },
+    robots: { index: false, follow: false },
     icons: settings?.siteIconUrl ? { icon: settings.siteIconUrl } : undefined,
     openGraph: {
       type: "website",
