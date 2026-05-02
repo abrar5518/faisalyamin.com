@@ -107,9 +107,7 @@ export async function generateMetadata({ params, searchParams }: PageProps) {
 
   const qs = new URLSearchParams();
   if (page > 1) qs.set("page", String(page));
-  const canonical = qs.toString()
-    ? `${baseUrl}/categories/${slug}/${sub}?${qs.toString()}`
-    : `${baseUrl}/categories/${slug}/${sub}`;
+  const canonical = `${baseUrl}/categories/${slug}/${sub}`;
   const baseUrlResolved = baseUrl.replace(/\/$/, "");
   const ogImage = subcategory.image
     ? subcategory.image.startsWith("http")
