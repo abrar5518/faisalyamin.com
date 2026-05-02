@@ -56,7 +56,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: { default: `${siteName} | Premium eCommerce`, template: `%s | ${siteName}` },
     description:
       "Premium eCommerce store with curated products, secure checkout, and fast delivery.",
-    robots: { index: false, follow: false },
+    robots: { index: true, follow: true },
     icons: settings?.siteIconUrl ? { icon: settings.siteIconUrl } : undefined,
     openGraph: {
       type: "website",
