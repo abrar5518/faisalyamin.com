@@ -330,12 +330,12 @@ export default async function SubcategoryPage({ params, searchParams }: PageProp
           <section className="mt-10">
             <p className="text-sm font-semibold">Explore more</p>
             <div className="mt-3 flex flex-wrap gap-2">
-              <Link
+              {/* <Link
                 className="rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm hover:bg-neutral-50"
                 href={`/categories/${slug}/pre-owned`}
               >
                 Pre-Owned
-              </Link>
+              </Link> */}
               <Link
                 className="rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm hover:bg-neutral-50"
                 href="/categories"

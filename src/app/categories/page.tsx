@@ -76,13 +76,8 @@ const categoriesFallback: Category[] = [
     description: "Limited-time price drops",
     href: "/deals",
     image: IMAGES.best,
-  },
-  {
-    name: "Pre-Owned",
-    description: "Verified, authenticated, ready to ship",
-    href: "/categories/pre-owned",
-    image: IMAGES.preowned,
-  },
+  }
+ 
 ];
 
 export default async function CategoriesPage() {
