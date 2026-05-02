@@ -53,7 +53,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     metadataBase,
-    title: { default: `${siteName} | Premium eCommerce`, template: `%s | ${siteName}` },
+    title: siteName,
     description:
       "Premium eCommerce store with curated products, secure checkout, and fast delivery.",
     robots: { index: true, follow: true },
