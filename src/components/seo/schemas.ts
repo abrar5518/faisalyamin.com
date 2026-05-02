@@ -1,8 +1,19 @@
+export function normalizeUrl(value: string) {
+  if (!value) return value;
+  const trimmed = value.trim();
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    return trimmed.replace(/\/+$|(?<!https?:)\/+/g, "");
+  }
+  const withoutLeadingSlash = trimmed.replace(/^\/+/, "");
+  return `https://${withoutLeadingSlash}`.replace(/\/+$/, "");
+}
+
 export function absoluteUrl(input: string, baseUrl: string) {
-  if (!input) return baseUrl;
+  const normalizedBase = normalizeUrl(baseUrl);
+  if (!input) return normalizedBase;
   if (input.startsWith("http://") || input.startsWith("https://")) return input;
-  if (input.startsWith("/")) return `${baseUrl}${input}`;
-  return `${baseUrl}/${input}`;
+  if (input.startsWith("/")) return `${normalizedBase}${input}`;
+  return `${normalizedBase}/${input}`;
 }
 
 export function stripHtml(html: string) {

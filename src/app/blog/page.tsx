@@ -50,7 +50,7 @@ export async function generateMetadata({ searchParams }: PageProps) {
   const tag = sp?.tag?.trim();
   const rawPage = Number(sp?.page ?? 1);
   const page = Number.isFinite(rawPage) && rawPage > 1 ? Math.floor(rawPage) : 1;
-  const baseUrl = process.env.SITE_URL ?? "http://localhost:3000";
+  const baseUrl = absoluteUrl("", process.env.SITE_URL ?? "http://localhost:3000");
 
   const title = tag ? `Blog - ${tag}` : "Blog";
   const description = tag
@@ -60,9 +60,7 @@ export async function generateMetadata({ searchParams }: PageProps) {
   const qs = new URLSearchParams();
   if (page > 1) qs.set("page", String(page));
   if (tag) qs.set("tag", tag);
-  const canonical = qs.toString()
-    ? `${baseUrl}/blog?${qs.toString()}`
-    : `${baseUrl}/blog`;
+  const canonical = `${baseUrl}/blog`;
 
   return {
     title,
@@ -131,15 +129,30 @@ export default async function BlogPage({ searchParams }: PageProps) {
 
   const start = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const end = Math.min(page * pageSize, total);
-  const baseUrlResolved = (siteSettings?.siteUrl || process.env.SITE_URL || "http://localhost:3000").replace(/\/$/, "");
+  const baseUrlResolved = absoluteUrl(
+    "",
+    siteSettings?.siteUrl || process.env.SITE_URL || "http://localhost:3000",
+  );
   const pageUrl = tag
     ? `${baseUrlResolved}/blog?tag=${encodeURIComponent(tag)}`
     : `${baseUrlResolved}/blog`;
-  const postItems = pagePosts.slice(0, 20).map((p) => ({
-    name: p.title,
-    url: absoluteUrl(`/blog/${p.slug}`, baseUrlResolved),
-    image: p.image ? absoluteUrl(p.image, baseUrlResolved) : undefined,
-  }));
+  type BlogItemSchema = {
+    name: string;
+    url: string;
+    image?: string;
+  };
+
+  const postItems = pagePosts.slice(0, 20).reduce<BlogItemSchema[]>((items, post) => {
+    if (!post.slug) return items;
+
+    const url = absoluteUrl(`/blog/${post.slug}`, baseUrlResolved);
+    items.push({
+      name: post.title,
+      url,
+      image: post.image ? absoluteUrl(post.image, baseUrlResolved) : undefined,
+    });
+    return items;
+  }, []);
 
   return (
     <div className="min-h-screen bg-white text-neutral-900">
@@ -150,12 +163,14 @@ export default async function BlogPage({ searchParams }: PageProps) {
           ...(tag ? [{ name: tag, item: pageUrl }] : []),
         ])}
       />
-      <Schema
-        data={itemListSchema({
-          url: pageUrl,
-          items: postItems,
-        })}
-      />
+      {postItems.length > 0 ? (
+        <Schema
+          data={itemListSchema({
+            url: pageUrl,
+            items: postItems,
+          })}
+        />
+      ) : null}
       {/* Breadcrumb */}
       <div className="border-b border-neutral-200 bg-neutral-50">
         <Container>
