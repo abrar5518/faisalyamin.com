@@ -1,16 +1,14 @@
 User-agent: *
 Allow: /
 
-# Preferred content
-Homepage: https://sahoolat.pk
 Sitemap: https://sahoolat.pk/sitemap.xml
 
-# Important pages
-Product pages: /products/
-Categories: /categories/
-Blog: /blog/
+# Allowed content
+Allow: /products/
+Allow: /categories/
+Allow: /blog/
 
-# Disallow sensitive areas
+# Disallowed
 Disallow: /admin/
 Disallow: /cart/
 Disallow: /checkout/
