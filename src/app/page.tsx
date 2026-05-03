@@ -646,7 +646,7 @@ export default async function HomePage() {
                 </p>
 
                 <h2 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl">
-                  Customers love what we do
+                  Customers reviews and stories
                 </h2>
                 <p className="mt-2 text-sm text-neutral-600">
                   Real feedback from customers who bought from Sahoolat.pk
