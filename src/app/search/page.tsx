@@ -76,11 +76,13 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     url: absoluteUrl(`/product/${p.slug}`, baseUrlResolved),
     image: p.images?.[0]?.url ? absoluteUrl(p.images[0].url, baseUrlResolved) : undefined,
   }));
-
+  const searchResultsSchema = query && items.length > 0
+    ? itemListSchema({ url: pageUrl, items })
+    : null;
 
   return (
     <div className="min-h-screen bg-white text-neutral-900">
-      <Schema data={itemListSchema({ url: pageUrl, items })} />
+      {searchResultsSchema ? <Schema data={searchResultsSchema} /> : null}
       <div className="border-b border-neutral-200 bg-neutral-50">
         <Container>
           <div className="flex h-8 items-center justify-between text-xs text-neutral-600 leading-none">
