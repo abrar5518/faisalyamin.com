@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
       }
 
       const fileName = uniqueFileName(file.name, ext);
-      const uploadDir = path.join(process.cwd(), "public", "uploads", kind);
+      const uploadDir = path.join("/var/www/sahoolat-uploads", kind);
       await fs.mkdir(uploadDir, { recursive: true });
 
       const filePath = path.join(uploadDir, fileName);
@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
     const kind = allowedKinds.has(data.kind ?? "") ? (data.kind as string) : "product";
     const fileName = uniqueFileName(data.filename, ext);
 
-    const uploadDir = path.join(process.cwd(), "public", "uploads", kind);
+    const uploadDir = path.join("/var/www/sahoolat-uploads", kind);
     await fs.mkdir(uploadDir, { recursive: true });
 
     const filePath = path.join(uploadDir, fileName);
