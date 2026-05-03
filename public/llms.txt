@@ -12,3 +12,4 @@ Allow: /blog/
 Disallow: /admin/
 Disallow: /cart/
 Disallow: /checkout/
+Disallow: /portal/
