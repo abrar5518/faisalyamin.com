@@ -6,8 +6,9 @@ import { breadcrumbSchema } from "@/components/seo/schemas";
 const baseUrl = process.env.SITE_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
-  title: "Shipping",
-  description: "Shipping information, delivery timelines, and order processing details.",
+  title: "Shipping & Delivery Information | Sahoolat Pakistan",
+  description: "Check shipping times, delivery charges, and policies for water bottles across Pakistan at Sahoolat.",
+  keywords: "shipping Pakistan, delivery bottles, Sahoolat shipping",
   alternates: { canonical: `${baseUrl}/shipping` },
 };
 

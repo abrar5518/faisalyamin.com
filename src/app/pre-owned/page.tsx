@@ -6,7 +6,7 @@ import { breadcrumbSchema } from "@/components/seo/schemas";
 const baseUrl = process.env.SITE_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
-  title: "Pre-Owned",
+  title: "Pre-Owned Collection | Sahoolat",
   description: "Certified pre-owned items and verified resale listings.",
   alternates: { canonical: `${baseUrl}/pre-owned` },
 };

@@ -6,8 +6,9 @@ import { faqSchema } from "@/components/seo/schemas";
 const baseUrl = process.env.SITE_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
-  title: "FAQ",
-  description: "Frequently asked questions about orders, shipping, and returns.",
+  title: "FAQs – Water Bottles & Orders | Sahoolat",
+  description: "Find answers to common questions about orders, delivery, and water bottles at Sahoolat Pakistan.",
+  keywords: "water bottle FAQ, Sahoolat help, order questions Pakistan",
   alternates: { canonical: `${baseUrl}/faq` },
 };
 

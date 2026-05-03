@@ -52,10 +52,14 @@ export async function generateMetadata({ searchParams }: PageProps) {
   const page = Number.isFinite(rawPage) && rawPage > 1 ? Math.floor(rawPage) : 1;
   const baseUrl = absoluteUrl("", process.env.SITE_URL ?? "http://localhost:3000");
 
-  const title = tag ? `Blog - ${tag}` : "Blog";
-  const description = tag
-    ? `Read ${tag} articles, guides, and tips from LuxStore.`
-    : "Premium guides, authenticity tips, trends, and product insights.";
+  const title = "Blog – Water Bottles, Health Tips & Buying Guides | Sahoolat";
+  const description = "Read expert blogs on water bottles, hydration tips, fitness, and buying guides in Pakistan. Stay updated with Sahoolat insights.";
+  const keywords = [
+    "water bottle blog",
+    "hydration tips Pakistan",
+    "fitness blog",
+    "water bottle guide"
+  ].join(", ");
 
   const qs = new URLSearchParams();
   if (page > 1) qs.set("page", String(page));
@@ -65,6 +69,7 @@ export async function generateMetadata({ searchParams }: PageProps) {
   return {
     title,
     description,
+    keywords,
     alternates: { canonical },
   };
 }

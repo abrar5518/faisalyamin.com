@@ -6,8 +6,9 @@ import { breadcrumbSchema } from "@/components/seo/schemas";
 const baseUrl = process.env.SITE_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
-  title: "Returns",
-  description: "Return policy, eligibility, and return steps.",
+  title: "Returns & Refund Policy | Sahoolat Pakistan",
+  description: "Learn about Sahoolat return and refund policy for water bottles. Easy and hassle-free returns in Pakistan.",
+  keywords: "Sahoolat returns, refund policy Pakistan, water bottle returns",
   alternates: { canonical: `${baseUrl}/returns` },
 };
 

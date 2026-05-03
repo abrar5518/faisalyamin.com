@@ -6,8 +6,9 @@ import { breadcrumbSchema } from "@/components/seo/schemas";
 const baseUrl = process.env.SITE_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy",
-  description: "How we collect, use, and protect your information.",
+  title: "Privacy Policy | Sahoolat Pakistan",
+  description: "Read Sahoolat's privacy policy to understand how we collect, use, and protect your data when you shop for water bottles in Pakistan.",
+  keywords: "Sahoolat privacy, data protection Pakistan, water bottle store privacy",
   alternates: { canonical: `${baseUrl}/privacy` },
 };
 

@@ -23,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
     : undefined;
 
   return {
-    title: page?.metaTitle || page?.title || "Shop",
+    title: page?.metaTitle || page?.title || "Buy Water Bottles Online in Pakistan | Sahoolat",
     description:
       page?.metaDescription ||
       "Browse premium watches and accessories with secure checkout and fast delivery.",

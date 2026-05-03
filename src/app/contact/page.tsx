@@ -7,8 +7,9 @@ import { absoluteUrl, contactPageSchema, organizationSchema } from "@/components
 const baseUrl = process.env.SITE_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
-  title: "Contact",
-  description: "Contact details for LuxStore support, sales, and delivery.",
+  title: "Contact Us – Sahoolat Pakistan",
+  description: "Get in touch with Sahoolat Pakistan for support, sales inquiries, and delivery questions. Contact our water bottle store for assistance.",
+  keywords: "contact Sahoolat, customer support Pakistan, water bottle store contact",
   alternates: { canonical: `${baseUrl}/contact` },
 };
 

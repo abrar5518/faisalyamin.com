@@ -24,10 +24,10 @@ export async function generateMetadata(): Promise<Metadata> {
     : undefined;
   const canonical = baseUrlResolved ? `${baseUrlResolved}/deals` : undefined;
   return {
-    title: page?.metaTitle || "Deals",
+    title: page?.metaTitle || "Best Deals on Water Bottles in Pakistan | Sahoolat",
     description:
       page?.metaDescription ||
-      "Limited-time offers on verified pieces. Shop premium deals while stock lasts.",
+      "Grab the latest discounts and deals on premium water bottles in Pakistan. Limited-time offers at Sahoolat.",
     keywords: page?.metaKeywords || undefined,
     alternates: canonical ? { canonical } : undefined,
     openGraph: {

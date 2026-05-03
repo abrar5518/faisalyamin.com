@@ -7,8 +7,9 @@ import { prisma } from "@/lib/prisma";
 const baseUrl = process.env.SITE_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
-  title: "Reviews",
-  description: "Customer reviews and buying experiences.",
+  title: "Customer Reviews – Water Bottles Pakistan | Sahoolat",
+  description: "Read real customer reviews of water bottles bought from Sahoolat. Trusted feedback from buyers in Pakistan.",
+  keywords: "Sahoolat reviews, water bottle feedback Pakistan, customer testimonials",
   alternates: { canonical: `${baseUrl}/reviews` },
 };
 

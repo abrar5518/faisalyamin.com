@@ -11,20 +11,21 @@ import { absoluteUrl, breadcrumbSchema, itemListSchema } from "@/components/seo/
 const baseUrl = process.env.SITE_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
-  title: "Categories",
-  description: "Browse curated collections and premium categories for luxury watches and accessories.",
+  title: "Water Bottle Categories – Shop All Types Online | Sahoolat",
+  description: "Explore all water bottle categories including gym, kids, stainless steel and more. Find the best bottles online in Pakistan.",
+  keywords: "water bottle categories Pakistan, gym bottles, kids bottles, buy bottles online",
   alternates: { canonical: `${baseUrl}/categories` },
   openGraph: {
     type: "website",
-    title: "Categories",
-    description: "Browse curated collections and premium categories for luxury watches and accessories.",
+    title: "Water Bottle Categories – Shop All Types Online | Sahoolat",
+    description: "Explore all water bottle categories including gym, kids, stainless steel and more. Find the best bottles online in Pakistan.",
     url: `${baseUrl}/categories`,
     images: ["/images/shopping.jpg"],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Categories",
-    description: "Browse curated collections and premium categories for luxury watches and accessories.",
+    title: "Water Bottle Categories – Shop All Types Online | Sahoolat",
+    description: "Explore all water bottle categories including gym, kids, stainless steel and more. Find the best bottles online in Pakistan.",
     images: ["/images/shopping.jpg"],
   },
 };
