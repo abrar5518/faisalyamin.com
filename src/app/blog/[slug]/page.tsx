@@ -146,6 +146,7 @@ export async function generateMetadata({ params }: PageProps) {
       title: true,
       excerpt: true,
       contentHtml: true,
+      coverImage: true,
       metaTitle: true,
       metaDescription: true,
       metaKeywords: true,
@@ -160,11 +161,29 @@ export async function generateMetadata({ params }: PageProps) {
     };
   }
 
+  const title = post.metaTitle?.trim() || post.title;
+  const description = post.metaDescription?.trim() || post.excerpt?.trim() || excerptFromHtml(post.contentHtml);
+  const keywords = post.metaKeywords?.trim() || undefined;
+  const imageUrl = post.coverImage ? absoluteUrl(post.coverImage, baseUrl.replace(/\/$/, "")) : undefined;
+
   return {
-    title: post.metaTitle || undefined,
-    description: post.metaDescription || undefined,
-    keywords: post.metaKeywords || undefined,
+    title,
+    description,
+    keywords,
     alternates: { canonical: `${baseUrl}/blog/${slug}` },
+    openGraph: {
+      title,
+      description,
+      type: "article",
+      url: `${baseUrl}/blog/${slug}`,
+      images: imageUrl ? [{ url: imageUrl }] : undefined,
+    },
+    twitter: {
+      card: imageUrl ? "summary_large_image" : "summary",
+      title,
+      description,
+      images: imageUrl ? [imageUrl] : undefined,
+    },
   };
 }
 

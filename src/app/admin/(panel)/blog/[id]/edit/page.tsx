@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -141,6 +141,9 @@ export default function AdminBlogEditPage() {
         coverAlt: p.coverImage?.alt || undefined,
         contentHtml: p.html,
         isPublished: p.status === "published",
+        metaTitle: p.seoTitle || undefined,
+        metaDescription: p.seoMetaDescription || undefined,
+        metaKeywords: p.metaKeywords || undefined,
         productSelections: p.productSelections.map((item, idx) => ({
           ...item,
           sortOrder: idx,

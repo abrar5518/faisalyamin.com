@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useState } from "react";
@@ -61,6 +61,9 @@ export default function AdminBlogCreatePage() {
         coverAlt: coverImage?.alt || undefined,
         contentHtml: html,
         isPublished: status === "published",
+        metaTitle: seoTitle || undefined,
+        metaDescription: seoMetaDescription || undefined,
+        metaKeywords: metaKeywords || undefined,
         productSelections: productSelections.map((p, idx) => ({
           ...p,
           sortOrder: idx,
