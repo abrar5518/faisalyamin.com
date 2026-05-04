@@ -257,10 +257,10 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
 
               <div className="mt-6 flex flex-wrap items-center gap-2">
                 {[
-                  "Authenticated items",
-                  "Insured shipping",
-                  "Secure checkout",
-                  "7-day returns",
+                  "Quality Checked Bottles",
+                  "Fast Delivery in Pakistan",
+                  "Secure Checkout",
+                  "7-Day Return Policy",
                 ].map((x) => (
                   <span
                     key={x}
@@ -410,10 +410,10 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
                 Subcategories
               </div>
               <h2 className="mt-4 text-2xl font-semibold tracking-tight">
-                Explore {title} Collections
+                Explore {title} Categories
               </h2>
               <p className="mt-2 text-sm text-neutral-600">
-                Browse specific subcategories to find exactly what you&apos;re looking for
+                Find the right water bottle by use, material and lifestyle. Browse kids bottles, school bottles, gym bottles, BPA-free bottles, plastic bottles, stainless steel bottles and travel bottles.
               </p>
             </div>
 
@@ -496,7 +496,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
               <div className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-7 lg:sticky lg:top-5">
                 <p className="text-sm font-semibold">Need help choosing?</p>
                 <p className="mt-2 text-sm text-neutral-600">
-                  Share your budget + preferred brand, we&apos;ll recommend the best options in this category.
+                  Share your budget, bottle size and usage. We will help you choose the best water bottle for school, office, gym, travel or kids.
                 </p>
 
                 <div className="mt-5 grid gap-2">
@@ -531,8 +531,8 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
 
                 <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
                   {[
-                    { t: "Authenticity", d: "Verified before dispatch" },
-                    { t: "Shipping", d: "Insured worldwide delivery" },
+                    { t: "Authenticity", d: "Quality checked before dispatch" },
+                    { t: "Shipping", d: "Fast delivery across Pakistan" },
                     { t: "Returns", d: "7-day return policy" },
                     { t: "Payments", d: "Secure gateways + checks" },
                   ].map((x) => (

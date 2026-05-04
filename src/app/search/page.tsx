@@ -16,9 +16,9 @@ export async function generateMetadata({ searchParams }: SearchPageProps) {
   const { q } = await searchParams;
   const query = (q ?? "").trim();
   const baseUrl = process.env.SITE_URL ?? "http://localhost:3000";
-  const title = query ? `Search: ${query}` : "Search Water Bottles Online in Pakistan | Sahoolat";
+  const title = query ? `Search: ${query}` : "Search water bottles, kids bottles, school bottles...";
   const description = query
-    ? `Search results for "${query}" on LuxStore.`
+    ? `Search results for "${query}" on Sahoolat.`
     : "Search and find the best water bottles online in Pakistan. Discover top products at Sahoolat.";
 
   const qs = new URLSearchParams();

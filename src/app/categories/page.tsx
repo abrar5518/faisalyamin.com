@@ -176,7 +176,7 @@ export default async function CategoriesPage() {
                   <span className="h-2 w-2 rounded-full bg-neutral-900" />
                   <input
                     type="search"
-                    placeholder="Search watches, brands..."
+                    placeholder="Search water bottles, kids bottles, school bottles..."
                     className="w-full bg-transparent text-sm outline-none placeholder:text-neutral-400"
                   />
                 </div>

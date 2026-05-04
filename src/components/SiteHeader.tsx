@@ -211,7 +211,7 @@ export default function SiteHeader() {
                     name="q"
                     type="search"
                     className="w-full bg-transparent text-sm outline-none placeholder:text-neutral-400"
-                    placeholder="Search watches, brands, models..."
+                    placeholder="Search water bottles, kids bottles, school bottles..."
                   />
                   <button className="btn-primary px-4 py-2 text-xs" type="submit">
                     Search
@@ -263,7 +263,7 @@ export default function SiteHeader() {
                       name="q"
                       type="search"
                       className="w-full bg-transparent text-sm outline-none placeholder:text-neutral-400"
-                      placeholder="Search..."
+                      placeholder="Search water bottles, kids bottles, school bottles..."
                     />
                     <button className="btn-primary px-4 py-2 text-xs" type="submit">
                       Go
