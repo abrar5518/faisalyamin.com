@@ -64,6 +64,7 @@ function mapProduct(p: any): ShopProduct {
     rating: typeof p.rating === "number" ? p.rating : 0,
     reviews: typeof p.reviewsCount === "number" ? p.reviewsCount : 0,
     image: img,
+    shortDesc: p.shortDesc ?? undefined,
     createdAt: p.createdAt ? new Date(p.createdAt).toISOString().slice(0, 10) : "",
   };
 }

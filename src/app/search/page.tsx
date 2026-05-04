@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import ProductCard from "@/components/ProductCard";
 import Schema from "@/components/seo/Schema";
@@ -123,7 +123,9 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
           <div className="mt-6 grid gap-3 max-[420px]:grid-cols-1 min-[421px]:grid-cols-2 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {rows.map((p) => {
-              const img = p.images?.[0]?.url || "https://images.unsplash.com/photo-1523275335684-37898b6baf30";
+              const sortedImages = [...(p.images ?? [])].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+              const img = sortedImages[0]?.url || "https://images.unsplash.com/photo-1523275335684-37898b6baf30";
+              const imgAlt = sortedImages[0]?.alt || p.name;
               return (
                 <ProductCard
                   key={p.id}
@@ -136,6 +138,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                     rating: p.rating ?? 0,
                     reviews: p.reviewsCount ?? 0,
                     image: img,
+                    imageAlt: imgAlt,
+                    shortDesc: p.shortDesc ?? undefined,
                     href: `/product/${p.slug}`,
                   }}
                   variant="compact"

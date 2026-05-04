@@ -1,4 +1,4 @@
-﻿import { notFound } from "next/navigation";
+import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import Link from "next/link";
@@ -322,6 +322,7 @@ export default async function ProductPage({ params }: PageProps) {
             reviews: p.reviewsCount ?? 0,
             image: img,
             imageAlt: imgAlt,
+            shortDesc: p.shortDesc ?? undefined,
             href: `/product/${p.slug}`,
           };
         })

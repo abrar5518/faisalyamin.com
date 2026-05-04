@@ -16,6 +16,7 @@ type FilterState = {
 
 export type ShopProduct = Product & {
   createdAt: string; // ISO
+  shortDesc?: string;
 };
 
 type ShopClientProps = {
@@ -155,6 +156,7 @@ export default function ShopClient({
       rating: typeof p.rating === "number" ? p.rating : 0,
       reviews: typeof p.reviewsCount === "number" ? p.reviewsCount : 0,
       image: img,
+      shortDesc: p.shortDesc ?? undefined,
       createdAt: p.createdAt ?? "",
     };
   };
@@ -507,6 +509,7 @@ export default function ShopClient({
                       rating: p.rating,
                       reviews: p.reviews,
                       image: p.image,
+                      shortDesc: p.shortDesc,
                       href: `/product/${p.id}`,
                     }}
                     variant="compact"

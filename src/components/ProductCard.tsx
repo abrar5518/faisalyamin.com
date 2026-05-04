@@ -18,6 +18,7 @@ export type Product = {
   href?: string;
   // optional subtitle (sale card me kaam aayega)
   subtitle?: string;
+  shortDesc?: string;
 };
 
 export type ProductCardVariant = "default" | "featured" | "compact" | "sale";
@@ -187,8 +188,8 @@ function CompactCard({ p }: { p: Product }) {
       <div className="mt-4 flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold">{displayName}</p>
-          <p className="mt-1 text-xs text-neutral-500">
-            Verified • Box & Papers • Fast Shipping
+          <p className="mt-1 line-clamp-2 text-xs text-neutral-500">
+            {p.shortDesc || "Verified • Box & Papers • Fast Shipping"}
           </p>
         </div>
 

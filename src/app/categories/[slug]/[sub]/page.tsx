@@ -199,6 +199,7 @@ export default async function SubcategoryPage({ params, searchParams }: PageProp
       reviews: p.reviewsCount ?? 0,
       image: img || "https://images.unsplash.com/photo-1523275335684-37898b6baf30",
       imageAlt: imgAlt,
+      shortDesc: p.shortDesc ?? undefined,
       href: `/product/${p.slug}`,
     };
   });

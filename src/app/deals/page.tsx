@@ -64,8 +64,9 @@ function formatPKR(n: number) {
 
 function buildProducts(rows: any[]): Product[] {
   return rows.map((p) => {
-    const img = [...(p.images ?? [])]
-      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))[0]?.url;
+    const sortedImages = [...(p.images ?? [])].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+    const img = sortedImages[0]?.url;
+    const imgAlt = sortedImages[0]?.alt || p.name;
     return {
       id: p.slug,
       name: p.name,
@@ -75,6 +76,8 @@ function buildProducts(rows: any[]): Product[] {
       rating: p.rating ?? 0,
       reviews: p.reviewsCount ?? 0,
       image: img || "https://images.unsplash.com/photo-1523275335684-37898b6baf30",
+      imageAlt: imgAlt,
+      shortDesc: p.shortDesc ?? undefined,
       href: `/product/${p.slug}`,
     };
   });
