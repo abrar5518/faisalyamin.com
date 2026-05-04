@@ -85,7 +85,7 @@ export default function SiteFooter() {
   const brandName = branding?.siteName?.trim() || "LuxStore";
   const footerText =
     branding?.siteFooterText?.trim() ||
-    "Luxury watches & accessories with secure checkout, fast delivery and clean, modern shopping experience.";
+    "Sahoolat.pk offers affordable water bottles in Pakistan including kids water bottles, school bottles, stainless steel bottles, BPA-free bottles and insulated bottles with fast delivery and secure checkout.";
   const brandInitials = brandName
     .split(" ")
     .filter(Boolean)
@@ -93,7 +93,7 @@ export default function SiteFooter() {
     .map((s) => s[0])
     .join("")
     .toUpperCase() || "LX";
-  const contactEmail = contact?.email || "support@luxstore.com";
+  const contactEmail = contact?.email || "support@sahoolat.pk";
   const contactWhatsapp = contact?.whatsapp || "";
   const contactPhone = contact?.phone || "";
   const contactCity = contact?.city || "";

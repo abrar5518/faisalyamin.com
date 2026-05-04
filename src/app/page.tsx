@@ -590,13 +590,13 @@ export default async function HomePage() {
         <Container>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight">Featured products</h2>
+              <h2 className="text-2xl font-semibold tracking-tight">Featured Water Bottles in Pakistan</h2>
               <p className="mt-2 text-sm text-neutral-600">
-                High demand, premium build, trusted sellers.
+                Shop popular kids water bottles, school bottles, stainless steel bottles and insulated bottles at affordable prices.
               </p>
             </div>
             <div className="hidden sm:flex items-center gap-2">
-              {["All", "Watches", "Accessories", "New"].map((t) => (
+              {["All", "Kids Bottles", "School Bottles", "Stainless Steel"].map((t) => (
                 <button
                   key={t}
                   className="rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm hover:bg-neutral-100"
