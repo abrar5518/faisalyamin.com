@@ -148,7 +148,7 @@ export default function SiteFooter() {
                   Get drops, deals & restocks
                 </h3>
                 <p className="mt-2 text-sm text-white/70">
-                  Weekly emails. No spam. Just curated luxury picks and restock alerts.
+                  Weekly water bottle deals, new arrivals and restock alerts.
                 </p>
 
                 <div className="mt-5 flex flex-wrap items-center gap-3 text-xs text-white/60">
@@ -197,12 +197,12 @@ export default function SiteFooter() {
                 {/* micro trust row */}
                 <div className="mt-6 grid gap-3 sm:grid-cols-3">
                   <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                    <p className="text-[11px] font-semibold text-white">Authenticity</p>
-                    <p className="mt-0.5 text-[11px] text-white/60">Verified items</p>
+                    <p className="text-[11px] font-semibold text-white">Quality Checked</p>
+                    <p className="mt-0.5 text-[11px] text-white/60">Checked before dispatch</p>
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
                     <p className="text-[11px] font-semibold text-white">Shipping</p>
-                    <p className="mt-0.5 text-[11px] text-white/60">Fast dispatch</p>
+                    <p className="mt-0.5 text-[11px] text-white/60">Fast delivery across Pakistan</p>
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
                     <p className="text-[11px] font-semibold text-white">Support</p>
