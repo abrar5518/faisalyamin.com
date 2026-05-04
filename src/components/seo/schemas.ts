@@ -1,19 +1,31 @@
 export function normalizeUrl(value: string) {
   if (!value) return value;
-  const trimmed = value.trim();
-  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-    return trimmed.replace(/\/+$|(?<!https?:)\/+/g, "");
+  let trimmed = value.trim();
+  
+  // Ensure it starts with http:// or https://
+  if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) {
+    trimmed = `https://${trimmed.replace(/^\/+/, "")}`;
   }
-  const withoutLeadingSlash = trimmed.replace(/^\/+/, "");
-  return `https://${withoutLeadingSlash}`.replace(/\/+$/, "");
+  
+  // Remove trailing slashes
+  trimmed = trimmed.replace(/\/+$/, "");
+  
+  // Remove duplicate slashes but preserve the protocol //
+  // "([^:\/])\/+" means match any char that is not a colon, followed by a slash, and then one or more slashes
+  return trimmed.replace(/([^:]\/)\/+/g, "$1");
 }
 
 export function absoluteUrl(input: string, baseUrl: string) {
   const normalizedBase = normalizeUrl(baseUrl);
   if (!input) return normalizedBase;
-  if (input.startsWith("http://") || input.startsWith("https://")) return input;
-  if (input.startsWith("/")) return `${normalizedBase}${input}`;
-  return `${normalizedBase}/${input}`;
+  
+  const trimmedInput = input.trim();
+  if (trimmedInput.startsWith("http://") || trimmedInput.startsWith("https://")) {
+    return normalizeUrl(trimmedInput);
+  }
+  
+  const cleanInput = trimmedInput.startsWith("/") ? trimmedInput : `/${trimmedInput}`;
+  return `${normalizedBase}${cleanInput}`.replace(/([^:]\/)\/+/g, "$1");
 }
 
 export function stripHtml(html: string) {
