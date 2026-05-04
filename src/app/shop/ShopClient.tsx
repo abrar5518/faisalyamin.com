@@ -421,7 +421,7 @@ export default function ShopClient({
               <img
                 src={featureImage}
                 alt={featureImageAlt || title}
-                className="w-full h-auto"
+                className="h-56 w-full object-contain sm:h-64"
                 loading="lazy"
               />
             </div>
