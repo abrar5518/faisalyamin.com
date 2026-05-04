@@ -161,9 +161,9 @@ export async function generateMetadata({ params }: PageProps) {
     };
   }
 
-  const title = post.metaTitle?.trim() || post.title;
-  const description = post.metaDescription?.trim() || post.excerpt?.trim() || excerptFromHtml(post.contentHtml);
-  const keywords = post.metaKeywords?.trim() || undefined;
+  const title = post.metaTitle?.trim() || "N/A";
+  const description = post.metaDescription?.trim() || "N/A";
+  const keywords = post.metaKeywords?.trim() || "N/A";
   const imageUrl = post.coverImage ? absoluteUrl(post.coverImage, baseUrl.replace(/\/$/, "")) : undefined;
 
   return {
