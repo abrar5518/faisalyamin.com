@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import Image from "next/image";
@@ -76,6 +76,7 @@ export async function generateMetadata({ params, searchParams }: PageProps) {
     description: category.metaDescription || `Explore ${category.name} products and curated picks.`,
     keywords: category.metaKeywords || undefined,
     alternates: { canonical },
+    robots: page > 1 ? { index: false, follow: true } : undefined,
     openGraph: {
       type: "website",
       title: category.metaTitle || category.name,

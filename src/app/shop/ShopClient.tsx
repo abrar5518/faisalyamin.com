@@ -1,4 +1,4 @@
-﻿// src/app/shop/page.tsx
+// src/app/shop/page.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -421,7 +421,7 @@ export default function ShopClient({
               <img
                 src={featureImage}
                 alt={featureImageAlt || title}
-                className="h-56 w-full object-cover sm:h-64"
+                className="w-full h-auto"
                 loading="lazy"
               />
             </div>

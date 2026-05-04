@@ -119,6 +119,7 @@ export async function generateMetadata({ params, searchParams }: PageProps) {
     description: subcategory.metaDescription || `Explore ${subcategory.name} products and curated picks.`,
     keywords: subcategory.metaKeywords || undefined,
     alternates: { canonical },
+    robots: page > 1 ? { index: false, follow: true } : undefined,
     openGraph: {
       type: "website",
       title: subcategory.metaTitle || subcategory.name,
