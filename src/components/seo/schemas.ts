@@ -40,6 +40,8 @@ export const organizationSchema = ({
   phone,
   email,
   address,
+  aggregateRating,
+  reviews,
 }: {
   name: string;
   url: string;
@@ -54,6 +56,13 @@ export const organizationSchema = ({
     postalCode?: string;
     addressCountry: string;
   };
+  aggregateRating?: { ratingValue: number; reviewCount: number };
+  reviews?: Array<{
+    name: string;
+    author: string;
+    ratingValue: number;
+    reviewBody: string;
+  }>;
 }) => ({
   "@context": "https://schema.org",
   "@type": "Organization",
@@ -80,6 +89,30 @@ export const organizationSchema = ({
           "@type": "PostalAddress",
           ...address,
         },
+      }
+    : {}),
+  ...(aggregateRating
+    ? {
+        aggregateRating: {
+          "@type": "AggregateRating",
+          ratingValue: aggregateRating.ratingValue,
+          reviewCount: aggregateRating.reviewCount,
+        },
+      }
+    : {}),
+  ...(reviews?.length
+    ? {
+        review: reviews.map((r) => ({
+          "@type": "Review",
+          name: r.name,
+          reviewBody: r.reviewBody,
+          author: { "@type": "Person", name: r.author },
+          reviewRating: {
+            "@type": "Rating",
+            ratingValue: r.ratingValue,
+            bestRating: 5,
+          },
+        })),
       }
     : {}),
 });

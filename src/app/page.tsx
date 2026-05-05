@@ -193,25 +193,25 @@ const saleProductsFallback: Product[] = [
 
 const testimonialsFallback: Testimonial[] = [
   {
-    name: "Omar R.",
-    title: "Dubai",
-    quote: "Fast delivery and authentic product. The packaging felt premium and the support team was super responsive.",
+    name: "Ayesha K.",
+    title: "Lahore",
+    quote: "Bottle quality achi nikli, lid tight hai aur delivery bhi time par mil gayi.",
     avatar: IMAGES.a1,
     rating: 5,
   },
   {
-    name: "Sarah K.",
-    title: "London",
-    quote: "The buying experience was smooth, and the watch condition was exactly as described. Highly recommended.",
+    name: "Hamza R.",
+    title: "Karachi",
+    quote: "Daily office use ke liye order ki thi. Size practical hai aur water ka taste fresh rehta hai.",
     avatar: IMAGES.a3,
-    rating: 5,
+    rating: 4.8,
   },
   {
-    name: "Imran A.",
-    title: "Chicago",
-    quote: "Great selection and transparent pricing. I loved the secure checkout and the updates throughout shipping.",
+    name: "Mariam S.",
+    title: "Islamabad",
+    quote: "Product pictures jaisa hi mila. Packaging clean thi aur checkout process simple tha.",
     avatar: IMAGES.a2,
-    rating: 5,
+    rating: 4.7,
   },
 ];
 
@@ -236,6 +236,10 @@ function clampFloat(value: unknown, fallback: number, min: number, max: number) 
   const num = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(num)) return fallback;
   return Math.max(min, Math.min(max, num));
+}
+
+function normalizeRating(value: unknown, fallback = 5) {
+  return Number(clampFloat(value, fallback, 1, 5).toFixed(1));
 }
 
 function pickFirstImage(images: Array<{ url?: string; sortOrder?: number }> = []) {
@@ -411,16 +415,18 @@ export default async function HomePage() {
   const saleVisibleCount = clampFloat(pageRow?.homeSaleVisibleCount, 4.5, 1, 6);
   const saleAutoMs = clampInt(pageRow?.homeSaleAutoMs, 4500, 1000, 20000);
   const saleItems = saleList.slice(0, saleLimit);
-  const testimonialsList: Testimonial[] =
-    pageRow?.homeTestimonials && pageRow.homeTestimonials.length
-      ? pageRow.homeTestimonials.map((item) => ({
-        name: item.name ?? "Customer",
-        title: item.title ?? "",
-        quote: item.quote ?? "",
+  const testimonialsFromCms: Testimonial[] =
+    pageRow?.homeTestimonials
+      ?.map((item) => ({
+        name: item.name?.trim() || "",
+        title: item.title?.trim() || "",
+        quote: item.quote?.trim() || "",
         avatar: item.avatarUrl || IMAGES.a1,
-        rating: typeof item.rating === "number" ? item.rating : 5,
+        rating: normalizeRating(item.rating),
       }))
-      : testimonialsFallback;
+      .filter((item) => item.name && item.quote) ?? [];
+  const testimonialsList: Testimonial[] =
+    testimonialsFromCms.length > 0 ? testimonialsFromCms : testimonialsFallback;
   const baseUrlResolved = (siteSettings?.siteUrl || baseUrl).replace(/\/$/, "");
   const brandName = siteSettings?.siteName?.trim() || "LuxStore";
   const logoUrl = siteSettings?.logoUrl || siteSettings?.siteIconUrl || "/favicon.ico";
@@ -449,21 +455,22 @@ export default async function HomePage() {
       })
     : [];
   const faqSchemaItems = homeFaq.items.filter((f) => f.q && f.a);
-  const orgReviewSchema = baseUrlResolved
-    ? {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      name: brandName,
-      url: baseUrlResolved,
-      review: testimonialsList.map((t) => ({
-        "@type": "Review",
-        name: `Review from ${t.name}`,
-        reviewBody: t.quote,
-        author: { "@type": "Person", name: t.name },
-        reviewRating: { "@type": "Rating", ratingValue: "5", bestRating: "5" },
-      })),
-    }
-    : null;
+  const orgReviews = testimonialsList.map((t) => ({
+    name: `Review from ${t.name}`,
+    author: t.name,
+    ratingValue: normalizeRating(t.rating),
+    reviewBody: t.quote,
+  }));
+  const orgReviewCount = orgReviews.length;
+  const orgAverageRating =
+    orgReviewCount > 0
+      ? Number(
+          (
+            orgReviews.reduce((total, review) => total + review.ratingValue, 0) /
+            orgReviewCount
+          ).toFixed(1),
+        )
+      : 0;
 
   return (
     <div className="min-h-screen bg-white text-neutral-900">
@@ -475,6 +482,10 @@ export default async function HomePage() {
           phone: contact?.phone || undefined,
           email: contact?.email || undefined,
           address: orgAddress,
+          aggregateRating: orgReviewCount
+            ? { ratingValue: orgAverageRating, reviewCount: orgReviewCount }
+            : undefined,
+          reviews: orgReviewCount ? orgReviews : undefined,
         })}
       />
       <Schema
@@ -488,7 +499,6 @@ export default async function HomePage() {
         <Schema data={itemListSchema({ url: `${baseUrlResolved}/`, items: productListItems })} />
       ) : null}
       {faqSchemaItems.length > 0 ? <Schema data={faqSchema(faqSchemaItems)} /> : null}
-      {orgReviewSchema ? <Schema data={orgReviewSchema} /> : null}
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,#f5f5f5,transparent_45%),radial-gradient(circle_at_80%_30%,#eaeaea,transparent_45%)]" />
