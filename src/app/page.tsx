@@ -197,21 +197,21 @@ const testimonialsFallback: Testimonial[] = [
     title: "Lahore",
     quote: "Bottle quality achi nikli, lid tight hai aur delivery bhi time par mil gayi.",
     avatar: IMAGES.a1,
-    rating: 5,
+    rating: 4.6,
   },
   {
     name: "Hamza R.",
     title: "Karachi",
     quote: "Daily office use ke liye order ki thi. Size practical hai aur water ka taste fresh rehta hai.",
     avatar: IMAGES.a3,
-    rating: 4.8,
+    rating: 4.4,
   },
   {
     name: "Mariam S.",
     title: "Islamabad",
     quote: "Product pictures jaisa hi mila. Packaging clean thi aur checkout process simple tha.",
     avatar: IMAGES.a2,
-    rating: 4.7,
+    rating: 4.5,
   },
 ];
 
