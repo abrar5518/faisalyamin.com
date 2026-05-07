@@ -3,6 +3,11 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/adminAuth";
 
+const FaqItemSchema = z.object({
+  question: z.string().min(1),
+  answer: z.string().min(1),
+});
+
 const CreateProductSchema = z.object({
   categorySlug: z.string().min(2),
   subcategorySlug: z.string().min(2).optional(),
@@ -61,6 +66,7 @@ const CreateProductSchema = z.object({
       })
     )
     .optional(),
+  faqItems: z.array(FaqItemSchema).optional(),
 });
 
 const UpdateProductSchema = z.object({
@@ -121,7 +127,16 @@ const UpdateProductSchema = z.object({
       })
     )
     .optional(),
+  faqItems: z.array(FaqItemSchema).optional(),
 });
+
+function faqCreateData(faqItems?: Array<{ question: string; answer: string }>) {
+  return faqItems?.map((item, idx) => ({
+    question: item.question,
+    answer: item.answer,
+    sortOrder: idx,
+  }));
+}
 
 function uniqueStrings(values: Array<string | null | undefined>) {
   return Array.from(new Set(values.filter((value): value is string => Boolean(value))));
@@ -185,6 +200,7 @@ export async function GET(req: NextRequest) {
             orderBy: { id: "asc" },
           },
           images: true,
+          faqItems: { orderBy: { sortOrder: "asc" } },
         },
       });
 
@@ -240,6 +256,7 @@ export async function GET(req: NextRequest) {
           orderBy: { id: "asc" },
         },
         images: true,
+        faqItems: { orderBy: { sortOrder: "asc" } },
       },
     });
 
@@ -384,6 +401,9 @@ export async function POST(req: NextRequest) {
               create: productSubcategoryData(subcategoryIds),
             }
           : undefined,
+        faqItems: data.faqItems?.length
+          ? { create: faqCreateData(data.faqItems) }
+          : undefined,
       },
       include: {
         category: { select: { name: true, slug: true } },
@@ -397,6 +417,7 @@ export async function POST(req: NextRequest) {
           orderBy: { id: "asc" },
         },
         images: true,
+        faqItems: { orderBy: { sortOrder: "asc" } },
       },
     });
 
@@ -474,6 +495,7 @@ export async function PUT(req: NextRequest) {
       categorySlugs: _categorySlugs,
       subcategorySlugs: _subcategorySlugs,
       images,
+      faqItems,
       ...updateData
     } = data;
 
@@ -573,6 +595,12 @@ export async function PUT(req: NextRequest) {
               })),
             }
           : undefined,
+        faqItems: faqItems
+          ? {
+              deleteMany: {},
+              create: faqCreateData(faqItems),
+            }
+          : undefined,
       },
       include: {
         category: { select: { name: true, slug: true } },
@@ -586,6 +614,7 @@ export async function PUT(req: NextRequest) {
           orderBy: { id: "asc" },
         },
         images: true,
+        faqItems: { orderBy: { sortOrder: "asc" } },
       },
     });
 

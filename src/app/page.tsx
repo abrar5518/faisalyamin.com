@@ -9,9 +9,10 @@ import type { ReactNode } from "react";
 import { prisma } from "@/lib/prisma";
 import type { Metadata } from "next";
 import Schema from "@/components/seo/Schema";
-import { absoluteUrl, faqSchema, itemListSchema, organizationSchema, websiteSchema } from "@/components/seo/schemas";
+import { absoluteUrl, itemListSchema, organizationSchema, websiteSchema } from "@/components/seo/schemas";
 import CategoryCarousel from "@/components/home/CategoryCarousel";
 import { normalizeSiteUrl } from "@/lib/siteUrl";
+import FaqSection from "@/components/FaqSection";
 
 type Testimonial = {
   name: string;
@@ -455,7 +456,6 @@ export default async function HomePage() {
         return true;
       })
     : [];
-  const faqSchemaItems = homeFaq.items.filter((f) => f.q && f.a);
   const orgReviews = testimonialsList.map((t) => ({
     name: `Review from ${t.name}`,
     author: t.name,
@@ -499,7 +499,6 @@ export default async function HomePage() {
       {baseUrlResolved && productListItems.length > 0 ? (
         <Schema data={itemListSchema({ url: `${baseUrlResolved}/`, items: productListItems })} />
       ) : null}
-      {faqSchemaItems.length > 0 ? <Schema data={faqSchema(faqSchemaItems)} /> : null}
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,#f5f5f5,transparent_45%),radial-gradient(circle_at_80%_30%,#eaeaea,transparent_45%)]" />
@@ -801,31 +800,15 @@ export default async function HomePage() {
       {/* FAQs */}
       <section className="border-t border-neutral-200 bg-white py-14">
         <Container>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h2 className="text-2xl font-semibold tracking-tight">{homeFaq.title}</h2>
-              <p className="mt-2 text-sm text-neutral-600">
-                {homeFaq.intro}
-              </p>
-            </div>
-            <Link href="/faq" className="text-sm font-medium text-neutral-900 hover:underline">
-              View all FAQs
-            </Link>
-          </div>
-
-          <div className="mt-8 grid gap-4 lg:grid-cols-2">
-            {homeFaq.items.map((f) => (
-              <details key={f.q} className="group rounded-3xl border border-neutral-200 bg-white p-6">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
-                  <p className="text-sm font-semibold text-neutral-900">{f.q}</p>
-                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-neutral-200 bg-white text-neutral-900 group-open:bg-neutral-900 group-open:text-white">
-                    +
-                  </span>
-                </summary>
-                <p className="mt-4 text-sm leading-relaxed text-neutral-600">{f.a}</p>
-              </details>
-            ))}
-          </div>
+          <FaqSection
+            items={homeFaq.items}
+            title={homeFaq.title}
+            intro={homeFaq.intro}
+            linkHref="/faq"
+            linkLabel="View all FAQs"
+            includeSchema
+            variant="default"
+          />
         </Container>
       </section>
 

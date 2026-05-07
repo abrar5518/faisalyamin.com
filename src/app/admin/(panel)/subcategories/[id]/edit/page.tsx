@@ -7,6 +7,7 @@ import { useParams, useRouter } from "next/navigation";
 import AdminTopbar from "@/components/admin/AdminTopbar";
 import ImageUploader from "@/components/admin/common/ImageUploader";
 import RichEditor from "@/components/admin/common/RichEditor";
+import FaqEditor, { cleanFaqItems, type AdminFaqItem } from "@/components/admin/common/FaqEditor";
 import { Fetch } from "@/lib/fetch";
 import type { AdminImage } from "@/types/adminProduct";
 
@@ -24,6 +25,7 @@ type AdminSubcategory = {
   metaDescription?: string | null;
   metaKeywords?: string | null;
   category?: { slug: string; name: string } | null;
+  faqItems?: Array<{ question?: string | null; answer?: string | null }>;
   updatedAt?: string | null;
 };
 
@@ -56,6 +58,7 @@ export default function AdminSubcategoryEditPage() {
   const [metaTitle, setMetaTitle] = useState<string>("");
   const [metaDescription, setMetaDescription] = useState<string>("");
   const [metaKeywords, setMetaKeywords] = useState<string>("");
+  const [faqItems, setFaqItems] = useState<AdminFaqItem[]>([{ question: "", answer: "" }]);
   const [initialSlug, setInitialSlug] = useState<string>("");
 
   const previewUrl = useMemo(() => {
@@ -110,6 +113,14 @@ export default function AdminSubcategoryEditPage() {
         setMetaTitle(data.metaTitle ?? "");
         setMetaDescription(data.metaDescription ?? "");
         setMetaKeywords(data.metaKeywords ?? "");
+        setFaqItems(
+          data.faqItems?.length
+            ? data.faqItems.map((item) => ({
+                question: item.question ?? "",
+                answer: item.answer ?? "",
+              }))
+            : [{ question: "", answer: "" }]
+        );
 
         setLoading(false);
       } catch (e: any) {
@@ -148,6 +159,7 @@ export default function AdminSubcategoryEditPage() {
           metaTitle: metaTitle || undefined,
           metaDescription: metaDescription || undefined,
           metaKeywords: metaKeywords || undefined,
+          faqItems: cleanFaqItems(faqItems),
         },
       });
 
@@ -292,6 +304,13 @@ export default function AdminSubcategoryEditPage() {
                 <RichEditor value={descriptionHtml} onChange={setDescriptionHtml} />
               </div>
             </div>
+
+            <FaqEditor
+              value={faqItems}
+              onChange={setFaqItems}
+              title="Subcategory FAQs"
+              hint="These FAQs will be saved with this subcategory for frontend SEO rendering."
+            />
           </div>
 
           <aside className="lg:col-span-4 space-y-6">

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Schema from "@/components/seo/Schema";
-import { faqSchema } from "@/components/seo/schemas";
+import FaqSection from "@/components/FaqSection";
 import { normalizeSiteUrl } from "@/lib/siteUrl";
 
 const baseUrl = normalizeSiteUrl();
@@ -155,7 +154,6 @@ const FAQS = [
 export default function FaqPage() {
   return (
     <div className="min-h-screen bg-white text-neutral-900">
-      <Schema data={faqSchema(FAQS)} />
       <div className="border-b border-neutral-200 bg-neutral-50">
         <Container>
           <div className="flex h-10 items-center gap-2 text-xs text-neutral-600">
@@ -168,19 +166,15 @@ export default function FaqPage() {
 
       <section className="bg-white py-12">
         <Container>
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">FAQ</h1>
-          <p className="mt-3 text-sm text-neutral-600 sm:text-base">
-            Quick answers to common questions.
-          </p>
-
-          <div className="mt-8 grid gap-4">
-            {FAQS.map((item) => (
-              <div key={item.q} className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
-                <p className="text-sm font-semibold">{item.q}</p>
-                <p className="mt-2 text-sm text-neutral-600">{item.a}</p>
-              </div>
-            ))}
-          </div>
+          <FaqSection
+            items={FAQS}
+            title="Water Bottle FAQs in Pakistan"
+            intro="Quick, clear answers about prices, delivery, returns, materials and choosing the right bottle for kids, school, gym, office or travel."
+            eyebrow="Help center"
+            includeSchema
+            columns={1}
+            variant="soft"
+          />
         </Container>
       </section>
     </div>

@@ -11,6 +11,7 @@ import Schema from "@/components/seo/Schema";
 import { absoluteUrl, blogPostingSchema, breadcrumbSchema } from "@/components/seo/schemas";
 import SubscribeCard from "@/components/SubscribeCard";
 import { normalizeSiteUrl } from "@/lib/siteUrl";
+import FaqSection from "@/components/FaqSection";
 
 type BlogPost = {
   slug: string;
@@ -206,6 +207,13 @@ export default async function BlogPostPage({ params }: PageProps) {
         contentHtml: true,
         publishedAt: true,
         createdAt: true,
+        faqItems: {
+          select: {
+            question: true,
+            answer: true,
+          },
+          orderBy: { sortOrder: "asc" },
+        },
         blogProducts: {
           where: { product: { isActive: true } },
           orderBy: { sortOrder: "asc" },
@@ -479,6 +487,18 @@ export default async function BlogPostPage({ params }: PageProps) {
               </div>
 
               <ProductInsert title="More from the store" items={productGroups.bottom} />
+
+              {postRow.faqItems.length > 0 ? (
+                <FaqSection
+                  items={postRow.faqItems}
+                  title={`${post.title} FAQs`}
+                  intro="Quick answers related to this guide."
+                  eyebrow="Blog FAQs"
+                  includeSchema
+                  variant="soft"
+                  className="mt-8"
+                />
+              ) : null}
             </article>
 
             {/* Sidebar */}

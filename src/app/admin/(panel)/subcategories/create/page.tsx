@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import AdminTopbar from "@/components/admin/AdminTopbar";
 import ImageUploader from "@/components/admin/common/ImageUploader";
 import RichEditor from "@/components/admin/common/RichEditor";
+import FaqEditor, { cleanFaqItems, type AdminFaqItem } from "@/components/admin/common/FaqEditor";
 import { Fetch } from "@/lib/fetch";
 import type { AdminImage } from "@/types/adminProduct";
 
@@ -35,6 +36,7 @@ export default function AdminSubcategoryCreatePage() {
   const [metaTitle, setMetaTitle] = useState<string>("");
   const [metaDescription, setMetaDescription] = useState<string>("");
   const [metaKeywords, setMetaKeywords] = useState<string>("");
+  const [faqItems, setFaqItems] = useState<AdminFaqItem[]>([{ question: "", answer: "" }]);
 
   const [saving, setSaving] = useState<boolean>(false);
   const [msg, setMsg] = useState<string | null>(null);
@@ -90,6 +92,7 @@ export default function AdminSubcategoryCreatePage() {
           metaTitle: metaTitle || undefined,
           metaDescription: metaDescription || undefined,
           metaKeywords: metaKeywords || undefined,
+          faqItems: cleanFaqItems(faqItems),
         },
       });
 
@@ -214,6 +217,13 @@ export default function AdminSubcategoryCreatePage() {
                 <RichEditor value={descriptionHtml} onChange={setDescriptionHtml} />
               </div>
             </div>
+
+            <FaqEditor
+              value={faqItems}
+              onChange={setFaqItems}
+              title="Subcategory FAQs"
+              hint="These FAQs will be saved with this subcategory for frontend SEO rendering."
+            />
           </div>
 
           <aside className="lg:col-span-4 space-y-6">

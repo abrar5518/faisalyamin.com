@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import AdminTopbar from "@/components/admin/AdminTopbar";
 import ImageUploader from "@/components/admin/common/ImageUploader";
 import RichEditor from "@/components/admin/common/RichEditor";
+import FaqEditor, { cleanFaqItems, type AdminFaqItem } from "@/components/admin/common/FaqEditor";
 import BlogProductSelector, { BlogProductSelection } from "@/components/admin/blog/BlogProductSelector";
 import type { AdminImage } from "@/types/adminProduct";
 import { Fetch } from "@/lib/fetch";
@@ -19,6 +20,7 @@ type BlogEditModel = {
   coverImage: AdminImage | null;
   html: string;
   productSelections: BlogProductSelection[];
+  faqItems: AdminFaqItem[];
 
   seoTitle?: string;
   seoMetaDescription?: string;
@@ -101,6 +103,12 @@ export default function AdminBlogEditPage() {
           excerpt: api.excerpt ?? "",
           coverImage: api.coverImage ? { url: api.coverImage, alt: api.coverAlt ?? cached?.coverAlt ?? "" } : null,
           html: api.contentHtml ?? "",
+          faqItems: Array.isArray(api.faqItems) && api.faqItems.length
+            ? api.faqItems.map((item: any) => ({
+                question: item?.question ?? "",
+                answer: item?.answer ?? "",
+              }))
+            : [{ question: "", answer: "" }],
           productSelections: Array.isArray(api.productSelections)
             ? api.productSelections.map((p: any) => ({
                 productId: Number(p.productId),
@@ -144,6 +152,7 @@ export default function AdminBlogEditPage() {
         metaTitle: p.seoTitle || undefined,
         metaDescription: p.seoMetaDescription || undefined,
         metaKeywords: p.metaKeywords || undefined,
+        faqItems: cleanFaqItems(p.faqItems),
         productSelections: p.productSelections.map((item, idx) => ({
           ...item,
           sortOrder: idx,
@@ -290,6 +299,13 @@ export default function AdminBlogEditPage() {
             <BlogProductSelector
               value={p.productSelections}
               onChange={(next) => setP((x) => (x ? { ...x, productSelections: next } : x))}
+            />
+
+            <FaqEditor
+              value={p.faqItems}
+              onChange={(faqItems) => setP((x) => (x ? { ...x, faqItems } : x))}
+              title="Blog FAQs"
+              hint="Add post-specific FAQs that can appear below the blog content."
             />
           </div>
 

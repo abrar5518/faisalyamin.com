@@ -3,6 +3,11 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/adminAuth";
 
+const FaqItemSchema = z.object({
+  question: z.string().min(1),
+  answer: z.string().min(1),
+});
+
 const CreateCategorySchema = z.object({
   name: z.string().min(2),
   slug: z.string().min(2),
@@ -14,6 +19,7 @@ const CreateCategorySchema = z.object({
   metaTitle: z.string().optional(),
   metaDescription: z.string().optional(),
   metaKeywords: z.string().optional(),
+  faqItems: z.array(FaqItemSchema).optional(),
 });
 
 const UpdateCategorySchema = z.object({
@@ -27,7 +33,16 @@ const UpdateCategorySchema = z.object({
   metaTitle: z.string().optional(),
   metaDescription: z.string().optional(),
   metaKeywords: z.string().optional(),
+  faqItems: z.array(FaqItemSchema).optional(),
 });
+
+function faqCreateData(faqItems?: Array<{ question: string; answer: string }>) {
+  return faqItems?.map((item, idx) => ({
+    question: item.question,
+    answer: item.answer,
+    sortOrder: idx,
+  }));
+}
 
 export async function GET(req: NextRequest) {
   const auth = requireAdmin(req);
@@ -43,6 +58,7 @@ export async function GET(req: NextRequest) {
       const item = await prisma.category.findUnique({
         where: { slug },
         include: {
+          faqItems: { orderBy: { sortOrder: "asc" } },
           subcategories: {
             select: {
               id: true,
@@ -67,6 +83,7 @@ export async function GET(req: NextRequest) {
     const items = await prisma.category.findMany({
       orderBy: { createdAt: "desc" },
       include: {
+        faqItems: { orderBy: { sortOrder: "asc" } },
         subcategories: {
           select: {
             id: true,
@@ -110,7 +127,11 @@ export async function POST(req: NextRequest) {
         metaTitle: data.metaTitle,
         metaDescription: data.metaDescription,
         metaKeywords: data.metaKeywords,
+        faqItems: data.faqItems?.length
+          ? { create: faqCreateData(data.faqItems) }
+          : undefined,
       },
+      include: { faqItems: { orderBy: { sortOrder: "asc" } } },
     });
 
     return NextResponse.json({ ok: true, data: created }, { status: 201 });
@@ -144,6 +165,7 @@ export async function PUT(req: NextRequest) {
 
     const body = await req.json();
     const data = UpdateCategorySchema.parse(body);
+    const { faqItems, ...updateData } = data;
 
     const existing = await prisma.category.findUnique({
       where: { slug },
@@ -156,7 +178,16 @@ export async function PUT(req: NextRequest) {
 
     const updated = await prisma.category.update({
       where: { id: existing.id },
-      data,
+      data: {
+        ...updateData,
+        faqItems: faqItems
+          ? {
+              deleteMany: {},
+              create: faqCreateData(faqItems),
+            }
+          : undefined,
+      },
+      include: { faqItems: { orderBy: { sortOrder: "asc" } } },
     });
 
     return NextResponse.json({ ok: true, data: updated });

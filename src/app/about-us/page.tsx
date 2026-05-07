@@ -2,7 +2,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import Schema from "@/components/seo/Schema";
-import { breadcrumbSchema, faqSchema } from "@/components/seo/schemas";
+import { breadcrumbSchema } from "@/components/seo/schemas";
+import FaqSection from "@/components/FaqSection";
 import { aboutContentFromDb, defaultAboutHero, parseAboutContent } from "@/lib/aboutContent";
 import { normalizeSiteUrl } from "@/lib/siteUrl";
 
@@ -140,20 +141,6 @@ function SupportLink({
   );
 }
 
-function FAQItem({ q, a }: { q: string; a: string }) {
-  return (
-    <details className="group rounded-3xl border border-neutral-200 bg-white p-6">
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
-        <p className="text-sm font-semibold text-neutral-900">{q}</p>
-        <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl border border-neutral-200 bg-white text-neutral-900 group-open:bg-neutral-900 group-open:text-white">
-          +
-        </span>
-      </summary>
-      <p className="mt-4 text-sm leading-relaxed text-neutral-600">{a}</p>
-    </details>
-  );
-}
-
 function InlineHtml({ html }: { html: string }) {
   return <span dangerouslySetInnerHTML={{ __html: html }} />;
 }
@@ -204,12 +191,10 @@ export default async function AboutPage() {
         { name: content.breadcrumbLabel, item: `${baseUrlResolved}/about-us` },
       ]
     : [];
-  const faqItems = content.faq.items.filter((f) => f.q && f.a);
 
   return (
     <div className="min-h-screen bg-white text-neutral-900">
       {breadcrumbItems.length ? <Schema data={breadcrumbSchema(breadcrumbItems)} /> : null}
-      {faqItems.length ? <Schema data={faqSchema(faqItems)} /> : null}
       {/* Breadcrumb */}
       <div className="border-b border-neutral-200 bg-neutral-50">
         <Container>
@@ -441,28 +426,21 @@ export default async function AboutPage() {
       {/* FAQ */}
       <section className="border-t border-neutral-200 bg-neutral-50 py-14">
         <Container>
-          <div className="flex items-end justify-between gap-6">
-            <div>
-              <h2 className="text-2xl font-semibold tracking-tight">{content.faq.title}</h2>
-              <p className="mt-2 text-sm text-neutral-600">
-                {content.faq.intro}
-              </p>
-            </div>
-            <Link href={content.faq.linkHref} className="text-sm font-medium text-neutral-900 hover:underline">
-              {content.faq.linkLabel}
-            </Link>
-          </div>
-
-          <div className="mt-8 grid gap-4 lg:grid-cols-2">
-            {content.faq.items.map((f) => (
-              <FAQItem key={f.q} q={f.q} a={f.a} />
-            ))}
-          </div>
-
-          <div className="mt-8 rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8">
-            <p className="text-sm font-semibold">Still need help?</p>
-            <BlockHtml html={content.faq.footerHtml} className="mt-2 text-sm text-neutral-600" />
-          </div>
+          <FaqSection
+            items={content.faq.items}
+            title={content.faq.title}
+            intro={content.faq.intro}
+            linkHref={content.faq.linkHref}
+            linkLabel={content.faq.linkLabel}
+            includeSchema
+            variant="soft"
+            footer={
+              <div className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8">
+                <p className="text-sm font-semibold">Still need help?</p>
+                <BlockHtml html={content.faq.footerHtml} className="mt-2 text-sm text-neutral-600" />
+              </div>
+            }
+          />
         </Container>
       </section>
 

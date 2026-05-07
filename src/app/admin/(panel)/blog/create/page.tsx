@@ -5,6 +5,7 @@ import { useState } from "react";
 import AdminTopbar from "@/components/admin/AdminTopbar";
 import ImageUploader from "@/components/admin/common/ImageUploader";
 import RichEditor from "@/components/admin/common/RichEditor";
+import FaqEditor, { cleanFaqItems, type AdminFaqItem } from "@/components/admin/common/FaqEditor";
 import BlogProductSelector, { BlogProductSelection } from "@/components/admin/blog/BlogProductSelector";
 import type { AdminImage } from "@/types/adminProduct";
 import { Fetch } from "@/lib/fetch";
@@ -40,6 +41,7 @@ export default function AdminBlogCreatePage() {
 
   const [html, setHtml] = useState("<h2>Blog title</h2><p>Rich HTML content here...</p>");
   const [productSelections, setProductSelections] = useState<BlogProductSelection[]>([]);
+  const [faqItems, setFaqItems] = useState<AdminFaqItem[]>([{ question: "", answer: "" }]);
 
   const [seoTitle, setSeoTitle] = useState("");
   const [seoMetaDescription, setSeoMetaDescription] = useState("");
@@ -64,6 +66,7 @@ export default function AdminBlogCreatePage() {
         metaTitle: seoTitle || undefined,
         metaDescription: seoMetaDescription || undefined,
         metaKeywords: metaKeywords || undefined,
+        faqItems: cleanFaqItems(faqItems),
         productSelections: productSelections.map((p, idx) => ({
           ...p,
           sortOrder: idx,
@@ -193,6 +196,13 @@ export default function AdminBlogCreatePage() {
             </div>
 
             <BlogProductSelector value={productSelections} onChange={setProductSelections} />
+
+            <FaqEditor
+              value={faqItems}
+              onChange={setFaqItems}
+              title="Blog FAQs"
+              hint="Add post-specific FAQs that can appear below the blog content."
+            />
           </div>
 
           <aside className="lg:col-span-4 space-y-6">

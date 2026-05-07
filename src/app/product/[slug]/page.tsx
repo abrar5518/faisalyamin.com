@@ -7,6 +7,7 @@ import ProductClient, { ProductData, Variant } from "./ProductClient";
 import Schema from "@/components/seo/Schema";
 import { absoluteUrl, breadcrumbSchema, productSchema, stripHtml } from "@/components/seo/schemas";
 import { normalizeSiteUrl } from "@/lib/siteUrl";
+import FaqSection from "@/components/FaqSection";
 
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
@@ -209,13 +210,23 @@ export default async function ProductPage({ params }: PageProps) {
   const [product, siteSettings] = await Promise.all([
     prisma.product.findUnique({
       where: { slug },
-      include: { images: true, category: true },
+      include: {
+        images: true,
+        category: true,
+        faqItems: { orderBy: { sortOrder: "asc" } },
+      },
     }),
     prisma.siteSettings.findFirst({ orderBy: { id: "asc" } }),
   ]);
 
   const typedProduct = product as
-    | (Prisma.ProductGetPayload<{ include: { images: true; category: true } }> & {
+    | (Prisma.ProductGetPayload<{
+        include: {
+          images: true;
+          category: true;
+          faqItems: { orderBy: { sortOrder: "asc" } };
+        };
+      }> & {
         brand?: string | null;
         sizes?: unknown;
         variants?: unknown;
@@ -385,6 +396,16 @@ export default async function ProductPage({ params }: PageProps) {
 
       {/* RELATED PRODUCTS */}
       <div className="mx-auto w-full max-w-[1360px] px-5 sm:px-8 lg:px-12 pb-24">
+        <FaqSection
+          items={typedProduct.faqItems}
+          title={`${typedProduct.name} FAQs`}
+          intro="Helpful answers about this product before you place an order."
+          eyebrow="Product FAQs"
+          includeSchema
+          variant="soft"
+          className="mt-14 lg:mt-16"
+        />
+
         <div className="mt-14 lg:mt-16">
           <div className="flex items-end justify-between gap-6">
             <div>

@@ -52,6 +52,7 @@ model Category {
   metaTitle     String?       @db.Text
   metaDescription String?     @db.Text
   metaKeywords  String?       @db.Text
+  faqItems      CategoryFaqItem[]
   subcategories Subcategory[]
   products      Product[]
   productCategories ProductCategory[]
@@ -71,6 +72,7 @@ model Subcategory {
   metaTitle   String?   @db.Text
   metaDescription String? @db.Text
   metaKeywords String? @db.Text
+  faqItems    SubcategoryFaqItem[]
 
   category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   products    Product[]
@@ -122,6 +124,7 @@ model Product {
   wishlistedBy    WishlistItem[]
   reviews         ProductReview[]
   blogProducts    BlogProduct[]
+  faqItems        ProductFaqItem[]
 
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -156,6 +159,62 @@ model ProductSubcategory {
   @@unique([productId, subcategoryId])
   @@index([subcategoryId])
   @@index([productId])
+}
+
+model CategoryFaqItem {
+  id         Int      @id @default(autoincrement())
+  categoryId Int
+  question   String
+  answer     String?  @db.Text
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([categoryId])
+}
+
+model SubcategoryFaqItem {
+  id            Int         @id @default(autoincrement())
+  subcategoryId Int
+  question      String
+  answer        String?     @db.Text
+  sortOrder     Int         @default(0)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  subcategory   Subcategory @relation(fields: [subcategoryId], references: [id], onDelete: Cascade)
+
+  @@index([subcategoryId])
+}
+
+model ProductFaqItem {
+  id        Int      @id @default(autoincrement())
+  productId Int
+  question  String
+  answer    String?  @db.Text
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+}
+
+model BlogFaqItem {
+  id        Int      @id @default(autoincrement())
+  blogId    Int
+  question  String
+  answer    String?  @db.Text
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  blog      Blog     @relation(fields: [blogId], references: [id], onDelete: Cascade)
+
+  @@index([blogId])
 }
 
 enum BlogProductPlacement {
@@ -211,6 +270,7 @@ model Blog {
   publishedAt DateTime?
 
   blogProducts BlogProduct[]
+  faqItems     BlogFaqItem[]
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

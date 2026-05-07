@@ -13,6 +13,7 @@ import {
   itemListSchema,
 } from "@/components/seo/schemas";
 import { normalizeSiteUrl } from "@/lib/siteUrl";
+import FaqSection from "@/components/FaqSection";
 
 function Container({ children }: { children: ReactNode }) {
   return (
@@ -112,6 +113,13 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
         description: true,
         descriptionHtml: true,
         image: true,
+        faqItems: {
+          select: {
+            question: true,
+            answer: true,
+          },
+          orderBy: { sortOrder: "asc" },
+        },
         subcategories: {
           select: {
             id: true,
@@ -481,6 +489,21 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
           </Container>
         </section>
       )}
+
+      {category.faqItems.length > 0 ? (
+        <section className="border-t border-neutral-200 bg-white py-14">
+          <Container>
+            <FaqSection
+              items={category.faqItems}
+              title={`${title} FAQs`}
+              intro="Quick answers about this category, delivery, returns and choosing the right product."
+              eyebrow="Category FAQs"
+              includeSchema
+              variant="soft"
+            />
+          </Container>
+        </section>
+      ) : null}
 
       {/* Rich Editor Content (SEO + content marketing) */}
       <section className="border-t border-neutral-200 bg-neutral-50 py-14">

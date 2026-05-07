@@ -5,6 +5,7 @@ import Link from "next/link";
 import AdminTopbar from "@/components/admin/AdminTopbar";
 import ImageUploader from "@/components/admin/common/ImageUploader";
 import RichEditor from "@/components/admin/common/RichEditor";
+import FaqEditor, { cleanFaqItems } from "@/components/admin/common/FaqEditor";
 import CategorySelector from "@/components/admin/products/CategorySelector";
 import SizesPicker from "@/components/admin/products/SizesPicker";
 import VariantsEditor from "@/components/admin/products/VariantEditor";
@@ -88,6 +89,7 @@ export default function AdminProductCreatePage() {
     metaTitle: "",
     metaDescription: "",
     metaKeywords: "",
+    faqItems: [{ question: "", answer: "" }],
     categoryId: "",
     subcategoryId: "",
     categoryIds: [],
@@ -153,6 +155,7 @@ export default function AdminProductCreatePage() {
         metaTitle: p.metaTitle || undefined,
         metaDescription: p.metaDescription || undefined,
         metaKeywords: p.metaKeywords || undefined,
+        faqItems: cleanFaqItems(p.faqItems ?? []),
         indexable: true,
         sizes: p.sizes,
         variants: buildVariants(p),
@@ -363,6 +366,13 @@ export default function AdminProductCreatePage() {
                 </div>
               </div>
             </div>
+
+            <FaqEditor
+              value={p.faqItems ?? [{ question: "", answer: "" }]}
+              onChange={(faqItems) => setP((x) => ({ ...x, faqItems }))}
+              title="Product FAQs"
+              hint="Add product-specific questions for SEO and customer support."
+            />
           </div>
 
           {/* RIGHT */}

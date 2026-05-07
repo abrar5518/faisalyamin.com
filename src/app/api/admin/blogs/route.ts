@@ -9,6 +9,11 @@ const BlogProductSelectionSchema = z.object({
   sortOrder: z.number().int().min(0).optional(),
 });
 
+const FaqItemSchema = z.object({
+  question: z.string().min(1),
+  answer: z.string().min(1),
+});
+
 const CreateBlogSchema = z.object({
   title: z.string().min(2),
   slug: z.string().min(2),
@@ -22,6 +27,7 @@ const CreateBlogSchema = z.object({
   isPublished: z.boolean().optional(),
   publishedAt: z.string().optional(),
   productSelections: z.array(BlogProductSelectionSchema).optional(),
+  faqItems: z.array(FaqItemSchema).optional(),
 });
 
 const UpdateBlogSchema = z.object({
@@ -37,7 +43,16 @@ const UpdateBlogSchema = z.object({
   isPublished: z.boolean().optional(),
   publishedAt: z.string().nullable().optional(),
   productSelections: z.array(BlogProductSelectionSchema).optional(),
+  faqItems: z.array(FaqItemSchema).optional(),
 });
+
+function faqCreateData(faqItems?: Array<{ question: string; answer: string }>) {
+  return faqItems?.map((item, idx) => ({
+    question: item.question,
+    answer: item.answer,
+    sortOrder: idx,
+  }));
+}
 
 function parseDate(input?: string | null) {
   if (!input) return null;
@@ -78,6 +93,7 @@ export async function GET(req: NextRequest) {
               },
             },
           },
+          faqItems: { orderBy: { sortOrder: "asc" } },
         },
       });
       if (!item) {
@@ -140,7 +156,11 @@ export async function POST(req: NextRequest) {
               })),
             }
           : undefined,
+        faqItems: data.faqItems?.length
+          ? { create: faqCreateData(data.faqItems) }
+          : undefined,
       },
+      include: { faqItems: { orderBy: { sortOrder: "asc" } } },
     });
 
     return NextResponse.json({ ok: true, data: created }, { status: 201 });
@@ -176,6 +196,7 @@ export async function PUT(req: NextRequest) {
     const data = UpdateBlogSchema.parse(body);
     const publishedAt = parseDate(data.publishedAt ?? undefined);
     const productSelections = data.productSelections;
+    const faqItems = data.faqItems;
 
     const existing = await prisma.blog.findUnique({
       where: { slug },
@@ -215,7 +236,14 @@ export async function PUT(req: NextRequest) {
               })),
             }
           : undefined,
+        faqItems: faqItems
+          ? {
+              deleteMany: {},
+              create: faqCreateData(faqItems),
+            }
+          : undefined,
       },
+      include: { faqItems: { orderBy: { sortOrder: "asc" } } },
     });
 
     return NextResponse.json({ ok: true, data: updated });

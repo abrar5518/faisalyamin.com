@@ -4,6 +4,11 @@ export type AdminImage = {
   alt?: string;
 };
 
+export type AdminFaqItem = {
+  question: string;
+  answer: string;
+};
+
 export type AdminVariant = {
   id?: string;
   label: string;       // "Silver Dial"
@@ -32,6 +37,7 @@ export type AdminProduct = {
   metaTitle?: string;
   metaDescription?: string;
   metaKeywords?: string;
+  faqItems?: AdminFaqItem[];
 
   // dropdowns
   categoryId: string;

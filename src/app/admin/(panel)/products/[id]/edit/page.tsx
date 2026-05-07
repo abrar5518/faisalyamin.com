@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import AdminTopbar from "@/components/admin/AdminTopbar";
 import ImageUploader from "@/components/admin/common/ImageUploader";
 import RichEditor from "@/components/admin/common/RichEditor";
+import FaqEditor, { cleanFaqItems } from "@/components/admin/common/FaqEditor";
 import CategorySelector from "@/components/admin/products/CategorySelector";
 import SizesPicker from "@/components/admin/products/SizesPicker";
 import VariantsEditor from "@/components/admin/products/VariantEditor";
@@ -131,6 +132,7 @@ export default function AdminProductEditPage() {
           metaTitle: "",
           metaDescription: "",
           metaKeywords: "",
+          faqItems: [{ question: "", answer: "" }],
           categoryId: "",
           subcategoryId: "",
           categoryIds: [],
@@ -178,6 +180,12 @@ export default function AdminProductEditPage() {
           metaTitle: api.metaTitle ?? "",
           metaDescription: api.metaDescription ?? "",
           metaKeywords: api.metaKeywords ?? "",
+          faqItems: Array.isArray(api.faqItems) && api.faqItems.length
+            ? api.faqItems.map((item: any) => ({
+                question: item?.question ?? "",
+                answer: item?.answer ?? "",
+              }))
+            : [{ question: "", answer: "" }],
           categoryId: api.categorySlug ?? "",
           subcategoryId: api.subcategorySlug ?? "",
           categoryIds: Array.isArray(api.categorySlugs) ? api.categorySlugs : api.categorySlug ? [api.categorySlug] : [],
@@ -272,6 +280,7 @@ export default function AdminProductEditPage() {
         metaTitle: p.metaTitle || undefined,
         metaDescription: p.metaDescription || undefined,
         metaKeywords: p.metaKeywords || undefined,
+        faqItems: cleanFaqItems(p.faqItems ?? []),
         indexable: true,
         sizes: p.sizes,
         variants: buildVariants(p),
@@ -503,6 +512,13 @@ export default function AdminProductEditPage() {
                 </div>
               </div>
             </div>
+
+            <FaqEditor
+              value={p.faqItems ?? [{ question: "", answer: "" }]}
+              onChange={(faqItems) => setP((x) => (x ? { ...x, faqItems } : x))}
+              title="Product FAQs"
+              hint="Add product-specific questions for SEO and customer support."
+            />
           </div>
 
           <aside className="lg:col-span-4 space-y-6">

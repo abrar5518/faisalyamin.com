@@ -3,6 +3,11 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/adminAuth";
 
+const FaqItemSchema = z.object({
+  question: z.string().min(1),
+  answer: z.string().min(1),
+});
+
 const CreateSubcategorySchema = z.object({
   categorySlug: z.string().min(2), // slug se resolve hoga
   name: z.string().min(2),
@@ -14,6 +19,7 @@ const CreateSubcategorySchema = z.object({
   metaTitle: z.string().optional(),
   metaDescription: z.string().optional(),
   metaKeywords: z.string().optional(),
+  faqItems: z.array(FaqItemSchema).optional(),
 });
 
 const UpdateSubcategorySchema = z.object({
@@ -27,7 +33,16 @@ const UpdateSubcategorySchema = z.object({
   metaTitle: z.string().optional(),
   metaDescription: z.string().optional(),
   metaKeywords: z.string().optional(),
+  faqItems: z.array(FaqItemSchema).optional(),
 });
+
+function faqCreateData(faqItems?: Array<{ question: string; answer: string }>) {
+  return faqItems?.map((item, idx) => ({
+    question: item.question,
+    answer: item.answer,
+    sortOrder: idx,
+  }));
+}
 
 export async function GET(req: NextRequest) {
   const auth = requireAdmin(req);
@@ -42,7 +57,10 @@ export async function GET(req: NextRequest) {
     if (slug) {
       const item = await prisma.subcategory.findUnique({
         where: { slug },
-        include: { category: { select: { name: true, slug: true } } },
+        include: {
+          category: { select: { name: true, slug: true } },
+          faqItems: { orderBy: { sortOrder: "asc" } },
+        },
       });
 
       if (!item) {
@@ -56,6 +74,7 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: "desc" },
       include: {
         category: { select: { name: true, slug: true } },
+        faqItems: { orderBy: { sortOrder: "asc" } },
       },
     });
 
@@ -97,8 +116,14 @@ export async function POST(req: NextRequest) {
         metaTitle: data.metaTitle,
         metaDescription: data.metaDescription,
         metaKeywords: data.metaKeywords,
+        faqItems: data.faqItems?.length
+          ? { create: faqCreateData(data.faqItems) }
+          : undefined,
       },
-      include: { category: { select: { name: true, slug: true } } },
+      include: {
+        category: { select: { name: true, slug: true } },
+        faqItems: { orderBy: { sortOrder: "asc" } },
+      },
     });
 
     return NextResponse.json({ ok: true, data: created }, { status: 201 });
@@ -132,7 +157,7 @@ export async function PUT(req: NextRequest) {
 
     const body = await req.json();
     const data = UpdateSubcategorySchema.parse(body);
-    const { categorySlug, ...updateData } = data;
+    const { categorySlug, faqItems, ...updateData } = data;
 
     const existing = await prisma.subcategory.findUnique({
       where: { slug },
@@ -162,8 +187,17 @@ export async function PUT(req: NextRequest) {
       data: {
         ...updateData,
         categoryId,
+        faqItems: faqItems
+          ? {
+              deleteMany: {},
+              create: faqCreateData(faqItems),
+            }
+          : undefined,
       },
-      include: { category: { select: { name: true, slug: true } } },
+      include: {
+        category: { select: { name: true, slug: true } },
+        faqItems: { orderBy: { sortOrder: "asc" } },
+      },
     });
 
     return NextResponse.json({ ok: true, data: updated });

@@ -7,6 +7,7 @@ import { useParams, useRouter } from "next/navigation";
 import AdminTopbar from "@/components/admin/AdminTopbar";
 import ImageUploader from "@/components/admin/common/ImageUploader";
 import RichEditor from "@/components/admin/common/RichEditor";
+import FaqEditor, { cleanFaqItems, type AdminFaqItem } from "@/components/admin/common/FaqEditor";
 import { Fetch } from "@/lib/fetch";
 import type { AdminImage } from "@/types/adminProduct";
 
@@ -22,6 +23,7 @@ type AdminCategory = {
   metaTitle?: string | null;
   metaDescription?: string | null;
   metaKeywords?: string | null;
+  faqItems?: Array<{ question?: string | null; answer?: string | null }>;
   updatedAt?: string | null;
 };
 
@@ -53,6 +55,7 @@ export default function AdminCategoryEditPage() {
   const [metaTitle, setMetaTitle] = useState("");
   const [metaDescription, setMetaDescription] = useState("");
   const [metaKeywords, setMetaKeywords] = useState("");
+  const [faqItems, setFaqItems] = useState<AdminFaqItem[]>([{ question: "", answer: "" }]);
   const [initialSlug, setInitialSlug] = useState("");
 
   const previewUrl = useMemo(() => `/categories/${slug || "..."}`, [slug]);
@@ -82,6 +85,14 @@ export default function AdminCategoryEditPage() {
         setMetaTitle(cat.metaTitle ?? "");
         setMetaDescription(cat.metaDescription ?? "");
         setMetaKeywords(cat.metaKeywords ?? "");
+        setFaqItems(
+          cat.faqItems?.length
+            ? cat.faqItems.map((item) => ({
+                question: item.question ?? "",
+                answer: item.answer ?? "",
+              }))
+            : [{ question: "", answer: "" }]
+        );
         setLoading(false);
       } catch (e: any) {
         setMsg(e?.message || "Failed to load category.");
@@ -118,6 +129,7 @@ export default function AdminCategoryEditPage() {
           metaTitle: metaTitle || undefined,
           metaDescription: metaDescription || undefined,
           metaKeywords: metaKeywords || undefined,
+          faqItems: cleanFaqItems(faqItems),
         },
       });
 
@@ -258,6 +270,13 @@ export default function AdminCategoryEditPage() {
                 <RichEditor value={descriptionHtml} onChange={setDescriptionHtml} />
               </div>
             </div>
+
+            <FaqEditor
+              value={faqItems}
+              onChange={setFaqItems}
+              title="Category FAQs"
+              hint="These FAQs will be saved with this category for frontend SEO rendering."
+            />
           </div>
 
           <aside className="lg:col-span-4 space-y-6">
