@@ -6,6 +6,7 @@ import { toOptimizableImageSrc } from "@/lib/image";
 import { usePathname } from "next/navigation";
 import type { FormEvent, ReactNode } from "react";
 import { useEffect, useState } from "react";
+import { MapPin } from "lucide-react";
 
 function Container({ children }: { children: ReactNode }) {
   return (
@@ -244,6 +245,20 @@ export default function SiteFooter() {
               <p className="mt-4 max-w-sm text-sm text-neutral-600 leading-relaxed">
                 {footerText}
               </p>
+
+              <div className="mt-5 inline-flex items-center gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3">
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white text-neutral-900 shadow-sm">
+                  <MapPin className="h-4 w-4" aria-hidden="true" />
+                </span>
+                <div>
+                  <p className="text-xs font-semibold text-neutral-900">
+                    Pakistan-based online shopping store
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-neutral-500">
+                    Serving customers across Pakistan
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Links */}
@@ -325,7 +340,7 @@ export default function SiteFooter() {
               {/* bottom strip inside main section */}
               <div className="mt-10 flex flex-col gap-3 rounded-3xl border border-neutral-200 bg-neutral-50 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-600">
-                  <span className="font-semibold text-neutral-900">Shipping:</span>
+                  <span className="font-semibold text-neutral-900">Pakistan delivery:</span>
                   <span>Karachi</span>
                   <Dot />
                   <span>Lahore</span>
