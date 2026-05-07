@@ -4,6 +4,11 @@ import { canonicalUrl, normalizeCanonicalUrl } from "@/lib/siteUrl";
 
 const SITE_URL = canonicalUrl();
 const BRAND = "Sahoolat";
+const GOOGLE_PRODUCT_CATEGORY =
+  "Home & Garden > Kitchen & Dining > Food & Beverage Carriers > Water Bottles";
+const SHIPPING_COUNTRY = "PK";
+const SHIPPING_SERVICE = "Standard";
+const SHIPPING_PRICE = "200.00 PKR";
 
 function stripHtml(value: string) {
   return value
@@ -28,6 +33,10 @@ function escapeXml(value: string | number) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&apos;");
+}
+
+function formatFeedPrice(price: number) {
+  return `${price.toFixed(2)} PKR`;
 }
 
 export async function GET() {
@@ -79,10 +88,16 @@ export async function GET() {
           `      <g:description>${escapeXml(description)}</g:description>`,
           "      <g:availability>in stock</g:availability>",
           "      <g:condition>new</g:condition>",
-          `      <g:price>${escapeXml(`${Math.round(price)} PKR`)}</g:price>`,
+          `      <g:price>${escapeXml(formatFeedPrice(price))}</g:price>`,
           `      <g:link>${escapeXml(`${SITE_URL}/product/${product.slug}`)}</g:link>`,
           `      <g:image_link>${escapeXml(absoluteUrl(image))}</g:image_link>`,
           `      <g:brand>${escapeXml(BRAND)}</g:brand>`,
+          `      <g:google_product_category>${escapeXml(GOOGLE_PRODUCT_CATEGORY)}</g:google_product_category>`,
+          "      <g:shipping>",
+          `        <g:country>${escapeXml(SHIPPING_COUNTRY)}</g:country>`,
+          `        <g:service>${escapeXml(SHIPPING_SERVICE)}</g:service>`,
+          `        <g:price>${escapeXml(SHIPPING_PRICE)}</g:price>`,
+          "      </g:shipping>",
           "    </item>",
         ].join("\n");
       })
