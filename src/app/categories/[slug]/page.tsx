@@ -174,7 +174,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
       badge: p.badge ?? undefined,
       rating: p.rating ?? 0,
       reviews: p.reviewsCount ?? 0,
-      image: img || "https://images.unsplash.com/photo-1523275335684-37898b6baf30",
+      image: img || "https://images.unsplash.com/photo-1523362628745-0c100150b504",
       imageAlt: imgAlt,
       shortDesc: p.shortDesc ?? undefined,
       href: `/product/${p.slug}`,
@@ -183,20 +183,20 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
 
   const title = category.name || "Category";
   const subtitle = category.description || "Explore curated products";
-  const heroImage = category.image || "https://images.unsplash.com/photo-1523275335684-37898b6baf30";
+  const heroImage = category.image || "https://images.unsplash.com/photo-1523362628745-0c100150b504";
   const richHtml =
     category.descriptionHtml ||
     `
       <h2>${title}</h2>
       <p>
         This category page content is coming from a rich editor (CMS). You can add long-form SEO content here:
-        brand history, buying guides, authenticity tips, shipping and warranty details, and FAQs.
+        bottle sizes, materials, care tips, delivery details, return policy and FAQs.
       </p>
       <h3>Buying tips</h3>
       <ul>
-        <li>Always check box & papers and serial authenticity</li>
-        <li>Prefer insured shipping for high value items</li>
-        <li>Ask for real photos and condition report</li>
+        <li>Choose the right capacity for school, office, gym or travel</li>
+        <li>Check lid, straw, handle and insulation details before ordering</li>
+        <li>Review shipping, return and care instructions before checkout</li>
       </ul>
       <p>
         Add internal links to <a href="/shop">Shop All Products</a> and <a href="/deals">View Deals</a>
@@ -352,7 +352,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
           {/* Pagination */}
           <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-neutral-200 pt-6 sm:flex-row">
             <div className="text-xs text-neutral-500">
-              Tip: Use filters (brand, price, condition) to improve conversions.
+              Tip: Use filters by price, size, material and usage to find the right bottle.
             </div>
 
             <div className="flex items-center gap-2">
@@ -557,7 +557,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
 
                 <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
                   {[
-                    { t: "Authenticity", d: "Quality checked before dispatch" },
+                    { t: "Quality", d: "Quality checked before dispatch" },
                     { t: "Shipping", d: "Fast delivery across Pakistan" },
                     { t: "Returns", d: "7-day return policy" },
                     { t: "Payments", d: "Secure gateways + checks" },

@@ -38,13 +38,6 @@ const CheckoutSchema = z.object({
   redeemPoints: z.number().int().nonnegative().optional(),
 });
 
-function parseMoney(value: string | number | null | undefined, fallback = 0) {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (!value) return fallback;
-  const cleaned = String(value).replace(/[^0-9.]/g, "");
-  const num = Number(cleaned);
-  return Number.isFinite(num) ? num : fallback;
-}
 
 function deriveSlug(item: z.infer<typeof ItemSchema>) {
   if (item.slug) return item.slug;
@@ -97,10 +90,7 @@ export async function POST(req: NextRequest) {
     }
 
     const subtotal = payload.items.reduce((sum, it) => sum + it.price * it.qty, 0);
-    const storeSettings = await prisma.storeSettings.findFirst({ orderBy: { id: "asc" } });
-    const freeShippingThreshold = parseMoney(storeSettings?.freeShippingThreshold, 1000);
-    const defaultShippingFee = parseMoney(storeSettings?.defaultShippingFee, 500);
-    const shipping = subtotal >= freeShippingThreshold ? 0 : defaultShippingFee;
+    const shipping = subtotal > 0 ? 250 : 0;
     let discount = 0;
     let normalizedCoupon: string | null = null;
     let couponDiscountForLoyalty = 0;

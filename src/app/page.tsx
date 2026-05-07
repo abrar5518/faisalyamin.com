@@ -33,7 +33,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const title = page?.metaTitle || "Home";
   const description =
     page?.metaDescription ||
-    "Premium products, curated for people who care about details. Shop best-selling luxury watches and accessories.";
+    "Shop water bottles in Pakistan including kids bottles, school bottles, stainless steel bottles and insulated bottles with secure checkout and clear returns.";
   const baseUrlResolved = normalizeSiteUrl(settings?.siteUrl);
   const ogImage = page?.heroImage
     ? page.heroImage.startsWith("http")
@@ -87,19 +87,19 @@ const IMAGES = {
 };
 
 const featuredProductsFallback: Product[] = [
-  { id: "1", name: "Rolex Datejust 41", price: "PKR 52,500", compareAt: "PKR 58,000", badge: "Hot", rating: 4.8, reviews: 214, image: IMAGES.p1 },
-  { id: "2", name: "Audemars Piguet Royal Oak", price: "PKR 189,000", badge: "Limited", rating: 4.9, reviews: 98, image: IMAGES.p2 },
-  { id: "3", name: "Patek Philippe Nautilus", price: "PKR 355,000", badge: "Rare", rating: 5.0, reviews: 41, image: IMAGES.p3 },
-  { id: "4", name: "Omega Speedmaster Moonwatch", price: "PKR 23,900", rating: 4.7, reviews: 392, image: IMAGES.p4 },
-  { id: "5", name: "Cartier Santos", price: "PKR 29,500", rating: 4.6, reviews: 167, image: IMAGES.p5 },
-  { id: "6", name: "Jaeger-LeCoultre Reverso", price: "PKR 41,800", rating: 4.8, reviews: 120, image: IMAGES.p6 },
+  { id: "1", name: "40oz Stainless Steel Tumbler", price: "PKR 2,450", compareAt: "PKR 2,950", badge: "Hot", rating: 4.8, reviews: 214, image: IMAGES.p1 },
+  { id: "2", name: "Kids School Water Bottle", price: "PKR 850", badge: "Popular", rating: 4.9, reviews: 98, image: IMAGES.p2 },
+  { id: "3", name: "Insulated Sports Bottle", price: "PKR 1,650", badge: "New", rating: 5.0, reviews: 41, image: IMAGES.p3 },
+  { id: "4", name: "Leakproof Travel Bottle", price: "PKR 1,150", rating: 4.7, reviews: 392, image: IMAGES.p4 },
+  { id: "5", name: "BPA-Free Plastic Bottle", price: "PKR 650", rating: 4.6, reviews: 167, image: IMAGES.p5 },
+  { id: "6", name: "Steel Vacuum Flask", price: "PKR 1,950", rating: 4.8, reviews: 120, image: IMAGES.p6 },
 ];
 
 const saleProductsFallback: Product[] = [
   {
     id: "s1",
-    name: "Weekend Deal: Datejust Bundle",
-    subtitle: "Strap + Case included",
+    name: "Weekend Deal: Bottle Bundle",
+    subtitle: "Bottle + straw brush included",
     price: "PKR 49,900",
     compareAt: "PKR 56,000",
     badge: "-10%",
@@ -110,8 +110,8 @@ const saleProductsFallback: Product[] = [
   },
   {
     id: "s2",
-    name: "Royal Oak Special Price",
-    subtitle: "Limited-time markdown",
+    name: "School Bottle Special Price",
+    subtitle: "Limited-time offer",
     price: "PKR 179,000",
     compareAt: "PKR 189,000",
     badge: "-5%",
@@ -122,8 +122,8 @@ const saleProductsFallback: Product[] = [
   },
   {
     id: "s3",
-    name: "Nautilus Private Offer",
-    subtitle: "Verified - Box & Papers",
+    name: "Insulated Tumbler Offer",
+    subtitle: "Handle + straw included",
     price: "PKR 339,000",
     compareAt: "PKR 355,000",
     badge: "Deal",
@@ -134,8 +134,8 @@ const saleProductsFallback: Product[] = [
   },
   {
     id: "s4",
-    name: "Speedmaster Holiday Sale",
-    subtitle: "Fast shipping worldwide",
+    name: "Sports Bottle Holiday Sale",
+    subtitle: "Fast shipping across Pakistan",
     price: "PKR 21,900",
     compareAt: "PKR 23,900",
     badge: "-8%",
@@ -146,7 +146,7 @@ const saleProductsFallback: Product[] = [
   },
   {
     id: "s5",
-    name: "Cartier Santos Promo",
+    name: "BPA-Free Bottle Promo",
     subtitle: "Top rated - Best seller",
     price: "PKR 26,900",
     compareAt: "PKR 29,500",
@@ -158,8 +158,8 @@ const saleProductsFallback: Product[] = [
   },
   {
     id: "s6",
-    name: "Reverso Limited Offer",
-    subtitle: "Classic - Timeless",
+    name: "Steel Flask Limited Offer",
+    subtitle: "Durable and reusable",
     price: "PKR 38,900",
     compareAt: "PKR 41,800",
     badge: "-7%",
@@ -170,7 +170,7 @@ const saleProductsFallback: Product[] = [
   },
   {
     id: "s7",
-    name: "Rolex Submariner Date - Sale Edition",
+    name: "Large Capacity Water Bottle - Sale Edition",
     subtitle: "Limited stock - Popular choice",
     price: "PKR 52,900",
     compareAt: "PKR 58,500",
@@ -182,8 +182,8 @@ const saleProductsFallback: Product[] = [
   },
   {
     id: "s8",
-    name: "Omega Seamaster Diver 300M",
-    subtitle: "Professional diver watch",
+    name: "Leakproof Gym Water Bottle",
+    subtitle: "For gym, travel and daily hydration",
     price: "PKR 21,500",
     compareAt: "PKR 24,000",
     badge: "-12%",
@@ -323,11 +323,11 @@ export default async function HomePage() {
       : saleProductsFallback;
 
   const hero = {
-    badge: pageRow?.heroBadge || "Trusted by 10,000+ customers worldwide",
+    badge: pageRow?.heroBadge || "Pakistan-based online shopping store",
     title: pageRow?.heroTitle || "Premium products, curated for people who care about details.",
     subtitle:
       pageRow?.heroSubtitle ||
-      "Shop best-selling luxury watches and accessories with secure checkout, fast delivery, and authentic sourcing.",
+      "Shop best-selling water bottles with secure checkout, PKR 250 standard shipping, and 7-day returns in Pakistan.",
     primaryLabel: pageRow?.heroPrimaryLabel || "Shop Now",
     primaryHref: pageRow?.heroPrimaryHref || "/shop",
     secondaryLabel: pageRow?.heroSecondaryLabel || "Browse Categories",
@@ -341,12 +341,12 @@ export default async function HomePage() {
     cardSecondaryHref: pageRow?.heroCardSecondaryHref || "/deals",
     highlights: [
       {
-        k: pageRow?.heroHighlight1Title || "Authentic",
-        v: pageRow?.heroHighlight1Desc || "Verified products",
+        k: pageRow?.heroHighlight1Title || "Quality",
+        v: pageRow?.heroHighlight1Desc || "Checked bottles",
       },
       {
         k: pageRow?.heroHighlight2Title || "Fast",
-        v: pageRow?.heroHighlight2Desc || "Worldwide shipping",
+        v: pageRow?.heroHighlight2Desc || "Pakistan shipping",
       },
       {
         k: pageRow?.heroHighlight3Title || "Secure",
@@ -431,7 +431,7 @@ export default async function HomePage() {
   const testimonialsList: Testimonial[] =
     testimonialsFromCms.length > 0 ? testimonialsFromCms : testimonialsFallback;
   const baseUrlResolved = normalizeSiteUrl(siteSettings?.siteUrl || baseUrl);
-  const brandName = siteSettings?.siteName?.trim() || "LuxStore";
+  const brandName = siteSettings?.siteName?.trim() || "Sahoolat";
   const logoUrl = siteSettings?.logoUrl || siteSettings?.siteIconUrl || "/favicon.ico";
   const orgAddress = contact
     ? {
@@ -542,7 +542,7 @@ export default async function HomePage() {
               <div className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm">
                 <Image
                   src={withImageParams(hero.image, "auto=format&fit=crop&w=1400&q=80")}
-                  alt="Luxury watch hero"
+                  alt="Water bottles in Pakistan"
                   width={1400}
                   height={900}
                   className="h-64 w-full object-cover sm:h-80 lg:h-[440px]"
@@ -631,7 +631,7 @@ export default async function HomePage() {
         <Container>
           <div className="grid gap-4 rounded-3xl border border-neutral-200 bg-neutral-50 p-6 sm:grid-cols-3">
             {[
-              { t: "Authenticity Guarantee", d: "Every item is verified before shipping." },
+              { t: "Quality Checked", d: "Bottle, lid and accessories are checked before shipping." },
               { t: "Secure Payments", d: "Multiple gateways with fraud protection." },
               { t: "Priority Support", d: "Fast WhatsApp + email support." },
             ].map((x) => (

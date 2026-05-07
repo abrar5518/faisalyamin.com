@@ -83,7 +83,7 @@ export default function SiteFooter() {
   const hideFooter = pathname?.startsWith("/admin");
   if (hideFooter) return null;
 
-  const brandName = branding?.siteName?.trim() || "LuxStore";
+  const brandName = branding?.siteName?.trim() || "Sahoolat";
   const footerText =
     branding?.siteFooterText?.trim() ||
     "Sahoolat.pk offers affordable water bottles in Pakistan including kids water bottles, school bottles, stainless steel bottles, BPA-free bottles and insulated bottles with fast delivery and secure checkout.";

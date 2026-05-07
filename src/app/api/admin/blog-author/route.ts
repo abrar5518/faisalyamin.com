@@ -15,14 +15,14 @@ const AuthorSchema = z.object({
 });
 
 const DEFAULT_AUTHOR = {
-  name: "LuxStore Editorial",
+  name: "Sahoolat Editorial",
   slug: "luxstore-editorial",
   role: "Premium eCommerce Team",
   avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
   bioHtml:
-    "<p>We share buying guides, watch insights, and premium product tips for discerning shoppers in Pakistan.</p>",
-  metaTitle: "LuxStore Editorial",
-  metaDescription: "Guides, reviews, and premium shopping tips from LuxStore.",
+    "<p>We share water bottle buying guides, care tips, and practical shopping advice for customers in Pakistan.</p>",
+  metaTitle: "Sahoolat Editorial",
+  metaDescription: "Water bottle guides, reviews, and shopping tips from Sahoolat.",
   metaKeywords: "luxstore editorial, premium shopping, guides",
 };
 

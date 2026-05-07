@@ -19,7 +19,6 @@ export async function GET() {
     "/returns",
     "/shipping",
     "/terms",
-    "/pre-owned",
   ];
 
   const urls = staticPages.map((path) => ({

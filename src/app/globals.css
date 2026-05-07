@@ -68,7 +68,7 @@ h1, h2, h3 {
 
 
 /* ======================================================================
-   LuxStore Rich Text Styles (TipTap / ProseMirror)
+   Sahoolat Rich Text Styles (TipTap / ProseMirror)
    Usage:
    - Viewer: <div className="rt-content" dangerouslySetInnerHTML={{__html}} />
    - Editor: <EditorContent className="rt-editor" editor={editor} />

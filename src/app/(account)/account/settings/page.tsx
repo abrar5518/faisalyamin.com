@@ -261,7 +261,7 @@ export default function AccountSettingsPage() {
         <div className="mt-6 rounded-3xl border border-neutral-200 bg-neutral-50 p-5">
           <p className="text-sm font-semibold">Tip</p>
           <p className="mt-2 text-sm text-neutral-600">
-            WhatsApp is best for premium shipments that require signature and time coordination.
+            WhatsApp is best for delivery coordination, returns, and order updates in Pakistan.
           </p>
         </div>
       </Card>
@@ -278,19 +278,19 @@ export default function AccountSettingsPage() {
             label="Currency"
             value={currency}
             onChange={setCurrency}
-            options={["AED", "USD", "EUR", "GBP", "SAR"]}
+            options={["PKR"]}
           />
           <Select
             label="Language"
             value={language}
             onChange={setLanguage}
-            options={["English", "Arabic", "Urdu"]}
+            options={["English", "Urdu"]}
           />
           <Select
             label="Timezone"
             value={timezone}
             onChange={setTimezone}
-            options={["Asia/Dubai", "Asia/Karachi", "Europe/London", "America/Chicago"]}
+            options={["Asia/Karachi"]}
           />
         </div>
 

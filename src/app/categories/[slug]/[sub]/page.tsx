@@ -221,7 +221,7 @@ export default async function SubcategoryPage({ params, searchParams }: PageProp
     subcategory.descriptionHtml ||
     `
       <h2>Buying Guide</h2>
-      <p>We help you buy with confidence: authenticity checks, clear condition notes, and support for delivery within Pakistan.</p>
+      <p>We help you buy with confidence: clear product details, quality checks, and support for delivery within Pakistan.</p>
       <h3>Delivery & Returns</h3>
       <ul>
         <li>Insured shipping available</li>
@@ -351,12 +351,6 @@ export default async function SubcategoryPage({ params, searchParams }: PageProp
           <section className="mt-10">
             <p className="text-sm font-semibold">Explore more</p>
             <div className="mt-3 flex flex-wrap gap-2">
-              {/* <Link
-                className="rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm hover:bg-neutral-50"
-                href={`/categories/${slug}/pre-owned`}
-              >
-                Pre-Owned
-              </Link> */}
               <Link
                 className="rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm hover:bg-neutral-50"
                 href="/categories"

@@ -16,8 +16,7 @@ function Container({ children }: { children: React.ReactNode }) {
 }
 
 function formatMoney(value: number, currency = "PKR") {
-  const locale = currency === "AED" ? "en-US" : "en-PK";
-  return `${currency} ${value.toLocaleString(locale)}`;
+  return `${currency || "PKR"} ${value.toLocaleString("en-PK")}`;
 }
 
 function Pill({ children }: { children: React.ReactNode }) {
@@ -54,8 +53,7 @@ export default function CartPage() {
     [items]
   );
 
-  // simple rules (you can replace with real logic)
-  const shipping = useMemo(() => (subtotal >= 1000 || subtotal === 0 ? 0 : 50), [subtotal]);
+  const shipping = useMemo(() => (subtotal === 0 ? 0 : 250), [subtotal]);
   const discount = useMemo(() => appliedCoupon?.discount ?? 0, [appliedCoupon]);
 
   const total = Math.max(0, subtotal + shipping - discount);
@@ -145,8 +143,8 @@ export default function CartPage() {
               </p>
 
               <div className="mt-5 flex flex-wrap gap-2">
-                <Pill>Authenticated items</Pill>
-                <Pill>Insured shipping</Pill>
+                <Pill>Quality checked items</Pill>
+                <Pill>Pakistan shipping</Pill>
                 <Pill>7-day returns</Pill>
               </div>
             </div>
@@ -176,7 +174,7 @@ export default function CartPage() {
             <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-10 text-center">
               <p className="text-lg font-semibold">Your cart is empty</p>
               <p className="mt-2 text-sm text-neutral-600">
-                Browse premium collections and add items to your cart.
+                Browse water bottles and add items to your cart.
               </p>
               <div className="mt-6 flex justify-center gap-2">
                 <Link
@@ -333,8 +331,8 @@ export default function CartPage() {
                 {/* Trust strip */}
                 <div className="mt-6 grid gap-3 sm:grid-cols-3">
                   {[
-                    { t: "Authenticity", d: "Verified before dispatch" },
-                    { t: "Shipping", d: "Insured worldwide delivery" },
+                    { t: "Quality checked", d: "Checked before dispatch" },
+                    { t: "Shipping", d: "Delivery across Pakistan" },
                     { t: "Support", d: "Fast WhatsApp help" },
                   ].map((x) => (
                     <div key={x.t} className="rounded-3xl border border-neutral-200 bg-white p-5">
@@ -360,7 +358,7 @@ export default function CartPage() {
                         label="Shipping"
                         value={
                           shipping === 0 ? (
-                            <span className="text-neutral-700">Free</span>
+                            <span className="text-neutral-700">No shipping</span>
                           ) : (
                             <span className="font-medium">{formatMoney(shipping)}</span>
                           )
@@ -391,7 +389,7 @@ export default function CartPage() {
                     <div className="mt-6 rounded-3xl border border-neutral-200 bg-neutral-50 p-4">
                       <p className="text-sm font-medium">Coupon</p>
                     <p className="mt-1 text-xs text-neutral-500">
-                      Enter a coupon code to apply discounts or free shipping.
+                      Enter a coupon code to apply discounts.
                     </p>
 
                       <div className="mt-3 flex gap-2">
@@ -486,7 +484,7 @@ export default function CartPage() {
           <div className="mx-auto flex max-w-[1360px] items-center gap-3 px-5 py-3">
             <div className="min-w-0">
               <p className="truncate text-xs text-neutral-500">
-                {items.length} item(s) - Shipping {shipping === 0 ? "Free" : formatMoney(shipping)}
+                {items.length} item(s) - Shipping {shipping === 0 ? "No shipping" : formatMoney(shipping)}
               </p>
               <p className="text-base font-semibold leading-none">{formatMoney(total)}</p>
             </div>

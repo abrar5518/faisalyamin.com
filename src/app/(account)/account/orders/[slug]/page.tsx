@@ -492,9 +492,9 @@ export default function OrderDetailsPage() {
 
           {/* Support */}
           <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-6 sm:p-8">
-            <p className="text-sm font-semibold">Authenticity & condition notes</p>
+            <p className="text-sm font-semibold">Quality & order notes</p>
             <p className="mt-2 text-sm text-neutral-600">
-              Need box/papers verification, condition photos, or service history? Share your order ID with support.
+              Need product details, packaging photos, or delivery help? Share your order ID with support.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               <Link

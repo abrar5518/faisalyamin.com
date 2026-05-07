@@ -133,17 +133,17 @@ export type AboutPageDb = {
 };
 
 export const defaultAboutHero = {
-  badge: "Premium eCommerce in Pakistan",
-  title: "About LuxStore",
+  badge: "Water bottle store in Pakistan",
+  title: "About Sahoolat",
   subtitle:
-    "LuxStore is built for buyers who want a clean, reliable, and premium shopping experience. We focus on transparent listings, secure checkout, and fast delivery across Pakistan. Whether the product is stocked by us or fulfilled through a partner, our goal stays the same: a smooth purchase and strong after-sales support.",
+    "Sahoolat is built for buyers who want reliable water bottles, transparent listings, secure checkout, and delivery across Pakistan. Our goal is a simple purchase experience with clear shipping, returns, and customer support.",
   primaryLabel: "Explore products",
   primaryHref: "/shop",
   secondaryLabel: "Contact us",
   secondaryHref: "/contact",
   image:
-    "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=1600&q=85",
-  imageAlt: "LuxStore premium shopping",
+    "https://images.unsplash.com/photo-1523362628745-0c100150b504?auto=format&fit=crop&w=1600&q=85",
+  imageAlt: "Sahoolat water bottle shopping",
 };
 
 export const defaultAboutContent: AboutContent = {
@@ -156,7 +156,7 @@ export const defaultAboutContent: AboutContent = {
       "Pakistan delivery coverage",
     ],
     noteHtml:
-      "Browse <a href=\"/categories\" class=\"text-neutral-900 hover:underline\">Categories</a>, check <a href=\"/deals\" class=\"text-neutral-900 hover:underline\">Deals</a>, or see <a href=\"/new\" class=\"text-neutral-900 hover:underline\">New Arrivals</a>.",
+      "Browse <a href=\"/categories\" class=\"text-neutral-900 hover:underline\">Categories</a>, check <a href=\"/deals\" class=\"text-neutral-900 hover:underline\">Deals</a>, or visit the full <a href=\"/shop\" class=\"text-neutral-900 hover:underline\">Shop</a>.",
     infoCards: [
       {
         title: "Support-first",
@@ -166,7 +166,7 @@ export const defaultAboutContent: AboutContent = {
       {
         title: "Clear policies",
         bodyHtml:
-          "Read <a href=\"/shipping\" class=\"text-neutral-900 hover:underline\">Shipping</a>, <a href=\"/returns\" class=\"text-neutral-900 hover:underline\">Returns</a>, and <a href=\"/warranty\" class=\"text-neutral-900 hover:underline\">Warranty</a> anytime.",
+          "Read <a href=\"/shipping\" class=\"text-neutral-900 hover:underline\">Shipping</a>, <a href=\"/returns\" class=\"text-neutral-900 hover:underline\">Returns</a>, and <a href=\"/privacy\" class=\"text-neutral-900 hover:underline\">Privacy Policy</a> anytime.",
       },
     ],
   },
@@ -179,13 +179,13 @@ export const defaultAboutContent: AboutContent = {
   story: {
     title: "Our story",
     intro:
-      "LuxStore started with a simple goal: make online shopping in Pakistan feel premium, reliable, and easy. We kept the design clean, the policies clear, and the experience fast.",
+      "Sahoolat started with a simple goal: make buying water bottles online in Pakistan reliable, clear, and easy.",
     primaryLabel: "Browse categories",
     primaryHref: "/categories",
     secondaryLabel: "Contact us",
     secondaryHref: "/contact",
     bodyHtml:
-      "<h3>Built for Pakistani buyers</h3><p>Pakistan has a growing demand for premium products, but buyers often face problems like unclear listings, poor support, and uncertain delivery. LuxStore was designed to solve those issues with a cleaner shopping journey and stronger support.</p><h3>In-stock and partner fulfillment</h3><p>We offer a mix of in-stock items and partner-fulfilled products (dropshipping). For every product, we aim to share accurate information, clear expectations, and reliable tracking. If you ever need help, the <a href=\"/contact\" class=\"text-neutral-900 hover:underline\">Contact</a> page is the fastest route.</p><h3>We care about long-term trust</h3><p>Instead of chasing volume, we focus on consistent quality. This means better listings, better support, and an experience that feels premium from browsing to delivery.</p><p>Explore <a href=\"/new\" class=\"text-neutral-900 hover:underline\">New Arrivals</a>, check <a href=\"/deals\" class=\"text-neutral-900 hover:underline\">Deals</a>, or browse the full <a href=\"/shop\" class=\"text-neutral-900 hover:underline\">Shop</a>.</p>",
+      "<h3>Built for Pakistani buyers</h3><p>Pakistan has a growing demand for practical, durable and affordable water bottles, but buyers often face unclear listings and uncertain delivery. Sahoolat was designed to keep product details, prices, shipping and returns easy to understand.</p><h3>Clear product details</h3><p>For every product, we aim to share accurate information, clear photos, capacity, material and delivery expectations. If you ever need help, the <a href=\"/contact\" class=\"text-neutral-900 hover:underline\">Contact</a> page is the fastest route.</p><h3>We care about long-term trust</h3><p>Instead of vague claims, we focus on consistent quality, reliable support and a smooth experience from browsing to delivery.</p><p>Check <a href=\"/deals\" class=\"text-neutral-900 hover:underline\">Deals</a> or browse the full <a href=\"/shop\" class=\"text-neutral-900 hover:underline\">Shop</a>.</p>",
   },
   values: {
     title: "What we stand for",
@@ -197,16 +197,16 @@ export const defaultAboutContent: AboutContent = {
     assistCtaHref: "/contact",
     items: [
       {
-        title: "Authenticity first",
-        desc: "We focus on trust and long-term customer satisfaction. Clear details, verified items, and honest listings.",
+        title: "Quality first",
+        desc: "We focus on trust and long-term customer satisfaction. Clear details, checked products, and honest listings.",
       },
       {
-        title: "Premium experience",
-        desc: "Clean packaging, fast communication, and a UI built for confidence. Shopping should feel simple and premium.",
+        title: "Clean shopping experience",
+        desc: "Clear packaging, fast communication, and a UI built for confidence. Shopping should feel simple.",
       },
       {
         title: "Secure payments",
-        desc: "Checkout is protected with gateway security and fraud checks. High-value orders may have extra verification.",
+        desc: "Checkout is protected with order checks. Cash on Delivery orders may require phone confirmation.",
       },
       {
         title: "Fast delivery in Pakistan",
@@ -218,7 +218,7 @@ export const defaultAboutContent: AboutContent = {
     title: "How we ensure quality",
     intro: "Our process is designed to reduce surprises and increase confidence.",
     supportLabel: "Support center",
-    supportHref: "/support",
+    supportHref: "/contact",
     steps: [
       {
         n: "1",
@@ -228,7 +228,7 @@ export const defaultAboutContent: AboutContent = {
       {
         n: "2",
         title: "Condition checks",
-        desc: "We check visible condition, packaging, and what is included (box, papers, accessories) when applicable.",
+        desc: "We check the bottle body, lid, straw, handle, packaging and accessories where applicable.",
       },
       {
         n: "3",
@@ -242,7 +242,7 @@ export const defaultAboutContent: AboutContent = {
       },
     ],
     moreHtml:
-      "Read our <a href=\"/shipping\" class=\"text-neutral-900 hover:underline\">Shipping</a>, <a href=\"/returns\" class=\"text-neutral-900 hover:underline\">Returns</a>, and <a href=\"/warranty\" class=\"text-neutral-900 hover:underline\">Warranty</a> policies. For order-specific questions, use <a href=\"/contact\" class=\"text-neutral-900 hover:underline\">Contact</a>.",
+      "Read our <a href=\"/shipping\" class=\"text-neutral-900 hover:underline\">Shipping</a>, <a href=\"/returns\" class=\"text-neutral-900 hover:underline\">Returns</a>, and <a href=\"/privacy\" class=\"text-neutral-900 hover:underline\">Privacy Policy</a>. For order-specific questions, use <a href=\"/contact\" class=\"text-neutral-900 hover:underline\">Contact</a>.",
   },
   support: {
     title: "Support hub",
@@ -256,12 +256,12 @@ export const defaultAboutContent: AboutContent = {
         desc: "The fastest way to reach us. For orders, refunds, returns, partnerships, or product inquiries.",
       },
       {
-        href: "/support",
+        href: "/contact",
         title: "Support center",
         desc: "Find help topics, policies, and quick answers for common questions.",
       },
       {
-        href: "/track-order",
+        href: "/account/orders",
         title: "Track order",
         desc: "Check the status of your delivery using your order information.",
       },
@@ -276,9 +276,9 @@ export const defaultAboutContent: AboutContent = {
         desc: "Return window, eligibility rules, and refund processing steps.",
       },
       {
-        href: "/warranty",
-        title: "Warranty",
-        desc: "What is covered, what is not, and how to claim warranty support.",
+        href: "/privacy",
+        title: "Privacy policy",
+        desc: "How we handle customer information, order data and support messages.",
       },
       {
         href: "/faq",
@@ -290,7 +290,7 @@ export const defaultAboutContent: AboutContent = {
       {
         title: "Order issues?",
         bodyHtml:
-          "Start from <a href=\"/track-order\" class=\"text-neutral-900 hover:underline\">Track Order</a>, and if you need help, contact us via <a href=\"/contact\" class=\"text-neutral-900 hover:underline\">Contact</a>.",
+          "Start from <a href=\"/account/orders\" class=\"text-neutral-900 hover:underline\">Track Order</a>, and if you need help, contact us via <a href=\"/contact\" class=\"text-neutral-900 hover:underline\">Contact</a>.",
       },
       {
         title: "Returns & refunds",
@@ -307,7 +307,7 @@ export const defaultAboutContent: AboutContent = {
     items: [
       {
         q: "Do you sell original products only?",
-        a: "Yes. We aim to keep LuxStore a trust-based platform with careful checks, clear listing details, and reliable support.",
+        a: "Yes. We aim to keep Sahoolat a trust-based platform with careful checks, clear listing details, and reliable support.",
       },
       {
         q: "Do you have both in-stock and dropship items?",
@@ -331,10 +331,10 @@ export const defaultAboutContent: AboutContent = {
       },
     ],
     footerHtml:
-      "Use <a href=\"/contact\" class=\"text-neutral-900 hover:underline\">Contact</a> for direct support. For policies, check <a href=\"/shipping\" class=\"text-neutral-900 hover:underline\">Shipping</a>, <a href=\"/returns\" class=\"text-neutral-900 hover:underline\">Returns</a>, and <a href=\"/warranty\" class=\"text-neutral-900 hover:underline\">Warranty</a>.",
+      "Use <a href=\"/contact\" class=\"text-neutral-900 hover:underline\">Contact</a> for direct support. For policies, check <a href=\"/shipping\" class=\"text-neutral-900 hover:underline\">Shipping</a>, <a href=\"/returns\" class=\"text-neutral-900 hover:underline\">Returns</a>, and <a href=\"/privacy\" class=\"text-neutral-900 hover:underline\">Privacy Policy</a>.",
   },
   finalCta: {
-    title: "Ready to explore LuxStore?",
+    title: "Ready to explore Sahoolat?",
     desc: "Browse categories, compare products, and checkout securely. For help, reach us from the Contact page.",
     primaryLabel: "Browse categories",
     primaryHref: "/categories",
@@ -342,10 +342,8 @@ export const defaultAboutContent: AboutContent = {
     secondaryHref: "/contact",
     footerLinks: [
       { label: "Shop", href: "/shop" },
-      { label: "New", href: "/new" },
       { label: "Deals", href: "/deals" },
       { label: "Reviews", href: "/reviews" },
-      { label: "Support", href: "/support" },
       { label: "Contact", href: "/contact" },
     ],
   },

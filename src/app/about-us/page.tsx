@@ -30,7 +30,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: page?.metaTitle || "About",
     description:
       page?.metaDescription ||
-      "Learn about LuxStore, our quality checks, and the premium shopping experience we build for Pakistan.",
+      "Learn about Sahoolat, our water bottle quality checks, clear policies, and Pakistan delivery service.",
     keywords: page?.metaKeywords || undefined,
     alternates: canonical ? { canonical } : undefined,
     openGraph: {
@@ -38,7 +38,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: page?.metaTitle || "About",
       description:
         page?.metaDescription ||
-        "Learn about LuxStore, our quality checks, and the premium shopping experience we build for Pakistan.",
+        "Learn about Sahoolat, our water bottle quality checks, clear policies, and Pakistan delivery service.",
       url: canonical,
       images: ogImage ? [{ url: ogImage }] : undefined,
     },
@@ -47,7 +47,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: page?.metaTitle || "About",
       description:
         page?.metaDescription ||
-        "Learn about LuxStore, our quality checks, and the premium shopping experience we build for Pakistan.",
+        "Learn about Sahoolat, our water bottle quality checks, clear policies, and Pakistan delivery service.",
       images: ogImage ? [ogImage] : undefined,
     },
   };

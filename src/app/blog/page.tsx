@@ -203,15 +203,15 @@ export default async function BlogPage({ searchParams }: PageProps) {
               </div>
 
               <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
-                LuxStore Blog
+                Sahoolat Blog
               </h1>
 
               <p className="mt-3 text-sm text-neutral-600 sm:text-base">
-                Premium guides, authenticity tips, trends, and product insights.
+                Water bottle guides, care tips, shopping advice, and product insights.
               </p>
 
               <div className="mt-6 flex flex-wrap items-center gap-2">
-                {["Buying Guide", "Authenticity", "Trends", "Care Tips"].map((x) => (
+                {["Buying Guide", "Bottle Care", "School Bottles", "Hydration Tips"].map((x) => (
                   <Link
                     key={x}
                     href={buildHref(1, x)}

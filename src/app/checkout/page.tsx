@@ -18,16 +18,7 @@ function Container({ children }: { children: React.ReactNode }) {
 }
 
 function formatMoney(value: number, currency = "PKR") {
-  const locale = currency === "AED" ? "en-US" : "en-PK";
-  return `${currency} ${value.toLocaleString(locale)}`;
-}
-
-function parseMoney(value: string | number | null | undefined, fallback = 0) {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (!value) return fallback;
-  const cleaned = String(value).replace(/[^0-9.]/g, "");
-  const num = Number(cleaned);
-  return Number.isFinite(num) ? num : fallback;
+  return `${currency || "PKR"} ${value.toLocaleString("en-PK")}`;
 }
 
 function Pill({ children }: { children: React.ReactNode }) {
@@ -137,10 +128,6 @@ export default function CheckoutPage() {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
-  const [settings, setSettings] = useState<{
-    freeShippingThreshold?: string | null;
-    defaultShippingFee?: string | null;
-  } | null>(null);
   const [loyaltySettings, setLoyaltySettings] = useState<{
     enabled: boolean;
     pointsPerCurrency: number;
@@ -170,8 +157,8 @@ export default function CheckoutPage() {
   // Address
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
-  const defaultCountry = "United Arab Emirates";
-  const defaultCity = "Dubai";
+  const defaultCountry = "Pakistan";
+  const defaultCity = "";
   const [country, setCountry] = useState(defaultCountry);
   const [city, setCity] = useState(defaultCity);
   const [address1, setAddress1] = useState("");
@@ -200,25 +187,6 @@ export default function CheckoutPage() {
     () => items.reduce((sum, it) => sum + it.price * it.qty, 0),
     [items]
   );
-
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      try {
-        const res = await fetch("/api/store-settings", { cache: "no-store" });
-        const payload = await res.json().catch(() => ({}));
-        if (!active) return;
-        if (res.ok && payload?.ok) {
-          setSettings(payload.data || null);
-        }
-      } catch {
-        // ignore
-      }
-    })();
-    return () => {
-      active = false;
-    };
-  }, []);
 
   useEffect(() => {
     let active = true;
@@ -305,19 +273,12 @@ export default function CheckoutPage() {
     };
   }, []);
 
-  const freeShippingThreshold = useMemo(
-    () => parseMoney(settings?.freeShippingThreshold, 1000),
-    [settings]
-  );
-  const defaultShippingFee = useMemo(
-    () => parseMoney(settings?.defaultShippingFee, 500),
-    [settings]
-  );
+  const defaultShippingFee = 250;
 
   const shippingCost = useMemo(() => {
-    if (subtotal >= freeShippingThreshold) return 0;
+    if (subtotal <= 0) return 0;
     return defaultShippingFee;
-  }, [defaultShippingFee, freeShippingThreshold, subtotal]);
+  }, [defaultShippingFee, subtotal]);
 
   const discount = useMemo(() => appliedCoupon?.discount ?? 0, [appliedCoupon]);
   const discountForLoyalty = useMemo(
@@ -618,7 +579,7 @@ export default function CheckoutPage() {
                     label="Phone"
                     value={phone}
                     onChange={setPhone}
-                    placeholder="+971 50 123 4567"
+                    placeholder="+92 300 1234567"
                     required
                   />
                 </div>
@@ -661,7 +622,7 @@ export default function CheckoutPage() {
                   <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
                     <p className="text-xs font-semibold">Delivery notes</p>
                     <p className="mt-1 text-xs text-neutral-600">
-                      Signature required. ID verification may apply for high-value items.
+                      Delivery is available within Pakistan. Courier may call before delivery.
                     </p>
                   </div>
                 </div>
@@ -728,7 +689,7 @@ export default function CheckoutPage() {
                 <div className="mt-5 rounded-3xl border border-neutral-200 bg-neutral-50 p-5">
                   <p className="text-sm font-semibold">Payment note</p>
                   <p className="mt-2 text-sm text-neutral-600">
-                    For high value orders, we may request ID verification to ensure secure delivery.
+                    For order confirmation, we may contact you by phone or WhatsApp before dispatch.
                   </p>
                 </div>
 
@@ -818,7 +779,7 @@ export default function CheckoutPage() {
                   <div className="mt-6 rounded-3xl border border-neutral-200 bg-neutral-50 p-4">
                     <p className="text-sm font-medium">Coupon</p>
                     <p className="mt-1 text-xs text-neutral-500">
-                      Enter a coupon code to apply discounts or free shipping.
+                      Enter a coupon code to apply discounts.
                     </p>
 
                     <div className="mt-3 flex gap-2">
@@ -972,8 +933,8 @@ export default function CheckoutPage() {
                   <p className="text-sm font-semibold">Why shop with us</p>
                   <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
                     {[
-                      { t: "Authenticity guarantee", d: "Verified before dispatch." },
-                      { t: "Insured shipping", d: "Tracked door-to-door delivery." },
+                      { t: "Quality checked", d: "Packed and checked before dispatch." },
+                      { t: "Pakistan shipping", d: "Tracked door-to-door delivery." },
                       { t: "Priority support", d: "Fast WhatsApp + email help." },
                       { t: "Easy returns", d: "7-day return policy." },
                     ].map((x) => (
@@ -995,7 +956,7 @@ export default function CheckoutPage() {
         <div className="mx-auto flex max-w-[1360px] items-center gap-3 px-5 py-3">
           <div className="min-w-0">
             <p className="truncate text-xs text-neutral-500">
-              Total - {shippingCost === 0 ? "Free shipping" : `Shipping ${formatMoney(shippingCost)}`}
+              Total - {shippingCost === 0 ? "No shipping" : `Shipping ${formatMoney(shippingCost)}`}
             </p>
             <p className="text-base font-semibold leading-none">{formatMoney(total)}</p>
           </div>

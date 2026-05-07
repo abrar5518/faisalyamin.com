@@ -28,7 +28,7 @@ const metaPixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID || "863606865641935";
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await prisma.siteSettings.findFirst({ orderBy: { id: "asc" } });
-  const siteName = settings?.siteName?.trim() || "LuxStore";
+  const siteName = settings?.siteName?.trim() || "Sahoolat";
   const baseUrlResolved = normalizeSiteUrl(settings?.siteUrl);
   const metadataBase = (() => {
     if (!baseUrlResolved) return undefined;
@@ -51,23 +51,23 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase,
     title: siteName,
     description:
-      "Premium eCommerce store with curated products, secure checkout, and fast delivery.",
+      "Pakistan-based online shopping store for water bottles with secure checkout, clear returns, and delivery across Pakistan.",
     robots: { index: true, follow: true },
     icons: settings?.siteIconUrl ? { icon: settings.siteIconUrl } : undefined,
     openGraph: {
       type: "website",
       siteName,
       url: baseUrlResolved || undefined,
-      title: `${siteName} | Premium eCommerce`,
+      title: `${siteName} | Water Bottles Pakistan`,
       description:
-        "Premium eCommerce store with curated products, secure checkout, and fast delivery.",
+        "Pakistan-based online shopping store for water bottles with secure checkout, clear returns, and delivery across Pakistan.",
       images: ogImage ? [{ url: ogImage }] : undefined,
     },
     twitter: {
       card: ogImage ? "summary_large_image" : "summary",
-      title: `${siteName} | Premium eCommerce`,
+      title: `${siteName} | Water Bottles Pakistan`,
       description:
-        "Premium eCommerce store with curated products, secure checkout, and fast delivery.",
+        "Pakistan-based online shopping store for water bottles with secure checkout, clear returns, and delivery across Pakistan.",
       images: ogImage ? [ogImage] : undefined,
     },
   };

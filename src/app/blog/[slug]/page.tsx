@@ -286,7 +286,7 @@ export default async function BlogPostPage({ params }: PageProps) {
         slug: authorRow.slug,
       }
     : {
-        name: "LuxStore Editorial",
+        name: "Sahoolat Editorial",
         role: "Premium eCommerce Team",
         avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
         slug: "luxstore-editorial",
@@ -323,7 +323,7 @@ export default async function BlogPostPage({ params }: PageProps) {
   const htmlWithIds = injectHeadingIds(post.html, headings);
   const baseUrlResolved = normalizeSiteUrl(siteSettings?.siteUrl);
   const pageUrl = `${baseUrlResolved}/blog/${post.slug}`;
-  const publisherName = siteSettings?.siteName?.trim() || "LuxStore";
+  const publisherName = siteSettings?.siteName?.trim() || "Sahoolat";
   const publisherLogo = siteSettings?.logoUrl || siteSettings?.siteIconUrl || "/favicon.ico";
   const descriptionText = post.excerpt || excerptFromHtml(post.html);
   const contactWhatsapp = contact?.whatsapp || "";
@@ -466,7 +466,7 @@ export default async function BlogPostPage({ params }: PageProps) {
 
               {/* CTA strip */}
               <div className="mt-8 rounded-3xl border border-neutral-200 bg-neutral-50 p-6 sm:p-8">
-                <p className="text-sm font-semibold">Want help choosing the right watch?</p>
+                <p className="text-sm font-semibold">Want help choosing the right water bottle?</p>
                 <p className="mt-2 text-sm text-neutral-600">
                   Tell us your budget and preferred brand. We&apos;ll recommend the best options for you.
                 </p>

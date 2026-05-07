@@ -26,7 +26,7 @@ export default function AdminSettingsPage() {
 
   // Shipping
   const [freeShippingThreshold, setFreeShippingThreshold] = useState("PKR 10,000");
-  const [defaultShippingFee, setDefaultShippingFee] = useState("PKR 500");
+  const [defaultShippingFee, setDefaultShippingFee] = useState("PKR 250");
   const [returnsDays, setReturnsDays] = useState(7);
 
   // Payments (Pakistan)

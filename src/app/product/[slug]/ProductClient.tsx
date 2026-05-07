@@ -118,7 +118,7 @@ function Stars({ rating, reviews }: { rating: number; reviews: number }) {
       </span>
       <span className="hidden sm:inline text-neutral-300">-</span>
       <span className="text-xs text-neutral-500">
-        Verified authenticity & condition checks
+        Quality checked before dispatch
       </span>
     </div>
   );
@@ -152,7 +152,7 @@ export default function ProductClient({ product }: { product: ProductData }) {
   const [size, setSize] = useState(product.sizes[0] || "");
   const [qty, setQty] = useState(1);
   const [tab, setTab] = useState<"description" | "reviews" | "shipping">("description");
-  const [freeShippingThreshold, setFreeShippingThreshold] = useState<string>("1,000");
+  const shippingFee = "250";
   const [wishlisted, setWishlisted] = useState(false);
   const [wishlistBusy, setWishlistBusy] = useState(false);
   const [isAuthed, setIsAuthed] = useState<boolean | null>(null);
@@ -162,27 +162,6 @@ export default function ProductClient({ product }: { product: ProductData }) {
   const [reviewBusy, setReviewBusy] = useState(false);
   const [reviewUploading, setReviewUploading] = useState(false);
   const viewContentTracked = useRef(false);
-
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      try {
-        const res = await fetch("/api/admin/store-settings", { cache: "no-store" });
-        const payload = await res.json().catch(() => ({}));
-        if (active && res.ok && payload?.ok) {
-          const threshold = payload.data?.freeShippingThreshold;
-          if (threshold) {
-            setFreeShippingThreshold(threshold);
-          }
-        }
-      } catch {
-        // ignore
-      }
-    })();
-    return () => {
-      active = false;
-    };
-  }, []);
 
   useEffect(() => {
     let active = true;
@@ -418,7 +397,7 @@ export default function ProductClient({ product }: { product: ProductData }) {
 
                 {/* top-left badge area */}
                 <div className="pointer-events-none absolute left-4 top-4 flex flex-wrap gap-2">
-                  <Pill>Authenticated</Pill>
+                  <Pill>Quality Checked</Pill>
                   <Pill>Insured Shipping</Pill>
                   {discountPct ? <Pill>{discountPct}% off</Pill> : null}
                 </div>
@@ -515,7 +494,7 @@ export default function ProductClient({ product }: { product: ProductData }) {
                           ) : null}
                         </div>
                         <p className="mt-1 text-xs text-neutral-500">
-                          Inclusive of applicable taxes. Free shipping above {freeShippingThreshold}.
+                          Inclusive of applicable taxes. Standard shipping is PKR {shippingFee} across Pakistan.
                         </p>
                       </div>
 
@@ -647,8 +626,8 @@ export default function ProductClient({ product }: { product: ProductData }) {
                   {/* Trust strip (below CTA) */}
                   <div className="mt-6 grid gap-3 sm:grid-cols-3">
                     <div className="rounded-2xl bg-neutral-50 p-3">
-                      <p className="text-xs font-semibold">Authenticity</p>
-                      <p className="mt-0.5 text-[11px] text-neutral-600">Verified before shipping</p>
+                      <p className="text-xs font-semibold">Quality</p>
+                      <p className="mt-0.5 text-[11px] text-neutral-600">Checked before shipping</p>
                     </div>
                     <div className="rounded-2xl bg-neutral-50 p-3">
                       <p className="text-xs font-semibold">Shipping</p>
@@ -905,7 +884,7 @@ export default function ProductClient({ product }: { product: ProductData }) {
                 {tab === "shipping" && (
                   <div className="space-y-3">
                     <p className="text-sm text-neutral-700">
-                      We deliver orders across Pakistan only. Orders are normally processed and dispatched within 24-48 hours after confirmation. Standard delivery charges are shown at checkout, and free shipping applies above the displayed order threshold.
+                      We deliver orders across Pakistan only. Orders are normally processed and dispatched within 24-48 hours after confirmation. Standard shipping is PKR 250 and is shown at checkout before you place your order.
                     </p>
                     <ul className="list-disc pl-5 text-sm text-neutral-600">
                       <li>Insured door-to-door delivery within courier serviceable areas in Pakistan.</li>

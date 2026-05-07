@@ -40,44 +40,43 @@ function Container({ children }: { children: ReactNode }) {
 }
 
 const IMAGES = {
-  watches: "https://images.unsplash.com/photo-1524592094714-0f0654e20314",
-  accessories: "https://images.unsplash.com/photo-1618354691373-d851c5c3a990",
-  jewelry: "https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb",
-  new: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f",
-  best: "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3",
-  preowned: "https://images.unsplash.com/photo-1523275335684-37898b6baf30",
+  bottles: "https://images.unsplash.com/photo-1523362628745-0c100150b504",
+  kids: "https://images.unsplash.com/photo-1564419320461-6870880221ad",
+  stainless: "https://images.unsplash.com/photo-1602143407151-7111542de6e8",
+  gym: "https://images.unsplash.com/photo-1517963628607-235ccdd5476c",
+  deals: "https://images.unsplash.com/photo-1544006659-f0b21884ce1d",
 };
 
 const categoriesFallback: Category[] = [
   {
-    name: "Luxury Watches",
-    description: "Rolex, AP, Patek & premium icons",
-    href: "/categories/watches",
-    image: IMAGES.watches,
+    name: "Water Bottles",
+    description: "Everyday bottles for school, office and travel",
+    href: "/categories/water-bottles",
+    image: IMAGES.bottles,
   },
   {
-    name: "Accessories",
-    description: "Straps, cases, winders and essentials",
-    href: "/categories/accessories",
-    image: IMAGES.accessories,
+    name: "Kids Bottles",
+    description: "Easy-carry bottles for school and daily use",
+    href: "/categories/kids-bottles",
+    image: IMAGES.kids,
   },
   {
-    name: "Jewelry",
-    description: "Timeless pieces with premium finish",
-    href: "/categories/jewelry",
-    image: IMAGES.jewelry,
+    name: "Stainless Steel Bottles",
+    description: "Durable insulated bottles and tumblers",
+    href: "/categories/stainless-steel-bottles",
+    image: IMAGES.stainless,
   },
   {
-    name: "Shop All Products",
-    description: "Browse the full catalog",
+    name: "Shop All Bottles",
+    description: "Browse the full water bottle catalog",
     href: "/shop",
-    image: IMAGES.new,
+    image: IMAGES.gym,
   },
   {
     name: "Deals & Offers",
-    description: "Limited-time price drops",
+    description: "Affordable bottle deals and offers",
     href: "/deals",
-    image: IMAGES.best,
+    image: IMAGES.deals,
   }
  
 ];
@@ -98,7 +97,7 @@ export default async function CategoriesPage() {
           name: c.name ?? "Category",
           description: c.description ?? "",
           href: `/categories/${c.slug ?? ""}`,
-          image: c.image || IMAGES.watches,
+          image: c.image || IMAGES.bottles,
           imageAlt: c.imageAlt || c.name || "Category",
         }))
       : categoriesFallback;
@@ -152,11 +151,11 @@ export default async function CategoriesPage() {
               </h1>
 
               <p className="mt-3 text-sm text-neutral-600 sm:text-base">
-                Curated categories for premium tastes. Choose a collection to browse verified pieces.
+                Explore water bottle categories for school, office, gym, kids and everyday hydration.
               </p>
 
               <div className="mt-6 flex flex-wrap items-center gap-2">
-                {["Authenticated", "Secure checkout", "Insured shipping", "7-day returns"].map((x) => (
+                {["Quality checked", "Secure checkout", "Pakistan shipping", "7-day returns"].map((x) => (
                   <span
                     key={x}
                     className="rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-xs text-neutral-700"
@@ -240,7 +239,7 @@ export default async function CategoriesPage() {
             <div className="lg:col-span-8">
               <p className="text-sm font-semibold">Need help choosing the right collection?</p>
               <p className="mt-2 text-sm text-neutral-600">
-                Tell us your budget and preferred brand. We&apos;ll shortlist the best options for you.
+                Tell us your budget, bottle size and usage. We&apos;ll shortlist the best options for you.
               </p>
             </div>
             <div className="lg:col-span-4 flex gap-2">

@@ -157,7 +157,7 @@ export default function AccountSidebar() {
       <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-6">
         <p className="text-sm font-semibold">Need help?</p>
         <p className="mt-2 text-sm text-neutral-600">
-          WhatsApp support for shipping, returns and authenticity checks.
+          WhatsApp support for shipping, returns and product questions.
         </p>
         <div className="mt-4 grid gap-2">
           <Link

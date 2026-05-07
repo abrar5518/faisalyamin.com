@@ -4,7 +4,7 @@ const baseUrl = normalizeSiteUrl();
 
 export const metadata = {
   title: "Profile",
-  description: "Manage your LuxStore profile details.",
+  description: "Manage your Sahoolat profile details.",
   alternates: { canonical: `${baseUrl}/account/profile` },
 };
 

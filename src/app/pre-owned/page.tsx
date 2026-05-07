@@ -7,10 +7,11 @@ import { normalizeSiteUrl } from "@/lib/siteUrl";
 const baseUrl = normalizeSiteUrl();
 
 export const metadata: Metadata = {
-  title: "Pre-Owned Collection | Sahoolat",
-  description: "Certified pre-owned items and verified resale listings.",
-  keywords: "pre-owned, certified pre-owned, resale, watches, accessories",
+  title: "Water Bottle Deals | Sahoolat",
+  description: "Browse Sahoolat water bottle deals and affordable bottle offers in Pakistan.",
+  keywords: "water bottle deals Pakistan, bottle offers, Sahoolat deals",
   alternates: { canonical: `${baseUrl}/pre-owned` },
+  robots: { index: false, follow: true },
 };
 
 function Container({ children }: { children: React.ReactNode }) {
@@ -26,7 +27,7 @@ export default function PreOwnedPage() {
   const breadcrumbItems = baseUrlResolved
     ? [
         { name: "Home", item: baseUrlResolved },
-        { name: "Pre-Owned", item: `${baseUrlResolved}/pre-owned` },
+        { name: "Deals", item: `${baseUrlResolved}/pre-owned` },
       ]
     : [];
 
@@ -38,35 +39,35 @@ export default function PreOwnedPage() {
           <div className="flex h-10 items-center gap-2 text-xs text-neutral-600">
             <Link className="hover:text-neutral-900" href="/">Home</Link>
             <span className="text-neutral-300">/</span>
-            <span className="text-neutral-900">Pre-Owned</span>
+            <span className="text-neutral-900">Deals</span>
           </div>
         </Container>
       </div>
 
       <section className="bg-white py-12">
         <Container>
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Pre-owned collection</h1>
+          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Water bottle deals</h1>
           <p className="mt-3 text-sm text-neutral-600 sm:text-base">
-            Verified pre-owned items with authenticity checks and transparent condition grading.
+            Explore affordable water bottle deals in Pakistan. For the latest products and prices, browse the shop.
           </p>
 
           <div className="mt-8 grid gap-6 lg:grid-cols-2">
             <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
-              <p className="text-sm font-semibold">Authenticity checks</p>
+              <p className="text-sm font-semibold">Quality checks</p>
               <p className="mt-2 text-sm text-neutral-600">
-                Every pre-owned item goes through verification before listing and again before dispatch.
+                Bottle body, lid, straw, handle and packaging are checked before dispatch.
               </p>
             </div>
             <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
-              <p className="text-sm font-semibold">Condition grading</p>
+              <p className="text-sm font-semibold">Clear product details</p>
               <p className="mt-2 text-sm text-neutral-600">
-                Condition notes, photos, and wear details are shared so you can buy with confidence.
+                Product photos, size, material and delivery details are shared so you can buy with confidence.
               </p>
             </div>
           </div>
 
           <div className="mt-10 rounded-3xl border border-neutral-200 bg-neutral-50 p-6">
-            <p className="text-sm font-semibold">Looking for a specific piece?</p>
+            <p className="text-sm font-semibold">Looking for a specific bottle?</p>
             <p className="mt-2 text-sm text-neutral-600">
               Tell us your preferred brand and budget and we’ll recommend the best options.
             </p>

@@ -11,7 +11,7 @@ export const metadata = {
 
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
   const siteSettings = await prisma.siteSettings.findFirst({ orderBy: { id: "asc" } });
-  const siteName = siteSettings?.siteName || "LuxStore";
+  const siteName = siteSettings?.siteName || "Sahoolat";
   const logoUrl = siteSettings?.logoUrl || null;
   const logoAlt = siteSettings?.logoAlt || siteName;
 
@@ -68,7 +68,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
 
               <div className="mt-8 grid gap-3 sm:grid-cols-2">
                 {[
-                  { t: "Authenticated items", d: "Verified before dispatch" },
+                  { t: "Quality checked", d: "Checked before dispatch" },
                   { t: "Insured shipping", d: "Tracked end-to-end" },
                   { t: "Priority support", d: "WhatsApp + email" },
                   { t: "Easy returns", d: "7-day policy" },

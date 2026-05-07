@@ -4,7 +4,7 @@ const baseUrl = normalizeSiteUrl();
 
 export const metadata = {
   title: "Forgot Password",
-  description: "Reset your LuxStore account password securely.",
+  description: "Reset your Sahoolat account password securely.",
   alternates: { canonical: `${baseUrl}/forgot-password` },
 };
 

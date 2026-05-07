@@ -4,7 +4,8 @@ import { canonicalUrl, normalizeCanonicalUrl } from "@/lib/siteUrl";
 
 const SITE_URL = canonicalUrl();
 const BRAND = "Sahoolat";
-const GOOGLE_PRODUCT_CATEGORY = "Home & Garden > Kitchen & Dining > Kitchen Tools";
+const GOOGLE_PRODUCT_CATEGORY =
+  "Home & Garden > Kitchen & Dining > Food & Beverage Carriers > Water Bottles";
 
 function stripHtml(value: string) {
   return value

@@ -27,7 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: page?.metaTitle || page?.title || "Buy Water Bottles Online in Pakistan | Sahoolat",
     description:
       page?.metaDescription ||
-      "Browse premium watches and accessories with secure checkout and fast delivery.",
+      "Browse water bottles in Pakistan with secure checkout, PKR 250 standard shipping, and 7-day returns.",
     keywords: page?.metaKeywords || undefined,
     alternates: canonical ? { canonical } : undefined,
     openGraph: {
@@ -35,7 +35,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: page?.metaTitle || page?.title || "Shop",
       description:
         page?.metaDescription ||
-        "Browse premium watches and accessories with secure checkout and fast delivery.",
+        "Browse water bottles in Pakistan with secure checkout, PKR 250 standard shipping, and 7-day returns.",
       url: canonical,
       images: ogImage ? [{ url: ogImage }] : undefined,
     },
@@ -44,7 +44,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: page?.metaTitle || page?.title || "Shop",
       description:
         page?.metaDescription ||
-        "Browse premium watches and accessories with secure checkout and fast delivery.",
+        "Browse water bottles in Pakistan with secure checkout, PKR 250 standard shipping, and 7-day returns.",
       images: ogImage ? [ogImage] : undefined,
     },
   };
@@ -118,7 +118,7 @@ export default async function ShopPage() {
           name: pageRow?.title || "Shop",
           description:
             pageRow?.metaDescription ||
-            "Browse premium watches and accessories with secure checkout and fast delivery.",
+            "Browse water bottles in Pakistan with secure checkout, PKR 250 standard shipping, and 7-day returns.",
           url: pageUrl,
         })}
       />

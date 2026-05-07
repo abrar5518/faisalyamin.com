@@ -79,7 +79,7 @@ export default function SiteHeader() {
     siteName?: string;
     logoUrl?: string;
   } | null>(null);
-  const [freeShippingThreshold, setFreeShippingThreshold] = useState<string>("1,000");
+  const shippingFee = "250";
 
   useEffect(() => {
     let active = true;
@@ -90,16 +90,6 @@ export default function SiteHeader() {
         if (!active) return;
         if (res.ok && payload?.ok) {
           setBranding(payload.data || null);
-        }
-
-        // Fetch store settings for free shipping threshold
-        const storeRes = await fetch("/api/admin/store-settings", { cache: "no-store" });
-        const storePayload = await storeRes.json().catch(() => ({}));
-        if (active && storeRes.ok && storePayload?.ok) {
-          const threshold = storePayload.data?.freeShippingThreshold;
-          if (threshold) {
-            setFreeShippingThreshold(threshold);
-          }
         }
       } catch {
         // ignore
@@ -113,7 +103,7 @@ export default function SiteHeader() {
   const hideHeader = pathname?.startsWith("/admin");
   if (hideHeader) return null;
 
-  const brandName = branding?.siteName?.trim() || "LuxStore";
+  const brandName = branding?.siteName?.trim() || "Sahoolat";
   const brandInitials = brandName
     .split(" ")
     .filter(Boolean)
@@ -129,7 +119,7 @@ export default function SiteHeader() {
         <Container>
           <div className="flex h-9 items-center justify-between text-xs text-neutral-600">
             <p className="truncate">
-              Free shipping on orders above <span className="text-neutral-900 font-medium">{freeShippingThreshold}</span>
+              Standard shipping <span className="text-neutral-900 font-medium">PKR {shippingFee}</span> across Pakistan
             </p>
 
             <div className="hidden sm:flex items-center gap-4">

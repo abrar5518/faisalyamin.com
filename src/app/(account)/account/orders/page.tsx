@@ -175,7 +175,7 @@ export default function AccountOrdersPage() {
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 className="w-full bg-transparent text-sm outline-none placeholder:text-neutral-400"
-                placeholder="Search: LS-10294, Dubai, AED 52,500…"
+                placeholder="Search: SA-10294, Lahore, PKR 2,500..."
               />
               <button
                 type="button"
@@ -333,7 +333,7 @@ export default function AccountOrdersPage() {
       <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-6 sm:p-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-semibold">Need invoice or authenticity papers?</p>
+            <p className="text-sm font-semibold">Need invoice or order help?</p>
             <p className="mt-2 text-sm text-neutral-600">
               Contact support with your order ID and we’ll help immediately.
             </p>

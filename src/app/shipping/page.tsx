@@ -83,8 +83,7 @@ export default function ShippingPage() {
               <p className="text-sm font-semibold">Shipping fees</p>
               <p className="mt-2 text-sm leading-relaxed text-neutral-600">
                 Standard shipping is charged at checkout and is shown before you
-                confirm your order. Our current standard shipping fee is PKR 200
-                unless a free shipping offer or promotion applies.
+                confirm your order. Our current standard shipping fee is PKR 250.
               </p>
             </div>
 

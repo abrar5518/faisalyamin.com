@@ -301,7 +301,7 @@ export default function ShopClient({
             value={filters.q}
             onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
             className="w-full bg-transparent text-sm outline-none placeholder:text-neutral-400"
-            placeholder="Rolex, Nautilus, strap..."
+            placeholder="Water bottle, kids bottle, tumbler..."
           />
         </div>
       </div>

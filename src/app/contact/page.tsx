@@ -39,7 +39,7 @@ export default async function ContactPage() {
     .filter(Boolean)
     .join(", ");
   const baseUrlResolved = normalizeSiteUrl(siteSettings?.siteUrl || baseUrl);
-  const brandName = siteSettings?.siteName?.trim() || "LuxStore";
+  const brandName = siteSettings?.siteName?.trim() || "Sahoolat";
   const logoUrl = siteSettings?.logoUrl || siteSettings?.siteIconUrl || "/favicon.ico";
   const orgAddress = {
     streetAddress: [contact?.addressLine1, contact?.addressLine2].filter(Boolean).join(", ") || undefined,
