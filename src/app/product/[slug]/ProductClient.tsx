@@ -259,7 +259,7 @@ export default function ProductClient({ product }: { product: ProductData }) {
   const decQty = () => setQty((q) => Math.max(1, q - 1));
   const incQty = () => setQty((q) => Math.min(99, q + 1));
 
-  const onAddToCart = () => {
+  const onAddToCart = (options?: { showToast?: boolean }) => {
     const price = parsePKR(variant.price) ?? 0;
     const compareAtValue = parsePKR(variant.compareAt);
     const sizeKey = size || "default";
@@ -277,7 +277,7 @@ export default function ProductClient({ product }: { product: ProductData }) {
       variantLabel: variant.label,
       sizeLabel: size || undefined,
       currency: "PKR",
-    });
+    }, options);
     trackAddToCart({
       id: product.id,
       slug: product.slug,
@@ -287,7 +287,7 @@ export default function ProductClient({ product }: { product: ProductData }) {
   };
 
   const onBuyNow = () => {
-    onAddToCart();
+    onAddToCart({ showToast: false });
     router.push("/checkout");
   };
 
@@ -457,9 +457,9 @@ export default function ProductClient({ product }: { product: ProductData }) {
 
               {/* Under-gallery micro info */}
               <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                <TrustItem title="Condition checked" desc="Dial, bracelet, timekeeping verified." />
-                <TrustItem title="Secure checkout" desc="Protected payments & fraud checks." />
-                <TrustItem title="Fast dispatch" desc="Ships in 24-48 hours (insured)." />
+                <TrustItem title="Quality checked" desc="Bottle body, lid, straw, handle, and seal inspected." />
+                <TrustItem title="Secure checkout" desc="Protected payments and order confirmation checks." />
+                <TrustItem title="Fast dispatch" desc="Ships across Pakistan in 24-48 hours after confirmation." />
               </div>
             </div>
 
@@ -637,7 +637,7 @@ export default function ProductClient({ product }: { product: ProductData }) {
                       Buy Now
                     </button>
                     <button
-                      onClick={onAddToCart}
+                      onClick={() => onAddToCart()}
                       className="rounded-2xl cursor-pointer border border-neutral-200 px-6 py-4 text-sm font-medium hover:bg-neutral-50"
                     >
                       Add to Cart
@@ -652,7 +652,7 @@ export default function ProductClient({ product }: { product: ProductData }) {
                     </div>
                     <div className="rounded-2xl bg-neutral-50 p-3">
                       <p className="text-xs font-semibold">Shipping</p>
-                      <p className="mt-0.5 text-[11px] text-neutral-600">Insured worldwide delivery</p>
+                      <p className="mt-0.5 text-[11px] text-neutral-600">Insured Pakistan delivery</p>
                     </div>
                     <div className="rounded-2xl bg-neutral-50 p-3">
                       <p className="text-xs font-semibold">Returns</p>
@@ -662,7 +662,7 @@ export default function ProductClient({ product }: { product: ProductData }) {
 
                   {/* Fine print */}
                   <p className="mt-5 text-xs text-neutral-500">
-                    By purchasing, you agree to our Terms and Warranty policy. Box & papers availability may vary by variant.
+                    By purchasing, you agree to our Terms, Shipping, and Returns policy. Color and accessory availability may vary by variant.
                   </p>
                 </div>
               </div>
@@ -905,12 +905,15 @@ export default function ProductClient({ product }: { product: ProductData }) {
                 {tab === "shipping" && (
                   <div className="space-y-3">
                     <p className="text-sm text-neutral-700">
-                      Worldwide insured shipping within 48 hours. 7-day return policy applies.
+                      We deliver orders across Pakistan only. Orders are normally processed and dispatched within 24-48 hours after confirmation. Standard delivery charges are shown at checkout, and free shipping applies above the displayed order threshold.
                     </p>
                     <ul className="list-disc pl-5 text-sm text-neutral-600">
-                      <li>Insured door-to-door delivery</li>
-                      <li>Signature required on delivery</li>
-                      <li>Returns accepted in original condition</li>
+                      <li>Insured door-to-door delivery within courier serviceable areas in Pakistan.</li>
+                      <li>Estimated delivery is usually 2-5 business days, depending on city and courier coverage.</li>
+                      <li>Cash on Delivery orders may be confirmed by phone or WhatsApp before dispatch.</li>
+                      <li>7-day returns are accepted for defective and non-defective products in original condition with packaging and accessories.</li>
+                      <li>Customers can request a return through WhatsApp, email, or the returns page. Refunds are processed after inspection and approval.</li>
+                      <li>Return shipping fees apply for change-of-mind returns; Sahoolat covers return shipping for wrong, damaged, or defective items.</li>
                     </ul>
                   </div>
                 )}
@@ -937,7 +940,7 @@ export default function ProductClient({ product }: { product: ProductData }) {
             Buy Now
           </button>
           <button
-            onClick={onAddToCart}
+            onClick={() => onAddToCart()}
             className="rounded-2xl border border-neutral-200 px-4 py-3 text-sm font-medium hover:bg-neutral-50"
           >
             Cart

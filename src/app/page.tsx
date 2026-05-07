@@ -23,6 +23,7 @@ type Testimonial = {
 };
 
 const baseUrl = normalizeSiteUrl();
+const SHOW_HOME_REVIEWS = false;
 
 export async function generateMetadata(): Promise<Metadata> {
   const [page, settings] = await Promise.all([
@@ -483,10 +484,10 @@ export default async function HomePage() {
           phone: contact?.phone || undefined,
           email: contact?.email || undefined,
           address: orgAddress,
-          aggregateRating: orgReviewCount
+          aggregateRating: SHOW_HOME_REVIEWS && orgReviewCount
             ? { ratingValue: orgAverageRating, reviewCount: orgReviewCount }
             : undefined,
-          reviews: orgReviewCount ? orgReviews : undefined,
+          reviews: SHOW_HOME_REVIEWS && orgReviewCount ? orgReviews : undefined,
         })}
       />
       <Schema
@@ -643,7 +644,8 @@ export default async function HomePage() {
         </Container>
       </section>
 
-      {/* Testimonials */}
+      {/* Testimonials: set SHOW_HOME_REVIEWS to true to restore the full reviews section. */}
+      {SHOW_HOME_REVIEWS ? (
       <section className="border-t border-neutral-200 bg-white py-14">
         <Container>
           {/* Section shell (adds premium separation without changing page layout) */}
@@ -752,6 +754,23 @@ export default async function HomePage() {
         </Container>
 
       </section>
+      ) : (
+        <section className="border-t border-neutral-200 bg-white py-14">
+          <Container>
+            <div className="rounded-3xl border border-dashed border-neutral-300 bg-neutral-50 px-6 py-12 text-center sm:px-8">
+              <p className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
+                Reviews
+              </p>
+              <h2 className="mt-3 text-2xl font-semibold tracking-tight text-neutral-900 sm:text-3xl">
+                Customer reviews coming soon
+              </h2>
+              <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-neutral-600">
+                We are preparing verified customer feedback for Sahoolat.pk shoppers.
+              </p>
+            </div>
+          </Container>
+        </section>
+      )}
 
       {/* Introducing products */}
       <section className="border-t border-neutral-200 bg-white py-14">
@@ -811,7 +830,6 @@ export default async function HomePage() {
           />
         </Container>
       </section>
-
     </div>
   );
 }

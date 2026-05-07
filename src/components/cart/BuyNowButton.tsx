@@ -53,22 +53,25 @@ export default function BuyNowButton({
   const compareAt = compareAtLabel ? parsePriceLabel(compareAtLabel).amount : undefined;
 
   const onBuyNow = () => {
-    addItem({
-      id,
-      productId,
-      slug,
-      name,
-      price: price.amount,
-      compareAt,
-      qty,
-      image,
-      href,
-      badge,
-      subtitle,
-      variantLabel,
-      sizeLabel,
-      currency: price.currency,
-    });
+    addItem(
+      {
+        id,
+        productId,
+        slug,
+        name,
+        price: price.amount,
+        compareAt,
+        qty,
+        image,
+        href,
+        badge,
+        subtitle,
+        variantLabel,
+        sizeLabel,
+        currency: price.currency,
+      },
+      { showToast: false },
+    );
     router.push("/checkout");
   };
 
