@@ -909,10 +909,10 @@ export default function ProductClient({ product }: { product: ProductData }) {
                     </p>
                     <ul className="list-disc pl-5 text-sm text-neutral-600">
                       <li>Insured door-to-door delivery within courier serviceable areas in Pakistan.</li>
-                      <li>Estimated delivery is usually 2-5 business days, depending on city and courier coverage.</li>
+                      <li>Estimated delivery is usually 3-7 business days, depending on city and courier coverage.</li>
                       <li>Cash on Delivery orders may be confirmed by phone or WhatsApp before dispatch.</li>
                       <li>7-day returns are accepted for defective and non-defective products in original condition with packaging and accessories.</li>
-                      <li>Customers can request a return through WhatsApp, email, or the returns page. Refunds are processed after inspection and approval.</li>
+                      <li>Customers can request a return through <a href="https://wa.me/923018980125" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">WhatsApp</a>, <a href="mailto:info@sahoolat.com" className="text-blue-500 hover:underline">email</a>, or the returns page. Refunds are processed after inspection and approval.</li>
                       <li>Return shipping fees apply for change-of-mind returns; Sahoolat covers return shipping for wrong, damaged, or defective items.</li>
                     </ul>
                   </div>
