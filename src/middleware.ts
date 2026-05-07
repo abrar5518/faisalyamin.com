@@ -14,8 +14,13 @@ const PRIVATE_PREFIXES = [
   "/forgot-password",
   "/reset-password",
   "/portal",
-  "/search",
 ];
+const SEARCH_PREFIXES = ["/search"];
+
+function withRobots(response: NextResponse, value: "noindex, follow" | "noindex, nofollow") {
+  response.headers.set("X-Robots-Tag", value);
+  return response;
+}
 
 function withNoIndex(response: NextResponse) {
   response.headers.set("X-Robots-Tag", "noindex, nofollow");
@@ -37,6 +42,9 @@ export function middleware(req: NextRequest) {
 
   const { pathname } = req.nextUrl;
   const isPrivatePath = PRIVATE_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+  const isSearchPath = SEARCH_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
 
@@ -84,6 +92,10 @@ export function middleware(req: NextRequest) {
     }
 
     return withNoIndex(NextResponse.next());
+  }
+
+  if (isSearchPath) {
+    return withRobots(NextResponse.next(), "noindex, follow");
   }
 
   return isPrivatePath ? withNoIndex(NextResponse.next()) : NextResponse.next();

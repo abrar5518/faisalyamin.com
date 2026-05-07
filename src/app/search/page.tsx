@@ -16,27 +16,22 @@ function Container({ children }: { children: React.ReactNode }) {
 export async function generateMetadata({ searchParams }: SearchPageProps) {
   const { q } = await searchParams;
   const query = (q ?? "").trim();
-  const baseUrl = canonicalUrl();
+  const shopUrl = canonicalUrl("/shop");
   const title = query ? `Search: ${query}` : "Search water bottles, kids bottles, school bottles...";
   const description = query
     ? `Search results for "${query}" on Sahoolat.`
     : "Search and find the best water bottles online in Pakistan. Discover top products at Sahoolat.";
 
-  const qs = new URLSearchParams();
-  if (query) qs.set("q", query);
-  const canonical = qs.toString()
-    ? `${baseUrl}/search?${qs.toString()}`
-    : `${baseUrl}/search`;
   return {
     title,
     description,
-    alternates: { canonical },
+    alternates: { canonical: shopUrl },
     robots: { index: false, follow: true },
     openGraph: {
       type: "website",
       title,
       description,
-      url: canonical,
+      url: shopUrl,
     },
     twitter: {
       card: "summary",
@@ -70,9 +65,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       })
     : [];
   const baseUrlResolved = canonicalUrl();
-  const pageUrl = query
-    ? `${baseUrlResolved}/search?q=${encodeURIComponent(query)}`
-    : `${baseUrlResolved}/search`;
+  const pageUrl = canonicalUrl("/shop");
   const items = rows.slice(0, 20).map((p) => ({
     name: p.name ?? "Product",
     url: absoluteUrl(`/product/${p.slug}`, baseUrlResolved),
