@@ -68,7 +68,7 @@ export async function GET() {
             product.name,
           availability: "in stock",
           condition: "new",
-          price: `${price.toFixed(2)} PKR`,
+          price: `${Math.round(price)} PKR`,
           link: `${SITE_URL}/product/${product.slug}`,
           image_link: absoluteUrl(image),
           brand: BRAND,

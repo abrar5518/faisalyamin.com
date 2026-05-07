@@ -8,7 +8,7 @@ const GOOGLE_PRODUCT_CATEGORY =
   "Home & Garden > Kitchen & Dining > Food & Beverage Carriers > Water Bottles";
 const SHIPPING_COUNTRY = "PK";
 const SHIPPING_SERVICE = "Standard";
-const SHIPPING_PRICE = "200.00 PKR";
+const SHIPPING_PRICE = "200 PKR";
 
 function stripHtml(value: string) {
   return value
@@ -36,7 +36,7 @@ function escapeXml(value: string | number) {
 }
 
 function formatFeedPrice(price: number) {
-  return `${price.toFixed(2)} PKR`;
+  return `${Math.round(price)} PKR`;
 }
 
 export async function GET() {
