@@ -8,6 +8,7 @@ import { CartProvider } from "@/components/cart/CartProvider";
 import WhatsAppFloatButton from "@/components/WhatsAppFloatButton";
 import { prisma } from "@/lib/prisma";
 import MetaPixel from "@/components/MetaPixel";
+import { normalizeSiteUrl } from "@/lib/siteUrl";
 
 export const dynamic = "force-dynamic";
 
@@ -28,12 +29,7 @@ const metaPixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID || "863606865641935";
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await prisma.siteSettings.findFirst({ orderBy: { id: "asc" } });
   const siteName = settings?.siteName?.trim() || "LuxStore";
-  const rawBaseUrl = (settings?.siteUrl || process.env.SITE_URL || "").trim();
-  const baseUrlResolved = rawBaseUrl
-    ? rawBaseUrl.startsWith("http")
-      ? rawBaseUrl.replace(/\/$/, "")
-      : `https://${rawBaseUrl.replace(/\/$/, "")}`
-    : "";
+  const baseUrlResolved = normalizeSiteUrl(settings?.siteUrl);
   const metadataBase = (() => {
     if (!baseUrlResolved) return undefined;
     try {

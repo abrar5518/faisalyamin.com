@@ -3,8 +3,9 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import Schema from "@/components/seo/Schema";
 import { absoluteUrl, contactPageSchema, organizationSchema } from "@/components/seo/schemas";
+import { normalizeSiteUrl } from "@/lib/siteUrl";
 
-const baseUrl = process.env.SITE_URL ?? "http://localhost:3000";
+const baseUrl = normalizeSiteUrl();
 
 export const metadata: Metadata = {
   title: "Contact Us – Sahoolat Pakistan",
@@ -37,7 +38,7 @@ export default async function ContactPage() {
   ]
     .filter(Boolean)
     .join(", ");
-  const baseUrlResolved = (siteSettings?.siteUrl || baseUrl).replace(/\/$/, "");
+  const baseUrlResolved = normalizeSiteUrl(siteSettings?.siteUrl || baseUrl);
   const brandName = siteSettings?.siteName?.trim() || "LuxStore";
   const logoUrl = siteSettings?.logoUrl || siteSettings?.siteIconUrl || "/favicon.ico";
   const orgAddress = {

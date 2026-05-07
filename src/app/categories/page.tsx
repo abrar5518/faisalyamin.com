@@ -6,9 +6,10 @@ import { prisma } from "@/lib/prisma";
 import type { Metadata } from "next";
 import Schema from "@/components/seo/Schema";
 import { absoluteUrl, breadcrumbSchema, itemListSchema } from "@/components/seo/schemas";
+import { normalizeSiteUrl } from "@/lib/siteUrl";
  
 
-const baseUrl = process.env.SITE_URL ?? "http://localhost:3000";
+const baseUrl = normalizeSiteUrl();
 
 export const metadata: Metadata = {
   title: "Water Bottle Categories – Shop All Types Online | Sahoolat",
@@ -101,7 +102,7 @@ export default async function CategoriesPage() {
           imageAlt: c.imageAlt || c.name || "Category",
         }))
       : categoriesFallback;
-  const baseUrlResolved = (siteSettings?.siteUrl || baseUrl).replace(/\/$/, "");
+  const baseUrlResolved = normalizeSiteUrl(siteSettings?.siteUrl || baseUrl);
   const contactWhatsapp = contact?.whatsapp || "";
   const whatsappDigits = contactWhatsapp.replace(/[^\d+]/g, "").replace(/^\+/, "");
   const whatsappHref = whatsappDigits ? `https://wa.me/${whatsappDigits}` : "/contact";

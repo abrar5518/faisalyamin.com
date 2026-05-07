@@ -12,6 +12,7 @@ import {
   collectionPageSchema,
   itemListSchema,
 } from "@/components/seo/schemas";
+import { normalizeSiteUrl } from "@/lib/siteUrl";
 
 function Container({ children }: { children: ReactNode }) {
   return (
@@ -41,7 +42,7 @@ export async function generateMetadata({ params, searchParams }: PageProps) {
   const sp = searchParams ? await searchParams : undefined;
   const rawPage = Number(sp?.page ?? 1);
   const page = Number.isFinite(rawPage) && rawPage > 1 ? Math.floor(rawPage) : 1;
-  const baseUrl = process.env.SITE_URL ?? "http://localhost:3000";
+  const baseUrl = normalizeSiteUrl();
 
   const category = await prisma.category.findUnique({
     where: { slug },
@@ -194,7 +195,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
         to improve SEO and navigation.
       </p>
     `;
-  const baseUrlResolved = (siteSettings?.siteUrl || process.env.SITE_URL || "http://localhost:3000").replace(/\/$/, "");
+  const baseUrlResolved = normalizeSiteUrl(siteSettings?.siteUrl);
   const contactWhatsapp = contact?.whatsapp || "";
   const whatsappDigits = contactWhatsapp.replace(/[^\d+]/g, "").replace(/^\+/, "");
   const whatsappHref = whatsappDigits ? `https://wa.me/${whatsappDigits}` : "/contact";

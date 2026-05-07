@@ -1,3 +1,5 @@
+import { normalizeSiteUrl } from "@/lib/siteUrl";
+
 type LayoutProps = {
   params: Promise<{ token: string }>;
   children: React.ReactNode;
@@ -5,7 +7,7 @@ type LayoutProps = {
 
 export async function generateMetadata({ params }: LayoutProps) {
   const { token } = await params;
-  const baseUrl = process.env.SITE_URL ?? "http://localhost:3000";
+  const baseUrl = normalizeSiteUrl();
   return {
     title: "Reset Password",
     description: "Set a new password for your LuxStore account.",

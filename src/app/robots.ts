@@ -1,6 +1,17 @@
 import type { MetadataRoute } from "next";
+import { canonicalUrl } from "@/lib/siteUrl";
 
 export default function robots(): MetadataRoute.Robots {
+  const sitemapPaths = [
+    "/sitemap.xml",
+    "/sitemap/pages.xml",
+    "/sitemap/products.xml",
+    "/sitemap/categories.xml",
+    "/sitemap/subcategories.xml",
+    "/sitemap/blogs.xml",
+    "/sitemap/authors.xml",
+  ];
+
   return {
     rules: [
       {
@@ -12,20 +23,14 @@ export default function robots(): MetadataRoute.Robots {
           "/cart",
           "/checkout",
           "/login",
+          "/logout",
           "/signup",
+          "/search",
           "/api",
           "/portal",
         ],
       },
     ],
-    sitemap: [
-      "https://sahoolat.pk/sitemap.xml",
-      "https://sahoolat.pk/sitemap/pages.xml",
-      "https://sahoolat.pk/sitemap/products.xml",
-      "https://sahoolat.pk/sitemap/categories.xml",
-      "https://sahoolat.pk/sitemap/subcategories.xml",
-      "https://sahoolat.pk/sitemap/blogs.xml",
-      "https://sahoolat.pk/sitemap/authors.xml",
-    ],
+    sitemap: sitemapPaths.map((path) => canonicalUrl(path)),
   };
 }

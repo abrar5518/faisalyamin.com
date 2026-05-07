@@ -1,7 +1,8 @@
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  process.env.SITE_URL ||
-  "https://sahoolat.pk";
+import { normalizeSiteUrl } from "@/lib/siteUrl";
+
+const SITE_URL = normalizeSiteUrl(
+  process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL,
+);
 
 export function toOptimizableImageSrc(src: string) {
   if (!src || src.startsWith("data:")) return src;

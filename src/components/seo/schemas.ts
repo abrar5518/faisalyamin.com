@@ -1,18 +1,8 @@
+import { normalizeCanonicalUrl } from "@/lib/siteUrl";
+
 export function normalizeUrl(value: string) {
   if (!value) return value;
-  let trimmed = value.trim();
-  
-  // Ensure it starts with http:// or https://
-  if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) {
-    trimmed = `https://${trimmed.replace(/^\/+/, "")}`;
-  }
-  
-  // Remove trailing slashes
-  trimmed = trimmed.replace(/\/+$/, "");
-  
-  // Remove duplicate slashes but preserve the protocol //
-  // "([^:\/])\/+" means match any char that is not a colon, followed by a slash, and then one or more slashes
-  return trimmed.replace(/([^:]\/)\/+/g, "$1");
+  return normalizeCanonicalUrl(value);
 }
 
 export function absoluteUrl(input: string, baseUrl: string) {

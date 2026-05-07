@@ -3,8 +3,9 @@ import ShopClient, { ShopProduct } from "./ShopClient";
 import type { Metadata } from "next";
 import Schema from "@/components/seo/Schema";
 import { absoluteUrl, breadcrumbSchema, collectionPageSchema, itemListSchema } from "@/components/seo/schemas";
+import { normalizeSiteUrl } from "@/lib/siteUrl";
 
-const baseUrl = process.env.SITE_URL ?? "";
+const baseUrl = normalizeSiteUrl();
 
 export async function generateMetadata(): Promise<Metadata> {
   const [page, settings] = await Promise.all([
@@ -12,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
     prisma.siteSettings.findFirst({ orderBy: { id: "asc" } }),
   ]);
 
-  const baseUrlResolved = (settings?.siteUrl || baseUrl).replace(/\/$/, "");
+  const baseUrlResolved = normalizeSiteUrl(settings?.siteUrl || baseUrl);
   const canonical = baseUrlResolved ? `${baseUrlResolved}/shop` : undefined;
   const ogImage = page?.featureImage
     ? page.featureImage.startsWith("http")
@@ -96,7 +97,7 @@ export default async function ShopPage() {
   ]);
 
   const initialProducts = rows.map(mapProduct);
-  const baseUrlResolved = (siteSettings?.siteUrl || baseUrl).replace(/\/$/, "");
+  const baseUrlResolved = normalizeSiteUrl(siteSettings?.siteUrl || baseUrl);
   const pageUrl = `${baseUrlResolved}/shop`;
   const itemList = initialProducts.slice(0, 20).map((p) => ({
     name: p.name,

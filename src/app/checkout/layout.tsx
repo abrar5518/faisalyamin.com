@@ -1,4 +1,6 @@
-const baseUrl = process.env.SITE_URL ?? "http://localhost:3000";
+import { normalizeSiteUrl } from "@/lib/siteUrl";
+
+const baseUrl = normalizeSiteUrl();
 
 export const metadata = {
   title: "Checkout",

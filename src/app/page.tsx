@@ -11,6 +11,7 @@ import type { Metadata } from "next";
 import Schema from "@/components/seo/Schema";
 import { absoluteUrl, faqSchema, itemListSchema, organizationSchema, websiteSchema } from "@/components/seo/schemas";
 import CategoryCarousel from "@/components/home/CategoryCarousel";
+import { normalizeSiteUrl } from "@/lib/siteUrl";
 
 type Testimonial = {
   name: string;
@@ -20,7 +21,7 @@ type Testimonial = {
   rating: number;
 };
 
-const baseUrl = process.env.SITE_URL ?? "";
+const baseUrl = normalizeSiteUrl();
 
 export async function generateMetadata(): Promise<Metadata> {
   const [page, settings] = await Promise.all([
@@ -31,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const description =
     page?.metaDescription ||
     "Premium products, curated for people who care about details. Shop best-selling luxury watches and accessories.";
-  const baseUrlResolved = (settings?.siteUrl || process.env.SITE_URL || "").replace(/\/$/, "");
+  const baseUrlResolved = normalizeSiteUrl(settings?.siteUrl);
   const ogImage = page?.heroImage
     ? page.heroImage.startsWith("http")
       ? page.heroImage
@@ -427,7 +428,7 @@ export default async function HomePage() {
       .filter((item) => item.name && item.quote) ?? [];
   const testimonialsList: Testimonial[] =
     testimonialsFromCms.length > 0 ? testimonialsFromCms : testimonialsFallback;
-  const baseUrlResolved = (siteSettings?.siteUrl || baseUrl).replace(/\/$/, "");
+  const baseUrlResolved = normalizeSiteUrl(siteSettings?.siteUrl || baseUrl);
   const brandName = siteSettings?.siteName?.trim() || "LuxStore";
   const logoUrl = siteSettings?.logoUrl || siteSettings?.siteIconUrl || "/favicon.ico";
   const orgAddress = contact

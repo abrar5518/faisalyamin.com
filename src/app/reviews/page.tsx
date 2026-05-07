@@ -3,8 +3,9 @@ import Link from "next/link";
 import Schema from "@/components/seo/Schema";
 import { breadcrumbSchema } from "@/components/seo/schemas";
 import { prisma } from "@/lib/prisma";
+import { normalizeSiteUrl } from "@/lib/siteUrl";
 
-const baseUrl = process.env.SITE_URL ?? "http://localhost:3000";
+const baseUrl = normalizeSiteUrl();
 
 export const metadata: Metadata = {
   title: "Customer Reviews – Water Bottles Pakistan | Sahoolat",

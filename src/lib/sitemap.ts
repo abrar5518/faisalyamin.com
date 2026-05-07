@@ -1,9 +1,9 @@
 import { prisma } from "@/lib/prisma";
+import { normalizeSiteUrl } from "@/lib/siteUrl";
 
 export async function getBaseUrl() {
   const settings = await prisma.siteSettings.findFirst({ orderBy: { id: "asc" } });
-  const base = settings?.siteUrl || process.env.SITE_URL || "http://localhost:3000";
-  return base.replace(/\/$/, "");
+  return normalizeSiteUrl(settings?.siteUrl);
 }
 
 export function buildUrlset(

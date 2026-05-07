@@ -6,15 +6,16 @@ import ProductCard, { Product } from "@/components/ProductCard";
 import type { Metadata } from "next";
 import Schema from "@/components/seo/Schema";
 import { absoluteUrl, breadcrumbSchema, collectionPageSchema, itemListSchema } from "@/components/seo/schemas";
+import { normalizeSiteUrl } from "@/lib/siteUrl";
 
-const baseUrl = process.env.SITE_URL ?? "";
+const baseUrl = normalizeSiteUrl();
 
 export async function generateMetadata(): Promise<Metadata> {
   const [page, settings] = await Promise.all([
     prisma.page.findUnique({ where: { slug: "deals" } }),
     prisma.siteSettings.findFirst({ orderBy: { id: "asc" } }),
   ]);
-  const baseUrlResolved = (settings?.siteUrl || baseUrl).replace(/\/$/, "");
+  const baseUrlResolved = normalizeSiteUrl(settings?.siteUrl || baseUrl);
   const ogImage = page?.featureImage
     ? page.featureImage.startsWith("http")
       ? page.featureImage
@@ -99,7 +100,7 @@ export default async function DealsPage() {
   ]);
 
   const products = buildProducts(rows);
-  const baseUrlResolved = (siteSettings?.siteUrl || baseUrl).replace(/\/$/, "");
+  const baseUrlResolved = normalizeSiteUrl(siteSettings?.siteUrl || baseUrl);
   const pageUrl = baseUrlResolved ? `${baseUrlResolved}/deals` : "";
   const productItems = baseUrlResolved
     ? products

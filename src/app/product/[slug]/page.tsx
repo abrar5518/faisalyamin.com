@@ -6,10 +6,11 @@ import ProductCard from "@/components/ProductCard";
 import ProductClient, { ProductData, Variant } from "./ProductClient";
 import Schema from "@/components/seo/Schema";
 import { absoluteUrl, breadcrumbSchema, productSchema, stripHtml } from "@/components/seo/schemas";
+import { normalizeSiteUrl } from "@/lib/siteUrl";
 
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
-  const baseUrl = process.env.SITE_URL ?? "http://localhost:3000";
+  const baseUrl = normalizeSiteUrl();
   const product = (await prisma.product.findUnique({
     where: { slug },
     include: { images: true },
@@ -327,7 +328,7 @@ export default async function ProductPage({ params }: PageProps) {
           };
         })
       : RELATED_FALLBACK;
-  const baseUrlResolved = (siteSettings?.siteUrl || process.env.SITE_URL || "http://localhost:3000").replace(/\/$/, "");
+  const baseUrlResolved = normalizeSiteUrl(siteSettings?.siteUrl);
   const pageUrl = `${baseUrlResolved}/product/${slug}`;
   const productImages = imageUrls.length ? imageUrls : ["/images/shopping.jpg"];
   const descriptionText = typedProduct.shortDesc || stripHtml(typedProduct.descriptionHtml || "");

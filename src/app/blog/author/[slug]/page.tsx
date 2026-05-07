@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { withImageParams } from "@/lib/image";
 import { prisma } from "@/lib/prisma";
 import BlogCard, { BlogPostCard } from "@/components/BlogCard";
+import { normalizeSiteUrl } from "@/lib/siteUrl";
 
 const FALLBACK_AVATAR = "https://images.unsplash.com/photo-1500648767791-00dcc994a43e";
 const FALLBACK_COVER = "https://images.unsplash.com/photo-1523275335684-37898b6baf30";
@@ -33,7 +34,7 @@ function excerptFromHtml(html: string, maxLen = 180) {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const baseUrl = process.env.SITE_URL ?? "http://localhost:3000";
+  const baseUrl = normalizeSiteUrl();
   const author = await prisma.blogAuthor.findUnique({ where: { slug } });
   if (!author) {
     return {

@@ -4,10 +4,11 @@ import { redirect } from "next/navigation";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import { prisma } from "@/lib/prisma";
 import type { Metadata } from "next";
+import { normalizeSiteUrl } from "@/lib/siteUrl";
 
 export const dynamic = "force-dynamic";
 
-const baseUrl = process.env.SITE_URL ?? "http://localhost:3000";
+const baseUrl = normalizeSiteUrl();
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await prisma.siteSettings.findFirst({ orderBy: { id: "asc" } });
@@ -17,6 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: `Admin Panel | ${siteName}`,
     description: `${siteName} admin panel - Manage store settings, products, and orders.`,
     alternates: { canonical: `${baseUrl}/admin` },
+    robots: { index: false, follow: false },
     icons: settings?.siteIconUrl ? { icon: settings.siteIconUrl } : undefined,
   };
 }

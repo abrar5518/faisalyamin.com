@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import ProductCard from "@/components/ProductCard";
 import Schema from "@/components/seo/Schema";
 import { absoluteUrl, itemListSchema } from "@/components/seo/schemas";
+import { canonicalUrl } from "@/lib/siteUrl";
 
 function formatPKR(n: number) {
   return `PKR ${n.toLocaleString("en-PK")}`;
@@ -15,7 +16,7 @@ function Container({ children }: { children: React.ReactNode }) {
 export async function generateMetadata({ searchParams }: SearchPageProps) {
   const { q } = await searchParams;
   const query = (q ?? "").trim();
-  const baseUrl = process.env.SITE_URL ?? "http://localhost:3000";
+  const baseUrl = canonicalUrl();
   const title = query ? `Search: ${query}` : "Search water bottles, kids bottles, school bottles...";
   const description = query
     ? `Search results for "${query}" on Sahoolat.`
@@ -30,6 +31,7 @@ export async function generateMetadata({ searchParams }: SearchPageProps) {
     title,
     description,
     alternates: { canonical },
+    robots: { index: false, follow: true },
     openGraph: {
       type: "website",
       title,
@@ -67,7 +69,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         include: { images: true },
       })
     : [];
-  const baseUrlResolved = (process.env.SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
+  const baseUrlResolved = canonicalUrl();
   const pageUrl = query
     ? `${baseUrlResolved}/search?q=${encodeURIComponent(query)}`
     : `${baseUrlResolved}/search`;

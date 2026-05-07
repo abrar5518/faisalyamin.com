@@ -4,8 +4,9 @@ import { prisma } from "@/lib/prisma";
 import Schema from "@/components/seo/Schema";
 import { breadcrumbSchema, faqSchema } from "@/components/seo/schemas";
 import { aboutContentFromDb, defaultAboutHero, parseAboutContent } from "@/lib/aboutContent";
+import { normalizeSiteUrl } from "@/lib/siteUrl";
 
-const baseUrl = process.env.SITE_URL ?? "";
+const baseUrl = normalizeSiteUrl();
 
 export async function generateMetadata(): Promise<Metadata> {
   const [page, settings] = await Promise.all([
@@ -13,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
     prisma.siteSettings.findFirst({ orderBy: { id: "asc" } }),
   ]);
 
-  const baseUrlResolved = (settings?.siteUrl || baseUrl).replace(/\/$/, "");
+  const baseUrlResolved = normalizeSiteUrl(settings?.siteUrl || baseUrl);
   const heroImage = page?.heroImage || defaultAboutHero.image;
   const ogImage = heroImage
     ? heroImage.startsWith("http")
@@ -196,7 +197,7 @@ export default async function AboutPage() {
     image: pageRow?.heroImage || defaultAboutHero.image,
     imageAlt: pageRow?.heroImageAlt || defaultAboutHero.imageAlt,
   };
-  const baseUrlResolved = (siteSettings?.siteUrl || baseUrl).replace(/\/$/, "");
+  const baseUrlResolved = normalizeSiteUrl(siteSettings?.siteUrl || baseUrl);
   const breadcrumbItems = baseUrlResolved
     ? [
         { name: "Home", item: baseUrlResolved },

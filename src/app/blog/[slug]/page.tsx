@@ -10,6 +10,7 @@ import { prisma } from "@/lib/prisma";
 import Schema from "@/components/seo/Schema";
 import { absoluteUrl, blogPostingSchema, breadcrumbSchema } from "@/components/seo/schemas";
 import SubscribeCard from "@/components/SubscribeCard";
+import { normalizeSiteUrl } from "@/lib/siteUrl";
 
 type BlogPost = {
   slug: string;
@@ -139,7 +140,7 @@ function ProductInsert({ title, items }: { title: string; items: ProductCardItem
 
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
-  const baseUrl = process.env.SITE_URL ?? "http://localhost:3000";
+  const baseUrl = normalizeSiteUrl();
   const post = await prisma.blog.findFirst({
     where: { slug, isPublished: true },
     select: {
@@ -312,7 +313,7 @@ export default async function BlogPostPage({ params }: PageProps) {
   const rt = estimateReadingTime(post.html);
   const headings = extractHeadings(post.html);
   const htmlWithIds = injectHeadingIds(post.html, headings);
-  const baseUrlResolved = (siteSettings?.siteUrl || process.env.SITE_URL || "http://localhost:3000").replace(/\/$/, "");
+  const baseUrlResolved = normalizeSiteUrl(siteSettings?.siteUrl);
   const pageUrl = `${baseUrlResolved}/blog/${post.slug}`;
   const publisherName = siteSettings?.siteName?.trim() || "LuxStore";
   const publisherLogo = siteSettings?.logoUrl || siteSettings?.siteIconUrl || "/favicon.ico";

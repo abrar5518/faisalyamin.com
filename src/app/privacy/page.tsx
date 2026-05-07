@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Schema from "@/components/seo/Schema";
 import { breadcrumbSchema } from "@/components/seo/schemas";
+import { normalizeSiteUrl } from "@/lib/siteUrl";
 
-const baseUrl = process.env.SITE_URL ?? "http://localhost:3000";
+const baseUrl = normalizeSiteUrl();
 
 export const metadata: Metadata = {
   title: "Privacy Policy | Sahoolat Pakistan",

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { canonicalUrl, normalizeCanonicalUrl } from "@/lib/siteUrl";
 
-const SITE_URL = "https://sahoolat.pk";
+const SITE_URL = canonicalUrl();
 const BRAND = "Sahoolat";
 
 function stripHtml(value: string) {
@@ -14,7 +15,7 @@ function stripHtml(value: string) {
 function absoluteUrl(value: string) {
   const trimmed = value.trim();
   if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-    return trimmed;
+    return normalizeCanonicalUrl(trimmed);
   }
 
   return `${SITE_URL}${trimmed.startsWith("/") ? "" : "/"}${trimmed}`;

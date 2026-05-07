@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "crypto";
+import { normalizeSiteUrl } from "@/lib/siteUrl";
 
 const STATE_COOKIE = "google_oauth_state";
 const STATE_MAX_AGE = 60 * 5;
@@ -7,9 +8,7 @@ const STATE_MAX_AGE = 60 * 5;
 function normalizeBaseUrl(req: NextRequest) {
   const raw = process.env.SITE_URL?.trim();
   if (raw && process.env.NODE_ENV === "production") {
-    return raw.startsWith("http://") || raw.startsWith("https://")
-      ? raw
-      : `https://${raw}`;
+    return normalizeSiteUrl(raw);
   }
   return req.nextUrl.origin;
 }

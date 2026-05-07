@@ -5,6 +5,7 @@ import BlogCard, { BlogPostCard } from "@/components/BlogCard";
 import { prisma } from "@/lib/prisma";
 import Schema from "@/components/seo/Schema";
 import { absoluteUrl, breadcrumbSchema, itemListSchema } from "@/components/seo/schemas";
+import { canonicalUrl, normalizeSiteUrl } from "@/lib/siteUrl";
 
 function Container({ children }: { children: ReactNode }) {
   return (
@@ -50,7 +51,7 @@ export async function generateMetadata({ searchParams }: PageProps) {
   const tag = sp?.tag?.trim();
   const rawPage = Number(sp?.page ?? 1);
   const page = Number.isFinite(rawPage) && rawPage > 1 ? Math.floor(rawPage) : 1;
-  const baseUrl = absoluteUrl("", process.env.SITE_URL ?? "http://localhost:3000");
+  const baseUrl = canonicalUrl();
 
   const title = "Blog – Water Bottles, Health Tips & Buying Guides | Sahoolat";
   const description = "Read expert blogs on water bottles, hydration tips, fitness, and buying guides in Pakistan. Stay updated with Sahoolat insights.";
@@ -71,6 +72,7 @@ export async function generateMetadata({ searchParams }: PageProps) {
     description,
     keywords,
     alternates: { canonical },
+    robots: tag || page > 1 ? { index: false, follow: true } : { index: true, follow: true },
   };
 }
 
@@ -134,10 +136,7 @@ export default async function BlogPage({ searchParams }: PageProps) {
 
   const start = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const end = Math.min(page * pageSize, total);
-  const baseUrlResolved = absoluteUrl(
-    "",
-    siteSettings?.siteUrl || process.env.SITE_URL || "http://localhost:3000",
-  );
+  const baseUrlResolved = normalizeSiteUrl(siteSettings?.siteUrl);
   const pageUrl = tag
     ? `${baseUrlResolved}/blog?tag=${encodeURIComponent(tag)}`
     : `${baseUrlResolved}/blog`;
