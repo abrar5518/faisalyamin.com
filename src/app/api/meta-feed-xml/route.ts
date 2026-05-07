@@ -8,7 +8,7 @@ const GOOGLE_PRODUCT_CATEGORY =
   "Home & Garden > Kitchen & Dining > Food & Beverage Carriers > Water Bottles";
 const SHIPPING_COUNTRY = "PK";
 const SHIPPING_SERVICE = "Standard";
-const SHIPPING_PRICE = "200 PKR";
+const SHIPPING_PRICE = "250 PKR";
 
 function stripHtml(value: string) {
   return value
