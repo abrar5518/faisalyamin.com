@@ -53,6 +53,9 @@ export async function generateMetadata(): Promise<Metadata> {
     description:
       "Pakistan-based online shopping store for water bottles with secure checkout, clear returns, and delivery across Pakistan.",
     robots: { index: true, follow: true },
+    other: {
+      "facebook-domain-verification": "giz4fgj0f0si7qlsii6899xle3s29f",
+    },
     icons: settings?.siteIconUrl ? { icon: settings.siteIconUrl } : undefined,
     openGraph: {
       type: "website",
