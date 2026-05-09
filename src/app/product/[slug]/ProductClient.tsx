@@ -264,7 +264,7 @@ export default function ProductClient({ product }: { product: ProductData }) {
   };
 
   const onBuyNow = () => {
-    onAddToCart({ showToast: false });
+    onAddToCart(undefined, { showToast: false });
     router.push("/checkout");
   };
 
