@@ -71,7 +71,7 @@ function mapProduct(p: any): ShopProduct {
 }
 
 export default async function ShopPage() {
-  const pageSize = 18;
+  const pageSize = 30;
 
   const [rows, total, siteSettings, pageRow, categories] = await Promise.all([
     prisma.product.findMany({

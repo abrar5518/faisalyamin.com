@@ -6,7 +6,7 @@ import { withImageParams } from "@/lib/image";
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/components/cart/CartProvider";
-import { trackAddToCart, trackViewContent } from "@/lib/metaPixel";
+import { trackViewContent } from "@/lib/metaPixel";
 
 export type Variant = {
   id: string;
@@ -257,12 +257,6 @@ export default function ProductClient({ product }: { product: ProductData }) {
       sizeLabel: size || undefined,
       currency: "PKR",
     }, options);
-    trackAddToCart({
-      id: product.id,
-      slug: product.slug,
-      name: product.name,
-      price,
-    });
   };
 
   const onBuyNow = () => {

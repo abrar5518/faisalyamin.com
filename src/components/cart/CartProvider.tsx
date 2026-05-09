@@ -12,6 +12,7 @@ import {
 } from "react";
 import Link from "next/link";
 import { CheckCircle2, ShoppingCart, X } from "lucide-react";
+import { trackAddToCart } from "@/lib/metaPixel";
 
 export type CartItem = {
   id: string;
@@ -126,6 +127,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (options?.showToast !== false) {
       showCartToast(item);
     }
+
+    // Trigger Meta Pixel AddToCart
+    trackAddToCart({
+      id: item.productId ?? item.id,
+      slug: item.slug,
+      name: item.name,
+      price: item.price,
+    });
   }, [showCartToast]);
 
   const updateQty = useCallback((id: string, qty: number) => {

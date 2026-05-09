@@ -75,8 +75,22 @@ export function trackViewContent(product: ProductLike) {
   });
 }
 
+let lastAddToCartEvent: { id: string; time: number } | null = null;
+
 export function trackAddToCart(product: ProductLike) {
   const contentId = getContentId(product);
+  const now = Date.now();
+
+  // Prevent duplicate AddToCart events for the same product within 500ms
+  if (
+    lastAddToCartEvent &&
+    lastAddToCartEvent.id === contentId &&
+    now - lastAddToCartEvent.time < 500
+  ) {
+    return;
+  }
+
+  lastAddToCartEvent = { id: contentId, time: now };
 
   track("AddToCart", {
     content_ids: contentId ? [contentId] : [],

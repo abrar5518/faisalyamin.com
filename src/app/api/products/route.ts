@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     const isActive = searchParams.get("isActive");
     const q = searchParams.get("q");
     const page = Number(searchParams.get("page") ?? "1");
-    const pageSize = Number(searchParams.get("pageSize") ?? "20");
+    const pageSize = Number(searchParams.get("pageSize") ?? "30");
     const sort = searchParams.get("sort") ?? "createdAt_desc";
 
     if (slug) {
@@ -122,7 +122,7 @@ export async function GET(req: NextRequest) {
 
     const safePage = Number.isFinite(page) && page > 0 ? page : 1;
     const safePageSize =
-      Number.isFinite(pageSize) && pageSize > 0 && pageSize <= 100 ? pageSize : 20;
+      Number.isFinite(pageSize) && pageSize > 0 && pageSize <= 100 ? pageSize : 30;
 
     const [items, total] = await Promise.all([
       prisma.product.findMany({

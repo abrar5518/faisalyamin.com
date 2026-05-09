@@ -173,7 +173,7 @@ export default async function SubcategoryPage({ params, searchParams }: PageProp
     notFound();
   }
 
-  const pageSize = 9;
+  const pageSize = 30;
   const productWhere = {
     isActive: true,
     OR: [
