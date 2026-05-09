@@ -52,7 +52,9 @@ export default function AddToCartButton({
     <button
       type="button"
       className={className}
-      onClick={() => {
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
         addItem({
           id,
           productId,

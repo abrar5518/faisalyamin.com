@@ -114,7 +114,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  const isAddingRef = useRef(false);
   const addItem = useCallback((item: CartItem, options?: { showToast?: boolean }) => {
+    if (isAddingRef.current) return;
+    isAddingRef.current = true;
+    setTimeout(() => { isAddingRef.current = false; }, 400);
+
     setItems((prev) => {
       const idx = prev.findIndex((p) => p.id === item.id);
       if (idx >= 0) {
