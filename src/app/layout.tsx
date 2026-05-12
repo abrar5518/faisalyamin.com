@@ -80,8 +80,10 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
-      <body className="min-h-screen bg-brand-bg text-brand-text antialiased">
+      <head>
         <MicrosoftClarity />
+      </head>
+      <body className="min-h-screen bg-brand-bg text-brand-text antialiased">
         <MetaPixel pixelId={metaPixelId} />
         <CartProvider>
           <SiteHeader />
