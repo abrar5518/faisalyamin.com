@@ -1,4 +1,4 @@
-﻿// src/app/layout.tsx
+// src/app/layout.tsx
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
@@ -8,6 +8,7 @@ import { CartProvider } from "@/components/cart/CartProvider";
 import WhatsAppFloatButton from "@/components/WhatsAppFloatButton";
 import { prisma } from "@/lib/prisma";
 import MetaPixel from "@/components/MetaPixel";
+import MicrosoftClarity from "@/components/MicrosoftClarity";
 import { normalizeSiteUrl } from "@/lib/siteUrl";
 
 export const dynamic = "force-dynamic";
@@ -80,6 +81,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <body className="min-h-screen bg-brand-bg text-brand-text antialiased">
+        <MicrosoftClarity />
         <MetaPixel pixelId={metaPixelId} />
         <CartProvider>
           <SiteHeader />
