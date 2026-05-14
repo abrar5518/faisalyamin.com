@@ -28,6 +28,7 @@ export default function robots(): MetadataRoute.Robots {
           "/search",
           "/api",
           "/portal",
+          "/*?s=",
         ],
       },
     ],
