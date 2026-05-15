@@ -19,6 +19,14 @@ export default function AdminSettingsPage() {
   const [siteFooterText, setSiteFooterText] = useState("");
   const [logoImages, setLogoImages] = useState<AdminImage[]>([]);
   const [iconImages, setIconImages] = useState<AdminImage[]>([]);
+  const [metaPixelIds, setMetaPixelIds] = useState("");
+  const [facebookDomainVerification, setFacebookDomainVerification] = useState("");
+  const [googleSiteVerification, setGoogleSiteVerification] = useState("");
+  const [googleTagManagerId, setGoogleTagManagerId] = useState("");
+  const [microsoftClarityId, setMicrosoftClarityId] = useState("");
+  const [customHeadScripts, setCustomHeadScripts] = useState("");
+  const [customBodyStartScripts, setCustomBodyStartScripts] = useState("");
+  const [customBodyEndScripts, setCustomBodyEndScripts] = useState("");
 
   // Store
   const [storeName, setStoreName] = useState("LuxStore");
@@ -64,6 +72,14 @@ export default function AdminSettingsPage() {
       setSiteFooterText(data.siteFooterText ?? "");
       setLogoImages(data.logoUrl ? [{ url: data.logoUrl, alt: data.logoAlt ?? "" }] : []);
       setIconImages(data.siteIconUrl ? [{ url: data.siteIconUrl, alt: data.siteIconAlt ?? "" }] : []);
+      setMetaPixelIds(data.metaPixelIds ?? "");
+      setFacebookDomainVerification(data.facebookDomainVerification ?? "");
+      setGoogleSiteVerification(data.googleSiteVerification ?? "");
+      setGoogleTagManagerId(data.googleTagManagerId ?? "");
+      setMicrosoftClarityId(data.microsoftClarityId ?? "");
+      setCustomHeadScripts(data.customHeadScripts ?? "");
+      setCustomBodyStartScripts(data.customBodyStartScripts ?? "");
+      setCustomBodyEndScripts(data.customBodyEndScripts ?? "");
       setBrandingLoading(false);
     })();
     return () => {
@@ -142,6 +158,14 @@ export default function AdminSettingsPage() {
         siteIconUrl: iconImages[0]?.url || null,
         siteIconAlt: iconImages[0]?.alt || null,
         siteFooterText: siteFooterText.trim() || null,
+        metaPixelIds: metaPixelIds.trim() || null,
+        facebookDomainVerification: facebookDomainVerification.trim() || null,
+        googleSiteVerification: googleSiteVerification.trim() || null,
+        googleTagManagerId: googleTagManagerId.trim() || null,
+        microsoftClarityId: microsoftClarityId.trim() || null,
+        customHeadScripts: customHeadScripts.trim() || null,
+        customBodyStartScripts: customBodyStartScripts.trim() || null,
+        customBodyEndScripts: customBodyEndScripts.trim() || null,
       };
 
       const res = await Fetch("/api/admin/site-settings", {
@@ -151,7 +175,7 @@ export default function AdminSettingsPage() {
       });
 
       if (!res.ok) throw new Error(res.error || `Failed (${res.status})`);
-      setBrandingMsg("Branding updated.");
+      setBrandingMsg("Site settings updated.");
     } catch (e: any) {
       setBrandingMsg(e?.message || "Failed to update branding.");
     } finally {
@@ -293,6 +317,115 @@ export default function AdminSettingsPage() {
                   max={1}
                   kind="branding"
                 />
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-semibold">Tracking & verification</p>
+                  <p className="mt-1 text-xs text-neutral-500">
+                    Add client-specific pixels, verification tags, and script snippets for this domain.
+                  </p>
+                </div>
+                <button
+                  onClick={saveBranding}
+                  disabled={brandingSaving}
+                  className="rounded-2xl bg-neutral-900 px-6 py-3 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-60"
+                >
+                  {brandingSaving ? "Saving..." : "Save tracking"}
+                </button>
+              </div>
+
+              <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="text-xs font-medium text-neutral-700">Meta Pixel IDs</label>
+                  <textarea
+                    value={metaPixelIds}
+                    onChange={(e) => setMetaPixelIds(e.target.value)}
+                    className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-900"
+                    rows={3}
+                    placeholder={"123456789012345\n987654321098765"}
+                  />
+                  <p className="mt-1 text-xs text-neutral-500">One ID per line, or comma separated.</p>
+                </div>
+
+                <div className="grid gap-4">
+                  <div>
+                    <label className="text-xs font-medium text-neutral-700">Google Tag Manager ID</label>
+                    <input
+                      value={googleTagManagerId}
+                      onChange={(e) => setGoogleTagManagerId(e.target.value)}
+                      className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-900"
+                      placeholder="GTM-XXXXXXX"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-medium text-neutral-700">Microsoft Clarity ID</label>
+                    <input
+                      value={microsoftClarityId}
+                      onChange={(e) => setMicrosoftClarityId(e.target.value)}
+                      className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-900"
+                      placeholder="wowgqlkt86"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-neutral-700">Facebook domain verification</label>
+                  <input
+                    value={facebookDomainVerification}
+                    onChange={(e) => setFacebookDomainVerification(e.target.value)}
+                    className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-900"
+                    placeholder="verification-token"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-neutral-700">Google site verification</label>
+                  <input
+                    value={googleSiteVerification}
+                    onChange={(e) => setGoogleSiteVerification(e.target.value)}
+                    className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-900"
+                    placeholder="google verification content value"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6 grid gap-4">
+                <div>
+                  <label className="text-xs font-medium text-neutral-700">Custom head scripts</label>
+                  <textarea
+                    value={customHeadScripts}
+                    onChange={(e) => setCustomHeadScripts(e.target.value)}
+                    className="mt-1 w-full font-mono rounded-2xl border border-neutral-200 px-4 py-3 text-xs outline-none focus:border-neutral-900"
+                    rows={5}
+                    placeholder="<meta name=&quot;example&quot; content=&quot;value&quot; />"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-neutral-700">Custom body start scripts</label>
+                  <textarea
+                    value={customBodyStartScripts}
+                    onChange={(e) => setCustomBodyStartScripts(e.target.value)}
+                    className="mt-1 w-full font-mono rounded-2xl border border-neutral-200 px-4 py-3 text-xs outline-none focus:border-neutral-900"
+                    rows={5}
+                    placeholder="<noscript>...</noscript>"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-neutral-700">Custom body end scripts</label>
+                  <textarea
+                    value={customBodyEndScripts}
+                    onChange={(e) => setCustomBodyEndScripts(e.target.value)}
+                    className="mt-1 w-full font-mono rounded-2xl border border-neutral-200 px-4 py-3 text-xs outline-none focus:border-neutral-900"
+                    rows={5}
+                    placeholder="<script>...</script>"
+                  />
+                </div>
               </div>
             </div>
 

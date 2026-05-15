@@ -809,6 +809,14 @@ model SiteSettings {
     siteIconUrl String?  @db.Text
     siteIconAlt String?  @db.Text
     siteFooterText String? @db.Text
+    metaPixelIds String? @db.Text
+    facebookDomainVerification String? @db.Text
+    googleSiteVerification String? @db.Text
+    googleTagManagerId String? @db.Text
+    microsoftClarityId String? @db.Text
+    customHeadScripts String? @db.LongText
+    customBodyStartScripts String? @db.LongText
+    customBodyEndScripts String? @db.LongText
     createdAt   DateTime @default(now())
     updatedAt   DateTime @updatedAt
   }

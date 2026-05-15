@@ -6,6 +6,7 @@ import Script from "next/script";
 
 type MetaPixelProps = {
   pixelId?: string;
+  pixelIds?: string[];
 };
 
 type Fbq = (...args: unknown[]) => void;
@@ -35,10 +36,12 @@ function MetaPixelPageView() {
   return null;
 }
 
-export default function MetaPixel({ pixelId }: MetaPixelProps) {
-  const trimmedPixelId = pixelId?.trim();
+export default function MetaPixel({ pixelId, pixelIds }: MetaPixelProps) {
+  const trimmedPixelIds = [...(pixelIds ?? []), pixelId]
+    .map((id) => id?.trim())
+    .filter((id): id is string => Boolean(id));
 
-  if (!trimmedPixelId) {
+  if (!trimmedPixelIds.length) {
     return null;
   }
 
@@ -54,21 +57,23 @@ export default function MetaPixel({ pixelId }: MetaPixelProps) {
           t.src=v;s=b.getElementsByTagName(e)[0];
           s.parentNode.insertBefore(t,s)}(window, document,'script',
           'https://connect.facebook.net/en_US/fbevents.js');
-          fbq('init', '${trimmedPixelId}');
+          ${trimmedPixelIds.map((id) => `fbq('init', '${id}');`).join("\n          ")}
           fbq('track', 'PageView');
         `}
       </Script>
 
-      <noscript>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          alt=""
-          height="1"
-          src={`https://www.facebook.com/tr?id=${trimmedPixelId}&ev=PageView&noscript=1`}
-          style={{ display: "none" }}
-          width="1"
-        />
-      </noscript>
+      {trimmedPixelIds.map((id) => (
+        <noscript key={id}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            alt=""
+            height="1"
+            src={`https://www.facebook.com/tr?id=${id}&ev=PageView&noscript=1`}
+            style={{ display: "none" }}
+            width="1"
+          />
+        </noscript>
+      ))}
 
       <Suspense fallback={null}>
         <MetaPixelPageView />

@@ -11,6 +11,14 @@ const SiteSettingsSchema = z.object({
   siteIconUrl: z.string().optional().nullable(),
   siteIconAlt: z.string().optional().nullable(),
   siteFooterText: z.string().optional().nullable(),
+  metaPixelIds: z.string().optional().nullable(),
+  facebookDomainVerification: z.string().optional().nullable(),
+  googleSiteVerification: z.string().optional().nullable(),
+  googleTagManagerId: z.string().optional().nullable(),
+  microsoftClarityId: z.string().optional().nullable(),
+  customHeadScripts: z.string().optional().nullable(),
+  customBodyStartScripts: z.string().optional().nullable(),
+  customBodyEndScripts: z.string().optional().nullable(),
 });
 
 export async function GET(req: NextRequest) {
