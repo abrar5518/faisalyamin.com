@@ -293,6 +293,7 @@ export default async function ProductPage({ params }: PageProps) {
     id: String(typedProduct.id),
     slug,
     brand: typedProduct.brand || typedProduct.category?.name || "Sahoolat",
+    category: typedProduct.category?.name ?? "Water Bottles",
     name: typedProduct.name,
     rating: typedProduct.rating ?? 0,
     reviews: typedProduct.reviewsCount ?? 0,

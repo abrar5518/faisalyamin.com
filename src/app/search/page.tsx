@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import SearchAnalytics from "@/components/analytics/SearchAnalytics";
 import ProductCard from "@/components/ProductCard";
 import Schema from "@/components/seo/Schema";
 import { absoluteUrl, itemListSchema } from "@/components/seo/schemas";
@@ -77,6 +78,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
   return (
     <div className="min-h-screen bg-white text-neutral-900">
+      <SearchAnalytics searchTerm={query} />
       {searchResultsSchema ? <Schema data={searchResultsSchema} /> : null}
       <div className="border-b border-neutral-200 bg-neutral-50">
         <Container>

@@ -6,6 +6,7 @@ import { withImageParams } from "@/lib/image";
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/components/cart/CartProvider";
+import { trackViewItem } from "@/lib/googleAnalytics";
 import { trackViewContent } from "@/lib/metaPixel";
 
 export type Variant = {
@@ -22,6 +23,7 @@ export type ProductData = {
   id: string;
   slug: string;
   brand: string;
+  category?: string;
   name: string;
   rating: number;
   reviews: number;
@@ -226,7 +228,14 @@ export default function ProductClient({ product }: { product: ProductData }) {
       name: product.name,
       price: activePrice,
     });
-  }, [activePrice, product.id, product.name, product.slug]);
+    trackViewItem({
+      id: product.id,
+      slug: product.slug,
+      name: product.name,
+      price: activePrice,
+      category: product.category,
+    });
+  }, [activePrice, product.category, product.id, product.name, product.slug]);
 
   const onSelectVariant = (v: Variant) => {
     setVariantSelected(true);
@@ -259,6 +268,7 @@ export default function ProductClient({ product }: { product: ProductData }) {
       subtitle: size ? `${variant.label} - ${size}` : variant.label,
       variantLabel: variant.label,
       sizeLabel: size || undefined,
+      category: product.category,
       currency: "PKR",
     }, options);
   };

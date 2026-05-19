@@ -4,8 +4,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { withImageParams } from "@/lib/image";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useCart } from "@/components/cart/CartProvider";
+import { trackViewCart } from "@/lib/googleAnalytics";
 
 function Container({ children }: { children: React.ReactNode }) {
   return (
@@ -57,6 +58,7 @@ export default function CartPage() {
   const discount = useMemo(() => appliedCoupon?.discount ?? 0, [appliedCoupon]);
 
   const total = Math.max(0, subtotal + shipping - discount);
+  const latestCartRef = useRef({ items, total });
 
   const validateCoupon = async (code: string) => {
     setCouponLoading(true);
@@ -103,6 +105,18 @@ export default function CartPage() {
   };
 
   const empty = items.length === 0;
+
+  useEffect(() => {
+    latestCartRef.current = { items, total };
+  }, [items, total]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      trackViewCart(latestCartRef.current);
+    }, 250);
+
+    return () => window.clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (!appliedCoupon?.code) return;

@@ -12,6 +12,7 @@ import {
 } from "react";
 import Link from "next/link";
 import { CheckCircle2, ShoppingCart, X } from "lucide-react";
+import { trackGoogleAddToCart, trackRemoveFromCart } from "@/lib/googleAnalytics";
 import { trackAddToCart } from "@/lib/metaPixel";
 
 export type CartItem = {
@@ -28,6 +29,7 @@ export type CartItem = {
   subtitle?: string;
   variantLabel?: string;
   sizeLabel?: string;
+  category?: string;
   currency?: string;
 };
 
@@ -140,6 +142,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
       name: item.name,
       price: item.price,
     });
+
+    trackGoogleAddToCart({
+      id: item.productId ?? item.id,
+      slug: item.slug,
+      name: item.name,
+      price: item.price,
+      quantity: item.qty,
+      category: item.category,
+    });
   }, [showCartToast]);
 
   const updateQty = useCallback((id: string, qty: number) => {
@@ -151,8 +162,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const removeItem = useCallback((id: string) => {
+    const removedItem = items.find((it) => it.id === id);
     setItems((prev) => prev.filter((it) => it.id !== id));
-  }, []);
+    if (removedItem) {
+      trackRemoveFromCart({
+        id: removedItem.productId ?? removedItem.id,
+        slug: removedItem.slug,
+        name: removedItem.name,
+        price: removedItem.price,
+        quantity: removedItem.qty,
+        category: removedItem.category,
+      });
+    }
+  }, [items]);
 
   const clearCart = useCallback(() => {
     setItems([]);

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { trackPurchase as trackGooglePurchase } from "@/lib/googleAnalytics";
 import { trackPurchase } from "@/lib/metaPixel";
 
 type StoredOrderItem = {
@@ -11,11 +12,13 @@ type StoredOrderItem = {
   name?: string;
   price?: number;
   qty?: number;
+  category?: string;
 };
 
 type StoredOrder = {
   id: string | number;
   total?: number;
+  shipping?: number;
   items: StoredOrderItem[];
 };
 
@@ -53,6 +56,7 @@ function CheckoutSuccessContent() {
     const storedOrder = readStoredOrder(orderId);
     if (!storedOrder || storedOrder.items.length === 0) return;
     trackPurchase(storedOrder);
+    trackGooglePurchase(storedOrder);
   }, [orderId]);
 
   const totalItems = order?.items.reduce((sum, item) => sum + (item.qty ?? 1), 0) ?? 0;

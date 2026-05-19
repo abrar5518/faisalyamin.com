@@ -7,6 +7,7 @@ import { withImageParams } from "@/lib/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/components/cart/CartProvider";
+import { trackBeginCheckout } from "@/lib/googleAnalytics";
 import { trackInitiateCheckout } from "@/lib/metaPixel";
 
 function Container({ children }: { children: React.ReactNode }) {
@@ -332,6 +333,10 @@ export default function CheckoutPage() {
       total,
       totalItems: items.reduce((sum, item) => sum + item.qty, 0),
     });
+    trackBeginCheckout({
+      items,
+      total,
+    });
   }, [items, total]);
 
   const validateCoupon = async (code: string) => {
@@ -425,12 +430,14 @@ export default function CheckoutPage() {
         JSON.stringify({
           id: orderId,
           total,
+          shipping: shippingCost,
           items: items.map((item) => ({
             id: item.productId ?? item.slug ?? item.id,
             slug: item.slug,
             name: item.name,
             price: item.price,
             qty: item.qty,
+            category: item.category,
           })),
         })
       );
