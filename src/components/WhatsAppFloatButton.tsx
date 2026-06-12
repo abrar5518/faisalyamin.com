@@ -6,7 +6,10 @@ const WHATSAPP_LINK = "https://wa.me/923018980125";
 
 export default function WhatsAppFloatButton() {
   const pathname = usePathname();
-  const hiddenRoute = pathname?.startsWith("/admin") || pathname?.startsWith("/portal");
+  const hiddenRoute =
+    pathname?.startsWith("/admin") ||
+    pathname?.startsWith("/portal") ||
+    pathname?.startsWith("/checkout");
   const isProductPage = pathname?.startsWith("/product/");
 
   if (hiddenRoute) return null;

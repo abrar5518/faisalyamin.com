@@ -70,7 +70,7 @@ export default function BuyNowButton({
         sizeLabel,
         currency: price.currency,
       },
-      { showToast: false },
+      { showToast: false, openCart: false },
     );
     router.push("/checkout");
   };

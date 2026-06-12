@@ -14,6 +14,7 @@ import Link from "next/link";
 import { CheckCircle2, ShoppingCart, X } from "lucide-react";
 import { trackGoogleAddToCart, trackRemoveFromCart } from "@/lib/googleAnalytics";
 import { trackAddToCart } from "@/lib/metaPixel";
+import CartSidebar from "@/components/cart/CartSidebar";
 
 export type CartItem = {
   id: string;
@@ -35,11 +36,19 @@ export type CartItem = {
 
 type CartContextValue = {
   items: CartItem[];
+  cartItems: CartItem[];
   totalItems: number;
-  addItem: (item: CartItem, options?: { showToast?: boolean }) => void;
+  addItem: (item: CartItem, options?: { showToast?: boolean; openCart?: boolean }) => void;
+  addToCart: (item: CartItem, options?: { showToast?: boolean; openCart?: boolean }) => void;
   updateQty: (id: string, qty: number) => void;
+  increaseQty: (id: string) => void;
+  decreaseQty: (id: string) => void;
   removeItem: (id: string) => void;
+  removeFromCart: (id: string) => void;
   clearCart: () => void;
+  isCartOpen: boolean;
+  openCart: () => void;
+  closeCart: () => void;
 };
 
 type CartToast = {
@@ -71,6 +80,7 @@ function writeCart(items: CartItem[]) {
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const [toast, setToast] = useState<CartToast | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -110,6 +120,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setToast(null);
   }, []);
 
+  const openCart = useCallback(() => {
+    setIsCartOpen(true);
+    dismissToast();
+  }, [dismissToast]);
+
+  const closeCart = useCallback(() => {
+    setIsCartOpen(false);
+  }, []);
+
   useEffect(() => {
     return () => {
       if (toastTimer.current) clearTimeout(toastTimer.current);
@@ -117,10 +136,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const isAddingRef = useRef(false);
-  const addItem = useCallback((item: CartItem, options?: { showToast?: boolean }) => {
+  const addItem = useCallback((item: CartItem, options?: { showToast?: boolean; openCart?: boolean }) => {
     if (isAddingRef.current) return;
     isAddingRef.current = true;
     setTimeout(() => { isAddingRef.current = false; }, 400);
+    const shouldOpenCart = options?.openCart !== false;
 
     setItems((prev) => {
       const idx = prev.findIndex((p) => p.id === item.id);
@@ -131,7 +151,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return [...prev, item];
     });
-    if (options?.showToast !== false) {
+    if (shouldOpenCart) {
+      setIsCartOpen(true);
+      dismissToast();
+    } else if (options?.showToast !== false) {
       showCartToast(item);
     }
 
@@ -151,12 +174,28 @@ export function CartProvider({ children }: { children: ReactNode }) {
       quantity: item.qty,
       category: item.category,
     });
-  }, [showCartToast]);
+  }, [dismissToast, showCartToast]);
 
   const updateQty = useCallback((id: string, qty: number) => {
     setItems((prev) =>
       prev.map((it) =>
         it.id === id ? { ...it, qty: Math.max(1, Math.min(99, qty)) } : it
+      )
+    );
+  }, []);
+
+  const increaseQty = useCallback((id: string) => {
+    setItems((prev) =>
+      prev.map((it) =>
+        it.id === id ? { ...it, qty: Math.min(99, it.qty + 1) } : it
+      )
+    );
+  }, []);
+
+  const decreaseQty = useCallback((id: string) => {
+    setItems((prev) =>
+      prev.map((it) =>
+        it.id === id ? { ...it, qty: Math.max(1, it.qty - 1) } : it
       )
     );
   }, []);
@@ -186,13 +225,48 @@ export function CartProvider({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo(
-    () => ({ items, totalItems, addItem, updateQty, removeItem, clearCart }),
-    [items, totalItems, addItem, updateQty, removeItem, clearCart]
+    () => ({
+      items,
+      cartItems: items,
+      totalItems,
+      addItem,
+      addToCart: addItem,
+      updateQty,
+      increaseQty,
+      decreaseQty,
+      removeItem,
+      removeFromCart: removeItem,
+      clearCart,
+      isCartOpen,
+      openCart,
+      closeCart,
+    }),
+    [
+      items,
+      totalItems,
+      addItem,
+      updateQty,
+      increaseQty,
+      decreaseQty,
+      removeItem,
+      clearCart,
+      isCartOpen,
+      openCart,
+      closeCart,
+    ]
   );
 
   return (
     <CartContext.Provider value={value}>
       {children}
+      <CartSidebar
+        items={items}
+        totalItems={totalItems}
+        isOpen={isCartOpen}
+        onClose={closeCart}
+        onUpdateQty={updateQty}
+        onRemoveItem={removeItem}
+      />
       {toast ? (
         <div
           key={toast.id}

@@ -80,7 +80,7 @@ export default function SiteFooter() {
     };
   }, []);
 
-  const hideFooter = pathname?.startsWith("/admin");
+  const hideFooter = pathname?.startsWith("/admin") || pathname?.startsWith("/checkout");
   if (hideFooter) return null;
 
   const brandName = branding?.siteName?.trim() || "Sahoolat";

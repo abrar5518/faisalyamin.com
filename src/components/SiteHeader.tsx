@@ -74,7 +74,7 @@ function IconSearch() {
 export default function SiteHeader() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { totalItems } = useCart();
+  const { totalItems, openCart } = useCart();
   const [branding, setBranding] = useState<{
     siteName?: string;
     logoUrl?: string;
@@ -100,7 +100,7 @@ export default function SiteHeader() {
     };
   }, []);
 
-  const hideHeader = pathname?.startsWith("/admin");
+  const hideHeader = pathname?.startsWith("/admin") || pathname?.startsWith("/checkout");
   if (hideHeader) return null;
 
   const brandName = branding?.siteName?.trim() || "Sahoolat";
@@ -228,15 +228,17 @@ export default function SiteHeader() {
                 <IconSearch />
               </Link>
 
-              <Link
-                href="/cart"
+              <button
+                type="button"
+                onClick={openCart}
                 className="inline-flex items-center gap-2 rounded-xl bg-neutral-900 px-3 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+                aria-label={`Open cart with ${totalItems} ${totalItems === 1 ? "item" : "items"}`}
               >
                 Cart
                 <span className="rounded-lg bg-white/15 px-2 py-0.5 text-xs">
                   {totalItems}
                 </span>
-              </Link>
+              </button>
             </div>
           </div>
         </Container>

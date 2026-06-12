@@ -3,8 +3,11 @@
 import Link from "next/link";
 import { Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { CheckCircle2, MessageCircle, PackageCheck, ShoppingBag } from "lucide-react";
 import { trackPurchase as trackGooglePurchase } from "@/lib/googleAnalytics";
 import { trackPurchase } from "@/lib/metaPixel";
+
+const WHATSAPP_LINK = "https://wa.me/923018980125";
 
 type StoredOrderItem = {
   id?: string | number;
@@ -37,7 +40,7 @@ function readStoredOrder(orderId: string): StoredOrder | null {
 
 function Container({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mx-auto w-full max-w-[960px] px-5 sm:px-8 lg:px-12">
+    <div className="mx-auto w-full max-w-[760px] px-4 sm:px-6">
       {children}
     </div>
   );
@@ -62,55 +65,83 @@ function CheckoutSuccessContent() {
   const totalItems = order?.items.reduce((sum, item) => sum + (item.qty ?? 1), 0) ?? 0;
 
   return (
-    <div className="min-h-screen bg-white py-16 text-neutral-900">
+    <main className="min-h-screen bg-neutral-50 py-8 text-neutral-900 sm:py-12">
       <Container>
-        <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-10">
-          <span className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
-            Order placed
-          </span>
+        <div className="rounded-[2rem] border border-neutral-200 bg-white p-6 text-center shadow-sm sm:p-10">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+            <CheckCircle2 className="h-10 w-10" aria-hidden="true" />
+          </div>
 
-          <h1 className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl">
-            Thank you for your order.
+          <p className="mt-6 text-4xl" aria-hidden="true">
+            🎉
+          </p>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
+            Order Placed Successfully
           </h1>
-          <p className="mt-3 text-sm leading-6 text-neutral-600">
-            Your order has been received. We will contact you shortly to confirm
-            delivery details.
+          <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-neutral-600">
+            Thank you. We will call or WhatsApp you soon to confirm your Cash on
+            Delivery order before dispatch.
           </p>
 
-          <div className="mt-8 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-              <p className="text-xs text-neutral-500">Order ID</p>
-              <p className="mt-1 text-sm font-semibold">{orderId || "-"}</p>
+          <div className="mt-8 grid gap-3 text-left sm:grid-cols-3">
+            <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                Order Number
+              </p>
+              <p className="mt-1 break-all text-base font-bold">{orderId || "-"}</p>
             </div>
-            <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-              <p className="text-xs text-neutral-500">Items</p>
-              <p className="mt-1 text-sm font-semibold">{totalItems || "-"}</p>
+            <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                Expected Delivery
+              </p>
+              <p className="mt-1 text-base font-bold">3-7 working days</p>
             </div>
-            <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-              <p className="text-xs text-neutral-500">Total</p>
-              <p className="mt-1 text-sm font-semibold">
+            <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-4">
+              <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                Total
+              </p>
+              <p className="mt-1 text-base font-bold">
                 {typeof order?.total === "number" ? formatMoney(order.total) : "-"}
               </p>
             </div>
           </div>
 
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link
-              href={orderId ? `/account/orders/${orderId}` : "/account/orders"}
-              className="rounded-2xl bg-neutral-900 px-5 py-3 text-center text-sm font-medium text-white hover:bg-neutral-800"
+          <div className="mt-5 rounded-3xl border border-emerald-200 bg-emerald-50 p-4 text-left">
+            <div className="flex gap-3">
+              <PackageCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" aria-hidden="true" />
+              <div>
+                <p className="text-sm font-bold text-emerald-950">
+                  Your order is being prepared
+                </p>
+                <p className="mt-1 text-sm leading-6 text-emerald-900/80">
+                  Items: {totalItems || "-"} · Payment: Cash on Delivery · Delivery:
+                  All over Pakistan
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 grid gap-3 sm:grid-cols-2">
+            <a
+              href={WHATSAPP_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5 py-4 text-sm font-bold text-white transition hover:bg-emerald-700"
             >
-              View order
-            </Link>
+              <MessageCircle className="h-5 w-5" aria-hidden="true" />
+              WhatsApp Support
+            </a>
             <Link
               href="/shop"
-              className="rounded-2xl border border-neutral-200 px-5 py-3 text-center text-sm font-medium hover:bg-neutral-50"
+              className="inline-flex min-h-14 items-center justify-center gap-2 rounded-2xl border border-neutral-200 bg-white px-5 py-4 text-sm font-bold text-neutral-900 transition hover:bg-neutral-50"
             >
-              Continue shopping
+              <ShoppingBag className="h-5 w-5" aria-hidden="true" />
+              Continue Shopping
             </Link>
           </div>
         </div>
       </Container>
-    </div>
+    </main>
   );
 }
 

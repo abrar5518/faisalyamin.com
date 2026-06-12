@@ -247,7 +247,10 @@ export default function ProductClient({ product }: { product: ProductData }) {
   const decQty = () => setQty((q) => Math.max(1, q - 1));
   const incQty = () => setQty((q) => Math.min(99, q + 1));
 
-  const onAddToCart = (e?: React.MouseEvent | React.TouchEvent, options?: { showToast?: boolean }) => {
+  const onAddToCart = (
+    e?: React.MouseEvent | React.TouchEvent,
+    options?: { showToast?: boolean; openCart?: boolean },
+  ) => {
     if (e) {
       if ("preventDefault" in e) e.preventDefault();
       if ("stopPropagation" in e) e.stopPropagation();
@@ -274,7 +277,7 @@ export default function ProductClient({ product }: { product: ProductData }) {
   };
 
   const onBuyNow = () => {
-    onAddToCart(undefined, { showToast: false });
+    onAddToCart(undefined, { showToast: false, openCart: false });
     router.push("/checkout");
   };
 

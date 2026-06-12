@@ -1,18 +1,61 @@
 // src/app/checkout/page.tsx
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
-import { withImageParams } from "@/lib/image";
-import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import {
+  Banknote,
+  CheckCircle2,
+  ChevronRight,
+  LockKeyhole,
+  MessageCircle,
+  ShieldCheck,
+  ShoppingCart,
+  Star,
+  Truck,
+} from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useCart } from "@/components/cart/CartProvider";
 import { trackBeginCheckout } from "@/lib/googleAnalytics";
+import { withImageParams, toOptimizableImageSrc } from "@/lib/image";
 import { trackInitiateCheckout } from "@/lib/metaPixel";
+
+const PAKISTAN_CITIES = [
+  "Karachi",
+  "Lahore",
+  "Islamabad",
+  "Rawalpindi",
+  "Faisalabad",
+  "Multan",
+  "Peshawar",
+  "Quetta",
+  "Hyderabad",
+  "Sialkot",
+  "Gujranwala",
+  "Sargodha",
+  "Bahawalpur",
+  "Sukkur",
+  "Larkana",
+  "Sheikhupura",
+  "Rahim Yar Khan",
+  "Jhelum",
+  "Gujrat",
+  "Abbottabad",
+  "Mardan",
+  "Okara",
+  "Sahiwal",
+  "Wah Cantt",
+  "Other",
+];
+
+const WHATSAPP_LINK = "https://wa.me/923018980125";
+
+type FieldErrors = Partial<Record<"phone" | "fullName" | "email" | "city" | "address", string>>;
 
 function Container({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mx-auto w-full max-w-[1360px] px-5 sm:px-8 lg:px-12">
+    <div className="mx-auto w-full max-w-[1180px] px-4 sm:px-6 lg:px-8">
       {children}
     </div>
   );
@@ -22,408 +65,301 @@ function formatMoney(value: number, currency = "PKR") {
   return `${currency || "PKR"} ${value.toLocaleString("en-PK")}`;
 }
 
-function Pill({ children }: { children: React.ReactNode }) {
+function splitFullName(fullName: string) {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean);
+  return {
+    firstName: parts[0] || "",
+    lastName: parts.slice(1).join(" ") || undefined,
+  };
+}
+
+function normalizePakistaniPhone(phone: string) {
+  return phone.replace(/[^\d+]/g, "").trim();
+}
+
+function StepIndicator() {
+  const steps = ["Your Details", "Delivery Address", "Confirm Order"];
+
   return (
-    <span className="inline-flex items-center rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs text-neutral-700">
-      {children}
-    </span>
+    <section className="border-b border-neutral-200 bg-white">
+      <Container>
+        <div className="py-4">
+          <div className="flex items-center justify-between gap-2">
+            {steps.map((step, index) => (
+              <div key={step} className="flex min-w-0 flex-1 items-center">
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-semibold text-white">
+                    {index + 1}
+                  </span>
+                  <span className="truncate text-xs font-semibold text-neutral-900 sm:text-sm">
+                    {step}
+                  </span>
+                </div>
+                {index < steps.length - 1 ? (
+                  <div className="mx-2 h-1 flex-1 rounded-full bg-neutral-900/15">
+                    <div className="h-full rounded-full bg-neutral-900" />
+                  </div>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </div>
+      </Container>
+    </section>
   );
 }
 
-function SectionTitle({ title, desc }: { title: string; desc?: string }) {
+function SectionCard({
+  number,
+  title,
+  children,
+}: {
+  number: number;
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="flex items-end justify-between gap-6">
-      <div>
-        <p className="text-sm font-semibold">{title}</p>
-        {desc ? <p className="mt-1 text-xs text-neutral-500">{desc}</p> : null}
+    <section className="rounded-3xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6">
+      <div className="flex items-center gap-3">
+        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-900 text-sm font-semibold text-white">
+          {number}
+        </span>
+        <h2 className="text-lg font-semibold tracking-tight text-neutral-900">{title}</h2>
+      </div>
+      <div className="mt-5 space-y-4">{children}</div>
+    </section>
+  );
+}
+
+function ErrorText({ message }: { message?: string }) {
+  if (!message) return null;
+  return <p className="mt-2 text-sm font-medium text-red-600">{message}</p>;
+}
+
+function TrustList() {
+  const items = [
+    "Cash on Delivery",
+    "Delivery All Over Pakistan",
+    "Easy Returns",
+    "WhatsApp Support",
+    "Secure Checkout",
+  ];
+
+  return (
+    <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-4">
+      <div className="grid gap-2 sm:grid-cols-2">
+        {items.map((item) => (
+          <div key={item} className="flex items-center gap-2 text-sm font-medium text-emerald-900">
+            <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden="true" />
+            {item}
+          </div>
+        ))}
       </div>
     </div>
-  );
-}
-
-function Field({
-  label,
-  value,
-  onChange,
-  placeholder,
-  type = "text",
-  required,
-  disabled,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-  type?: string;
-  required?: boolean;
-  disabled?: boolean;
-}) {
-  return (
-    <label className="block">
-      <span className="text-xs font-medium text-neutral-700">
-        {label} {required ? <span className="text-neutral-400">*</span> : null}
-        {disabled ? <span className="ml-2 text-xs text-neutral-500">(from your account)</span> : null}
-      </span>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        disabled={disabled}
-        className="mt-2 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none placeholder:text-neutral-400 focus:ring-2 focus:ring-neutral-900/10 disabled:bg-neutral-50 disabled:text-neutral-600 disabled:cursor-not-allowed"
-      />
-    </label>
-  );
-}
-
-function RadioCard({
-  active,
-  title,
-  desc,
-  right,
-  onClick,
-}: {
-  active: boolean;
-  title: string;
-  desc: string;
-  right?: React.ReactNode;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={[
-        "w-full rounded-3xl border p-5 text-left transition focus:outline-none focus:ring-2 focus:ring-neutral-900/10",
-        active ? "border-neutral-900 bg-neutral-50" : "border-neutral-200 bg-white hover:bg-neutral-50",
-      ].join(" ")}
-    >
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <span
-              className={[
-                "h-4 w-4 rounded-full border",
-                active ? "border-neutral-900" : "border-neutral-300",
-              ].join(" ")}
-            >
-              <span
-                className={[
-                  "block h-full w-full scale-50 rounded-full transition",
-                  active ? "bg-neutral-900" : "bg-transparent",
-                ].join(" ")}
-              />
-            </span>
-            <p className="text-sm font-semibold">{title}</p>
-          </div>
-          <p className="mt-2 text-sm text-neutral-600">{desc}</p>
-        </div>
-        {right ? <div className="shrink-0">{right}</div> : null}
-      </div>
-    </button>
   );
 }
 
 export default function CheckoutPage() {
   const { items, clearCart } = useCart();
   const router = useRouter();
-  const [submitting, setSubmitting] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
-  const [loyaltySettings, setLoyaltySettings] = useState<{
-    enabled: boolean;
-    pointsPerCurrency: number;
-    currencyPerPoint: number;
-    minRedeemPoints: number;
-    maxRedeemPercent: number;
-  } | null>(null);
-  const [availablePoints, setAvailablePoints] = useState(0);
-  const [user, setUser] = useState<{
-    id: number;
-    email: string;
-    name: string;
-    phone?: string;
-    profile?: {
-      firstName?: string | null;
-      lastName?: string | null;
-      phone?: string | null;
-      country?: string | null;
-      city?: string | null;
-    } | null;
-  } | null>(null);
-
-  // Customer
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-
-  // Address
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const defaultCountry = "Pakistan";
-  const defaultCity = "";
-  const [country, setCountry] = useState(defaultCountry);
-  const [city, setCity] = useState(defaultCity);
-  const [address1, setAddress1] = useState("");
-  const [address2, setAddress2] = useState("");
-  const [zip, setZip] = useState("");
-
-  // Shipping / payment
-  const [payment, setPayment] = useState<"cod">("cod");
-
-  // Coupon
-  const [coupon, setCoupon] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState<{
-    code: string;
-    discount: number;
-    description?: string | null;
-    freeShippingApplied?: boolean;
-  } | null>(null);
-  const [couponMsg, setCouponMsg] = useState<string | null>(null);
-  const [couponLoading, setCouponLoading] = useState(false);
-  const [redeemPoints, setRedeemPoints] = useState("");
-  const [redeemMsg, setRedeemMsg] = useState<string | null>(null);
   const initiateCheckoutTracked = useRef(false);
+  const phoneRef = useRef<HTMLInputElement | null>(null);
+  const nameRef = useRef<HTMLInputElement | null>(null);
+  const emailRef = useRef<HTMLInputElement | null>(null);
+  const cityRef = useRef<HTMLSelectElement | null>(null);
+  const addressRef = useRef<HTMLTextAreaElement | null>(null);
 
-  // Totals
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const [branding, setBranding] = useState<{
+    siteName?: string;
+    logoUrl?: string | null;
+    siteIconUrl?: string | null;
+  } | null>(null);
+  const [userEmail, setUserEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [city, setCity] = useState("");
+  const [address, setAddress] = useState("");
+
   const subtotal = useMemo(
-    () => items.reduce((sum, it) => sum + it.price * it.qty, 0),
-    [items]
+    () => items.reduce((sum, item) => sum + item.price * item.qty, 0),
+    [items],
   );
+  const shippingCost = subtotal > 0 ? 250 : 0;
+  const total = subtotal + shippingCost;
+  const totalItems = useMemo(
+    () => items.reduce((sum, item) => sum + item.qty, 0),
+    [items],
+  );
+  const currency = items[0]?.currency || "PKR";
 
   useEffect(() => {
     let active = true;
     (async () => {
       try {
-        const res = await fetch("/api/loyalty-settings", { cache: "no-store" });
-        const payload = await res.json().catch(() => ({}));
-        if (!active) return;
-        if (res.ok && payload?.ok) {
-          setLoyaltySettings(payload.data || null);
+        const settingsRes = await fetch("/api/site-settings", { cache: "no-store" });
+        const settingsPayload = await settingsRes.json().catch(() => ({}));
+        if (active && settingsRes.ok && settingsPayload?.ok) {
+          setBranding(settingsPayload.data || null);
         }
+
+        const accountRes = await fetch("/api/account/me", { cache: "no-store" });
+        const accountPayload = await accountRes.json().catch(() => ({}));
+        if (!active || !accountRes.ok || !accountPayload?.ok || !accountPayload?.data) return;
+
+        const account = accountPayload.data as {
+          email?: string;
+          name?: string;
+          phone?: string;
+          profile?: {
+            firstName?: string | null;
+            lastName?: string | null;
+            phone?: string | null;
+            city?: string | null;
+          } | null;
+        };
+        const profileName = [account.profile?.firstName, account.profile?.lastName]
+          .filter(Boolean)
+          .join(" ")
+          .trim();
+
+        setUserEmail(account.email || "");
+        setEmail((current) => current || account.email || "");
+        setFullName((current) => current || profileName || account.name || "");
+        setPhone((current) => current || account.profile?.phone || account.phone || "");
+        setCity((current) => current || account.profile?.city || "");
+
+        const addressRes = await fetch("/api/account/addresses", { cache: "no-store" });
+        const addressPayload = await addressRes.json().catch(() => ({}));
+        if (!active || !addressRes.ok || !addressPayload?.ok || !Array.isArray(addressPayload.data)) return;
+        const savedAddress = addressPayload.data[0];
+        if (!savedAddress) return;
+
+        setFullName((current) => current || String(savedAddress.fullName || ""));
+        setPhone((current) => current || String(savedAddress.phone || ""));
+        setCity((current) => current || String(savedAddress.city || ""));
+        setAddress((current) => {
+          if (current) return current;
+          return [savedAddress.address1, savedAddress.address2].filter(Boolean).join(", ");
+        });
       } catch {
-        // ignore
+        // Checkout should stay usable even if account prefill fails.
       }
     })();
+
     return () => {
       active = false;
     };
   }, []);
-
-  // Fetch user session + profile + saved addresses
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      try {
-        const res = await fetch("/api/account/me", { cache: "no-store" });
-        const payload = await res.json().catch(() => ({}));
-        if (!active) return;
-        if (res.ok && payload?.ok && payload?.data) {
-          const account = payload.data as any;
-          setUser(account);
-
-          const profile = account?.profile || null;
-          const profileFirst = profile?.firstName ?? "";
-          const profileLast = profile?.lastName ?? "";
-          const profilePhone = profile?.phone ?? "";
-          const profileCountry = profile?.country ?? "";
-          const profileCity = profile?.city ?? "";
-
-          if (account?.email) setEmail(account.email);
-
-          setFirstName((cur) => (cur ? cur : profileFirst || ""));
-          setLastName((cur) => (cur ? cur : profileLast || ""));
-          setPhone((cur) => (cur ? cur : profilePhone || ""));
-          setCountry((cur) => {
-            if (profileCountry) return profileCountry;
-            return cur === defaultCountry ? "" : cur;
-          });
-          setCity((cur) => {
-            if (profileCity) return profileCity;
-            return cur === defaultCity ? "" : cur;
-          });
-
-          if (!profileFirst && !profileLast && account?.name) {
-            const names = String(account.name).split(" ");
-            setFirstName((cur) => (cur ? cur : names[0] || ""));
-            setLastName((cur) => (cur ? cur : names.slice(1).join(" ") || ""));
-          }
-
-          const addrRes = await fetch("/api/account/addresses", { cache: "no-store" });
-          const addrPayload = await addrRes.json().catch(() => ({}));
-          if (addrRes.ok && addrPayload?.ok && Array.isArray(addrPayload.data) && addrPayload.data.length) {
-            const addr = addrPayload.data[0];
-            const fullName = String(addr.fullName || "").trim();
-            if (fullName && (!profileFirst || !profileLast)) {
-              const parts = fullName.split(" ");
-              setFirstName((cur) => (cur ? cur : parts[0] || ""));
-              setLastName((cur) => (cur ? cur : parts.slice(1).join(" ") || ""));
-            }
-            setPhone((cur) => (cur ? cur : String(addr.phone || "")));
-            setAddress1((cur) => (cur ? cur : String(addr.address1 || "")));
-            setAddress2((cur) => (cur ? cur : String(addr.address2 || "")));
-            setCity((cur) => (cur ? cur : String(addr.city || "")));
-            setCountry((cur) => (cur ? cur : String(addr.country || "")));
-            setZip((cur) => (cur ? cur : String(addr.postalCode || "")));
-          }
-        }
-      } catch {
-        // ignore
-      }
-    })();
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const defaultShippingFee = 250;
-
-  const shippingCost = useMemo(() => {
-    if (subtotal <= 0) return 0;
-    return defaultShippingFee;
-  }, [defaultShippingFee, subtotal]);
-
-  const discount = useMemo(() => appliedCoupon?.discount ?? 0, [appliedCoupon]);
-  const discountForLoyalty = useMemo(
-    () => (appliedCoupon?.freeShippingApplied ? 0 : discount),
-    [appliedCoupon?.freeShippingApplied, discount]
-  );
-
-  const maxRedeemPoints = useMemo(() => {
-    if (!loyaltySettings?.enabled) return 0;
-    if (availablePoints < loyaltySettings.minRedeemPoints) return 0;
-    const base = Math.max(0, subtotal - discountForLoyalty);
-    const maxValue = Math.max(0, (base * loyaltySettings.maxRedeemPercent) / 100);
-    const maxPointsByValue =
-      loyaltySettings.currencyPerPoint > 0
-        ? Math.floor(maxValue / loyaltySettings.currencyPerPoint)
-        : 0;
-    const points = Math.min(availablePoints, maxPointsByValue);
-    return points >= loyaltySettings.minRedeemPoints ? points : 0;
-  }, [availablePoints, discount, loyaltySettings, subtotal]);
-
-  const redeemPointsValue = useMemo(() => {
-    if (!loyaltySettings?.enabled) return 0;
-    const points = Math.max(0, Math.floor(Number(redeemPoints) || 0));
-    const clamped = Math.min(points, maxRedeemPoints);
-    return clamped * (loyaltySettings.currencyPerPoint || 0);
-  }, [loyaltySettings, maxRedeemPoints, redeemPoints]);
-
-  const total = Math.max(0, subtotal + shippingCost - discount - redeemPointsValue);
-
-  const canPlaceOrder = useMemo(() => {
-    const basic =
-      phone.trim() &&
-      firstName.trim() &&
-      address1.trim() &&
-      city.trim() &&
-      country.trim();
-    return Boolean(basic && items.length > 0);
-  }, [phone, firstName, address1, city, country, items.length]);
-
-  const customerEmail = useMemo(
-    () => user?.email || email.trim() || undefined,
-    [user?.email, email]
-  );
 
   useEffect(() => {
     if (initiateCheckoutTracked.current || items.length === 0) return;
     initiateCheckoutTracked.current = true;
 
-    trackInitiateCheckout({
-      items,
-      total,
-      totalItems: items.reduce((sum, item) => sum + item.qty, 0),
-    });
-    trackBeginCheckout({
-      items,
-      total,
-    });
-  }, [items, total]);
+    trackInitiateCheckout({ items, total, totalItems });
+    trackBeginCheckout({ items, total });
+  }, [items, total, totalItems]);
 
-  const validateCoupon = async (code: string) => {
-    setCouponLoading(true);
-    setCouponMsg(null);
-    try {
-      const res = await fetch("/api/coupons/validate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          code,
-          subtotal,
-          shipping: shippingCost,
-          customerEmail,
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data?.ok) {
-        throw new Error(data?.error || "Invalid coupon.");
-      }
-      setAppliedCoupon({
-        code: data.data.code,
-        discount: data.data.discount ?? 0,
-        description: data.data.description ?? null,
-        freeShippingApplied: Boolean(data.data.freeShippingApplied),
-      });
-      setCoupon(data.data.code);
-    } catch (err: any) {
-      setAppliedCoupon(null);
-      setCouponMsg(err?.message || "Failed to apply coupon.");
-    } finally {
-      setCouponLoading(false);
+  const validateForm = () => {
+    const nextErrors: FieldErrors = {};
+    const cleanPhone = normalizePakistaniPhone(phone);
+
+    if (!cleanPhone) {
+      nextErrors.phone = "Please enter your phone number.";
+    } else if (!/^(03\d{9}|\+923\d{9}|923\d{9})$/.test(cleanPhone)) {
+      nextErrors.phone = "Please enter a valid Pakistani mobile number.";
     }
+
+    if (!fullName.trim()) {
+      nextErrors.fullName = "Please enter your full name.";
+    }
+
+    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      nextErrors.email = "Please enter a valid email address or leave it empty.";
+    }
+
+    if (!city.trim()) {
+      nextErrors.city = "Please enter your city.";
+    }
+
+    if (!address.trim()) {
+      nextErrors.address = "Please enter your delivery address.";
+    } else if (address.trim().length < 12) {
+      nextErrors.address = "Please enter a complete delivery address.";
+    }
+
+    setErrors(nextErrors);
+    return nextErrors;
   };
 
-  const applyCoupon = () => {
-    const code = coupon.trim();
-    if (!code) return;
-    validateCoupon(code);
-  };
+  const scrollToFirstError = (nextErrors: FieldErrors) => {
+    const firstKey = (["phone", "fullName", "email", "city", "address"] as const).find(
+      (key) => nextErrors[key],
+    );
+    const refMap = {
+      phone: phoneRef,
+      fullName: nameRef,
+      email: emailRef,
+      city: cityRef,
+      address: addressRef,
+    };
 
-  const clearCoupon = () => {
-    setAppliedCoupon(null);
-    setCoupon("");
-    setCouponMsg(null);
+    if (!firstKey) return;
+    const target = refMap[firstKey].current;
+    target?.scrollIntoView({ behavior: "smooth", block: "center" });
+    window.setTimeout(() => target?.focus(), 350);
   };
 
   const placeOrder = async () => {
-    if (!canPlaceOrder || submitting) return;
+    if (submitting) return;
+
+    setFormError("");
+    const nextErrors = validateForm();
+    if (Object.keys(nextErrors).length > 0) {
+      scrollToFirstError(nextErrors);
+      return;
+    }
+
+    if (items.length === 0) {
+      setFormError("Your cart is empty. Please add a product before checkout.");
+      return;
+    }
+
     setSubmitting(true);
-    setMsg(null);
+
     try {
-      // Ensure logged-in user's email is always sent
-      const customerEmail = user?.email || email.trim() || undefined;
-      
+      const { firstName, lastName } = splitFullName(fullName);
+      const customerEmail = userEmail || email.trim() || undefined;
+
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           customer: {
-            firstName: firstName.trim(),
-            lastName: lastName.trim() || undefined,
+            firstName,
+            lastName,
             email: customerEmail,
             phone: phone.trim(),
           },
           address: {
-            line1: address1.trim(),
-            line2: address2.trim() || undefined,
+            line1: address.trim(),
             city: city.trim(),
-            country: country.trim(),
-            postalCode: zip.trim() || undefined,
+            country: "Pakistan",
           },
           shippingMethod: "standard",
-          paymentMethod: payment,
+          paymentMethod: "cod",
           items,
-          couponCode: appliedCoupon?.code ?? undefined,
-          redeemPoints: loyaltySettings?.enabled && user
-            ? Math.floor(Number(redeemPoints) || 0)
-            : undefined,
         }),
       });
 
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || "Checkout failed");
+      if (!res.ok) throw new Error(data?.error || "We could not place your order right now.");
 
       const orderId = data?.data?.orderId ? String(data.data.orderId) : "";
-      if (!orderId) throw new Error("Order placed, but confirmation ID was missing.");
+      if (!orderId) throw new Error("Order placed, but confirmation number was missing.");
 
       window.sessionStorage.setItem(
         `meta_order_${orderId}`,
@@ -439,546 +375,400 @@ export default function CheckoutPage() {
             qty: item.qty,
             category: item.category,
           })),
-        })
+        }),
       );
 
       clearCart();
       router.push(`/checkout/success?orderId=${encodeURIComponent(orderId)}`);
-    } catch (err: any) {
-      setMsg(err?.message ? `Order failed: ${err.message}` : "Order failed. Please try again.");
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "We could not place your order. Please try again.";
+      setFormError(message);
     } finally {
       setSubmitting(false);
     }
   };
 
-  useEffect(() => {
-    if (!appliedCoupon?.code) return;
-    validateCoupon(appliedCoupon.code);
-  }, [subtotal, shippingCost, customerEmail]);
-
-  useEffect(() => {
-    const raw = Math.floor(Number(redeemPoints) || 0);
-    if (!redeemPoints || raw <= 0) {
-      setRedeemMsg(null);
-      return;
-    }
-    if (maxRedeemPoints > 0 && raw > maxRedeemPoints) {
-      setRedeemMsg(`Max redeemable points: ${maxRedeemPoints}.`);
-      return;
-    }
-    if (loyaltySettings?.minRedeemPoints && raw < loyaltySettings.minRedeemPoints) {
-      setRedeemMsg(`Minimum redeem points: ${loyaltySettings.minRedeemPoints}.`);
-      return;
-    }
-    setRedeemMsg(null);
-  }, [loyaltySettings?.minRedeemPoints, maxRedeemPoints, redeemPoints]);
-
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      if (!customerEmail) return;
-      try {
-        const res = await fetch("/api/account/loyalty", { cache: "no-store" });
-        const payload = await res.json().catch(() => ({}));
-        if (!active) return;
-        if (res.ok && payload?.ok) {
-          setAvailablePoints(payload.data?.points ?? 0);
-        }
-      } catch {
-        // ignore
-      }
-    })();
-    return () => {
-      active = false;
-    };
-  }, [customerEmail]);
+  const brandName = branding?.siteName?.trim() || "Sahoolat";
+  const checkoutLogoUrl = branding?.logoUrl?.trim() || branding?.siteIconUrl?.trim() || "";
+  const brandInitials =
+    brandName
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase() || "S";
 
   return (
-    <div className="min-h-screen bg-white text-neutral-900">
-      {/* Breadcrumb */}
-      <div className="border-b border-neutral-200 bg-neutral-50">
+    <div className="min-h-screen bg-neutral-50 text-neutral-900">
+      <header className="border-b border-neutral-200 bg-white">
         <Container>
-          <div className="flex h-10 items-center gap-2 text-xs text-neutral-600">
-            <Link className="hover:text-neutral-900" href="/">Home</Link>
-            <span className="text-neutral-300">/</span>
-            <Link className="hover:text-neutral-900" href="/cart">Cart</Link>
-            <span className="text-neutral-300">/</span>
-            <span className="text-neutral-900">Checkout</span>
-          </div>
-        </Container>
-      </div>
-
-      {/* Header */}
-      <section className="border-b border-neutral-200 bg-white">
-        <Container>
-          <div className="flex flex-col gap-4 py-10 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs text-neutral-700">
-                <span className="h-2 w-2 rounded-full bg-neutral-900" />
-                Checkout
-              </div>
-
-              <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
-                Secure checkout
-              </h1>
-
-              <p className="mt-2 text-sm text-neutral-600">
-                Complete your details and confirm your order.
-              </p>
-
-              <div className="mt-5 flex flex-wrap gap-2">
-                <Pill>Encrypted payments</Pill>
-                <Pill>Insured delivery</Pill>
-                <Pill>7-day returns</Pill>
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <Link
-                href="/cart"
-                className="rounded-2xl border border-neutral-200 bg-white px-5 py-3 text-sm font-medium hover:bg-neutral-50"
-              >
-                Back to cart
-              </Link>
-              <Link
-                href="/shop"
-                className="rounded-2xl border border-neutral-200 bg-white px-5 py-3 text-sm font-medium hover:bg-neutral-50"
-              >
-                Continue shopping
-              </Link>
-            </div>
-          </div>
-        </Container>
-      </section>
-
-      {/* Content */}
-      <main className="pb-24 pt-10 lg:pb-16">
-        <Container>
-          <div className="grid gap-10 lg:grid-cols-12">
-            {/* Left: Forms */}
-            <section className="lg:col-span-7 space-y-6">
-              {/* Contact */}
-              <div className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8">
-                {user && (
-                  <div className="mb-4 flex items-center gap-2 rounded-2xl bg-green-50 border border-green-200 px-4 py-3">
-                    <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span className="text-sm text-green-800">
-                      Logged in as <strong>{user.name || user.email}</strong>
-                    </span>
-                  </div>
-                )}
-                <SectionTitle
-                  title="Contact information"
-                  desc="We'll send order updates and delivery tracking to these details."
+          <div className="flex flex-col items-center gap-3 py-5 text-center">
+            <Link href="/" aria-label={brandName} className="inline-flex items-center">
+              {checkoutLogoUrl ? (
+                <Image
+                  src={toOptimizableImageSrc(checkoutLogoUrl)}
+                  alt={brandName}
+                  width={220}
+                  height={64}
+                  className="h-14 w-auto max-w-[220px] object-contain"
+                  priority
                 />
-                <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                  <Field
-                    label="Email"
+              ) : (
+                <span className="inline-flex items-center gap-2 text-2xl font-black tracking-tight text-neutral-900">
+                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-900 text-sm font-bold text-white">
+                    {brandInitials}
+                  </span>
+                  {brandName}
+                </span>
+              )}
+            </Link>
+            <div className="hidden">
+              <span className="rounded-full bg-neutral-100 px-3 py-1.5">🔒 Secure Checkout</span>
+              <span className="rounded-full bg-neutral-100 px-3 py-1.5">🚚 Delivery Across Pakistan</span>
+              <span className="rounded-full bg-neutral-100 px-3 py-1.5">💵 Cash on Delivery Available</span>
+            </div>
+            <div className="flex flex-wrap justify-center gap-2 text-xs font-semibold text-neutral-700">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-1.5">
+                <ShieldCheck className="h-3.5 w-3.5 text-neutral-800" aria-hidden="true" />
+                Secure Checkout
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-1.5">
+                <Truck className="h-3.5 w-3.5 text-neutral-800" aria-hidden="true" />
+                Delivery Across Pakistan
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-3 py-1.5">
+                <Banknote className="h-3.5 w-3.5 text-neutral-800" aria-hidden="true" />
+                Cash on Delivery Available
+              </span>
+            </div>
+          </div>
+        </Container>
+      </header>
+
+      <StepIndicator />
+
+      <main className="py-5 sm:py-8">
+        <Container>
+          <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-start">
+            <section className="space-y-5">
+              <div className="rounded-3xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-5">
+                <div className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
+                  <Star className="h-4 w-4 fill-neutral-900" aria-hidden="true" />
+                  Over 10,000+ orders delivered
+                </div>
+                <p className="mt-1 text-sm text-neutral-600">
+                  Trusted by customers across Pakistan
+                </p>
+              </div>
+
+              <SectionCard number={1} title="Your Details">
+                <label className="block">
+                  <span className="text-sm font-semibold text-neutral-800">Phone Number *</span>
+                  <input
+                    ref={phoneRef}
+                    value={phone}
+                    onChange={(event) => setPhone(event.target.value)}
+                    placeholder="03XX XXXXXXX"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    className={[
+                      "mt-2 w-full rounded-2xl border bg-white px-4 py-4 text-base outline-none transition placeholder:text-neutral-400 focus:ring-4 focus:ring-neutral-900/10",
+                      errors.phone ? "border-red-500 bg-red-50" : "border-neutral-300 focus:border-neutral-900",
+                    ].join(" ")}
+                  />
+                  <p className="mt-2 text-sm text-neutral-500">
+                    We will call or WhatsApp for order confirmation.
+                  </p>
+                  <ErrorText message={errors.phone} />
+                </label>
+
+                <label className="block">
+                  <span className="text-sm font-semibold text-neutral-800">Full Name *</span>
+                  <input
+                    ref={nameRef}
+                    value={fullName}
+                    onChange={(event) => setFullName(event.target.value)}
+                    placeholder="Muhammad Ali"
+                    autoComplete="name"
+                    className={[
+                      "mt-2 w-full rounded-2xl border bg-white px-4 py-4 text-base outline-none transition placeholder:text-neutral-400 focus:ring-4 focus:ring-neutral-900/10",
+                      errors.fullName ? "border-red-500 bg-red-50" : "border-neutral-300 focus:border-neutral-900",
+                    ].join(" ")}
+                  />
+                  <ErrorText message={errors.fullName} />
+                </label>
+
+                <label className="block">
+                  <span className="text-sm font-semibold text-neutral-800">Email</span>
+                  <span className="ml-2 text-xs text-neutral-500">Optional</span>
+                  <input
+                    ref={emailRef}
                     value={email}
-                    onChange={setEmail}
+                    onChange={(event) => setEmail(event.target.value)}
                     placeholder="you@example.com"
                     type="email"
-                    disabled={!!user}
-                  />
-                  <Field
-                    label="Phone"
-                    value={phone}
-                    onChange={setPhone}
-                    placeholder="+92 300 1234567"
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Address */}
-              <div className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8">
-                <SectionTitle
-                  title="Shipping address"
-                  desc="Enter a complete address for insured delivery."
-                />
-                <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                  <Field label="First name" value={firstName} onChange={setFirstName} required />
-                  <Field label="Last name (optional)" value={lastName} onChange={setLastName} />
-                </div>
-
-                <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                  <Field label="Country" value={country} onChange={setCountry} required />
-                  <Field label="City" value={city} onChange={setCity} required />
-                </div>
-
-                <div className="mt-4 grid gap-4">
-                  <Field
-                    label="Address line 1"
-                    value={address1}
-                    onChange={setAddress1}
-                    placeholder="Building, street, area"
-                    required
-                  />
-                  <Field
-                    label="Address line 2 (optional)"
-                    value={address2}
-                    onChange={setAddress2}
-                    placeholder="Apartment, floor, landmark"
-                  />
-                </div>
-
-                <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                  <Field label="ZIP / Postal (optional)" value={zip} onChange={setZip} />
-                  <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-                    <p className="text-xs font-semibold">Delivery notes</p>
-                    <p className="mt-1 text-xs text-neutral-600">
-                      Delivery is available within Pakistan. Courier may call before delivery.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Account prompt - Only show if NOT logged in */}
-              {!user && (
-                <div className="rounded-3xl border border-neutral-200 bg-gradient-to-br from-neutral-50 via-white to-neutral-50 p-6 sm:p-8">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <p className="text-sm font-semibold">Have an account?</p>
-                      <p className="mt-1 text-xs text-neutral-500">
-                        Log in to save your details and track orders. You can also checkout as guest.
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Link
-                        href="/login"
-                        className="rounded-2xl border border-neutral-200 bg-white px-4 py-2 text-xs font-medium hover:bg-neutral-50"
-                      >
-                        Log in
-                      </Link>
-                      <Link
-                        href="/signup"
-                        className="rounded-2xl bg-neutral-900 px-4 py-2 text-xs font-medium text-white hover:bg-neutral-800"
-                      >
-                        Create account
-                      </Link>
-                    </div>
-                  </div>
-
-                <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                  {[
-                    { t: "Order tracking", d: "See delivery status anytime." },
-                    { t: "Faster checkout", d: "Saved address & contact." },
-                    { t: "Reorder quickly", d: "Buy again in one tap." },
-                  ].map((x) => (
-                    <div key={x.t} className="rounded-2xl border border-neutral-200 bg-white p-4">
-                      <p className="text-xs font-semibold">{x.t}</p>
-                      <p className="mt-1 text-xs text-neutral-600">{x.d}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              )}
-
-              {/* Payment */}
-              <div className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8">
-                <SectionTitle
-                  title="Payment method"
-                  desc="Cash on delivery is available for now."
-                />
-
-                <div className="mt-6 grid gap-3">
-                  <RadioCard
-                    active={payment === "cod"}
-                    title="Cash on delivery"
-                    desc="Pay with cash on delivery (verification may apply)."
-                    right={<Pill>COD</Pill>}
-                    onClick={() => setPayment("cod")}
-                  />
-                </div>
-
-                <div className="mt-5 rounded-3xl border border-neutral-200 bg-neutral-50 p-5">
-                  <p className="text-sm font-semibold">Payment note</p>
-                  <p className="mt-2 text-sm text-neutral-600">
-                    For order confirmation, we may contact you by phone or WhatsApp before dispatch.
-                  </p>
-                </div>
-
-                {/* Place order */}
-                <div className="mt-6">
-                  <button
-                    onClick={placeOrder}
-                    disabled={!canPlaceOrder}
+                    autoComplete="email"
+                    disabled={Boolean(userEmail)}
                     className={[
-                      "w-full rounded-2xl px-6 py-4 text-sm font-medium transition",
-                      canPlaceOrder
-                        ? "bg-neutral-900 text-white hover:bg-neutral-800"
-                        : "cursor-not-allowed bg-neutral-200 text-neutral-500",
+                      "mt-2 w-full rounded-2xl border bg-white px-4 py-4 text-base outline-none transition placeholder:text-neutral-400 focus:ring-4 focus:ring-neutral-900/10 disabled:bg-neutral-100 disabled:text-neutral-500",
+                      errors.email ? "border-red-500 bg-red-50" : "border-neutral-300 focus:border-neutral-900",
+                    ].join(" ")}
+                  />
+                  <ErrorText message={errors.email} />
+                </label>
+              </SectionCard>
+
+              <SectionCard number={2} title="Delivery Address">
+                <label className="block">
+                  <span className="text-sm font-semibold text-neutral-800">City *</span>
+                  <select
+                    ref={cityRef}
+                    value={city}
+                    onChange={(event) => setCity(event.target.value)}
+                    autoComplete="address-level2"
+                    className={[
+                      "mt-2 w-full rounded-2xl border bg-white px-4 py-4 text-base outline-none transition focus:ring-4 focus:ring-neutral-900/10",
+                      errors.city ? "border-red-500 bg-red-50" : "border-neutral-300 focus:border-neutral-900",
                     ].join(" ")}
                   >
-                    Place order
+                    <option value="">Select your city</option>
+                    {PAKISTAN_CITIES.map((cityName) => (
+                      <option key={cityName} value={cityName}>
+                        {cityName}
+                      </option>
+                    ))}
+                  </select>
+                  <ErrorText message={errors.city} />
+                </label>
+
+                <label className="block">
+                  <span className="text-sm font-semibold text-neutral-800">Full Address *</span>
+                  <textarea
+                    ref={addressRef}
+                    value={address}
+                    onChange={(event) => setAddress(event.target.value)}
+                    placeholder="House number, street, area, city"
+                    rows={4}
+                    autoComplete="street-address"
+                    className={[
+                      "mt-2 w-full resize-none rounded-2xl border bg-white px-4 py-4 text-base outline-none transition placeholder:text-neutral-400 focus:ring-4 focus:ring-neutral-900/10",
+                      errors.address ? "border-red-500 bg-red-50" : "border-neutral-300 focus:border-neutral-900",
+                    ].join(" ")}
+                  />
+                  <p className="mt-2 text-sm text-neutral-500">
+                    Courier will deliver your parcel on this address.
+                  </p>
+                  <ErrorText message={errors.address} />
+                </label>
+              </SectionCard>
+
+              <SectionCard number={3} title="Payment Method">
+                <div className="rounded-3xl border-2 border-neutral-900 bg-neutral-50 p-5">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-neutral-900 text-white">
+                      <Banknote className="h-6 w-6" aria-hidden="true" />
+                    </div>
+                    <div className="hidden">
+                      <span aria-hidden="true">💵</span>
+                    </div>
+                    <div>
+                      <p className="text-lg font-bold text-neutral-900">Cash on Delivery</p>
+                      <p className="mt-1 text-sm text-neutral-600">Pay when parcel arrives.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="lg:hidden">
+                  <button
+                    type="button"
+                    onClick={placeOrder}
+                    disabled={submitting || items.length === 0}
+                    className="mt-4 flex min-h-16 w-full items-center justify-center gap-3 rounded-3xl bg-neutral-900 px-6 py-4 text-center text-base font-black text-white shadow-lg shadow-neutral-900/20 transition active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-neutral-500"
+                  >
+                    <ShoppingCart className="h-5 w-5" aria-hidden="true" />
+                    <span>
+                      <span className="block">{submitting ? "Placing Order..." : "Place My Order"}</span>
+                      <span className="block text-xs font-semibold text-white/70">Pay Cash on Delivery</span>
+                    </span>
                   </button>
-                  {!canPlaceOrder ? (
-                    <p className="mt-2 text-xs text-neutral-500">
-                      Please fill required fields (phone, first name, address).
-                    </p>
-                  ) : null}
-                  {msg ? (
-                    <div className="mt-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
-                      {msg}
+
+                  {formError ? (
+                    <div className="mt-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                      {formError}
                     </div>
                   ) : null}
                 </div>
-              </div>
+              </SectionCard>
             </section>
 
-            {/* Right: Summary */}
-            <aside className="lg:col-span-5">
-              <div className="lg:sticky lg:top-6 space-y-6">
-                {/* Items summary */}
-                <div className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8 shadow-sm">
-                  <p className="text-sm font-semibold">Order summary</p>
-                  <p className="mt-1 text-xs text-neutral-500">
-                    Review items before placing your order.
-                  </p>
+            <aside className="lg:sticky lg:top-5">
+              <div className="rounded-3xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <h2 className="text-lg font-semibold tracking-tight">Confirm Order</h2>
+                    <p className="mt-1 text-sm text-neutral-500">{totalItems} item(s)</p>
+                  </div>
+                  <LockKeyhole className="h-5 w-5 text-neutral-500" aria-hidden="true" />
+                </div>
 
-                  <div className="mt-6 space-y-4">
-                    {items.map((it) => (
-                      <div key={it.id} className="flex gap-4">
+                {items.length === 0 ? (
+                  <div className="mt-5 rounded-3xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+                    Your cart is empty. Please add a product before checkout.
+                  </div>
+                ) : (
+                  <div className="mt-5 space-y-4">
+                    {items.map((item) => (
+                      <div key={item.id} className="flex gap-3">
                         <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100">
                           <Image
                             src={withImageParams(
-                              it.image || "/images/shopping.jpg",
-                              "auto=format&fit=crop&w=400&q=85"
+                              item.image || "/images/shopping.jpg",
+                              "auto=format&fit=crop&w=320&q=85",
                             )}
-                            alt={it.name}
-                            width={400}
-                            height={400}
+                            alt={item.name}
+                            width={320}
+                            height={320}
                             className="h-full w-full object-cover"
                             loading="lazy"
                           />
                         </div>
-
                         <div className="min-w-0 flex-1">
-                          <Link
-                            href={it.href ?? "/product/" + it.id}
-                            className="line-clamp-1 text-sm font-semibold hover:underline"
-                          >
-                            {it.name}
-                          </Link>
-                          {it.subtitle ? (
-                            <p className="mt-1 text-xs text-neutral-600">{it.subtitle}</p>
-                          ) : null}
-                          <p className="mt-2 text-xs text-neutral-500">
-                            Qty: <span className="text-neutral-700">{it.qty}</span>
+                          <p className="line-clamp-2 text-sm font-semibold text-neutral-900">
+                            {item.name}
                           </p>
+                          <p className="mt-1 text-xs text-neutral-500">Quantity: {item.qty}</p>
                         </div>
-
-                        <div className="text-right">
-                          <p className="text-sm font-semibold">{formatMoney(it.price * it.qty)}</p>
-                          {typeof it.compareAt === "number" ? (
-                            <p className="text-xs text-neutral-500 line-through">
-                              {formatMoney(it.compareAt * it.qty)}
-                            </p>
-                          ) : null}
-                        </div>
+                        <p className="shrink-0 text-sm font-semibold">
+                          {formatMoney(item.price * item.qty, item.currency)}
+                        </p>
                       </div>
                     ))}
                   </div>
+                )}
 
-                  {/* Coupon */}
-                  <div className="mt-6 rounded-3xl border border-neutral-200 bg-neutral-50 p-4">
-                    <p className="text-sm font-medium">Coupon</p>
-                    <p className="mt-1 text-xs text-neutral-500">
-                      Enter a coupon code to apply discounts.
+                <div className="mt-6 space-y-3 border-t border-neutral-200 pt-5">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-neutral-600">Subtotal</span>
+                    <span className="font-medium">{formatMoney(subtotal, currency)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-neutral-600">Shipping</span>
+                    <span className="font-medium">{formatMoney(shippingCost, currency)}</span>
+                  </div>
+                  <div className="rounded-3xl bg-neutral-900 p-4 text-white">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-white/70">
+                      Total Payable
                     </p>
-
-                    <div className="mt-3 flex gap-2">
-                      <input
-                        value={coupon}
-                        onChange={(e) => setCoupon(e.target.value)}
-                        className="w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none placeholder:text-neutral-400"
-                        placeholder="Enter coupon code"
-                      />
-                      <button
-                        onClick={applyCoupon}
-                        disabled={couponLoading}
-                        className="rounded-2xl bg-neutral-900 px-5 py-3 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-60"
-                      >
-                        {couponLoading ? "Applying..." : "Apply"}
-                      </button>
-                    </div>
-
-                    {appliedCoupon ? (
-                      <div className="mt-3 flex items-center justify-between">
-                        <span className="text-xs text-neutral-600">
-                          Applied: <span className="font-medium">{appliedCoupon.code}</span>
-                        </span>
-                        <button
-                          onClick={clearCoupon}
-                          className="text-xs font-medium text-neutral-900 hover:underline"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    ) : null}
-
-                    {couponMsg ? (
-                      <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
-                        {couponMsg}
-                      </div>
-                    ) : null}
-                  </div>
-
-                  {loyaltySettings?.enabled ? (
-                    <div className="mt-6 rounded-3xl border border-neutral-200 bg-neutral-50 p-4">
-                      <p className="text-sm font-medium">Loyalty points</p>
-                      {user ? (
-                        <>
-                          <p className="mt-1 text-xs text-neutral-500">
-                            You have <span className="font-medium">{availablePoints}</span> points.
-                          </p>
-
-                          <div className="mt-3 flex gap-2">
-                            <input
-                              value={redeemPoints}
-                              onChange={(e) => setRedeemPoints(e.target.value)}
-                              className="w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none placeholder:text-neutral-400"
-                              placeholder={`Max ${maxRedeemPoints}`}
-                              inputMode="numeric"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setRedeemPoints(String(maxRedeemPoints))}
-                              className="rounded-2xl border border-neutral-200 px-4 py-3 text-xs font-medium text-neutral-900 hover:bg-neutral-50"
-                            >
-                              Use max
-                            </button>
-                          </div>
-
-                          <div className="mt-2 flex items-center justify-between text-xs text-neutral-500">
-                            <span>Value</span>
-                            <span>PKR {Math.round(redeemPointsValue).toLocaleString("en-PK")}</span>
-                          </div>
-
-                          {redeemMsg ? (
-                            <div className="mt-3 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
-                              {redeemMsg}
-                            </div>
-                          ) : null}
-                        </>
-                      ) : (
-                        <p className="mt-2 text-xs text-neutral-500">
-                          Log in to redeem points during checkout.
-                        </p>
-                      )}
-                    </div>
-                  ) : null}
-
-                  {/* Totals */}
-                <div className="mt-6 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm text-neutral-700">Subtotal</p>
-                    <p className="text-sm font-medium">{formatMoney(subtotal)}</p>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm text-neutral-500">Shipping</p>
-                    <p className="text-sm text-neutral-700">
-                      {shippingCost === 0 ? "Free" : formatMoney(shippingCost)}
+                    <p className="mt-1 text-3xl font-bold tracking-tight">
+                      {formatMoney(total, currency)}
                     </p>
                   </div>
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm text-neutral-500">Discount</p>
-                      <p className="text-sm text-neutral-700">
-                        {discount > 0 ? `- ${formatMoney(discount)}` : "0"}
-                      </p>
-                    </div>
-                    {redeemPointsValue > 0 ? (
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm text-neutral-500">Loyalty</p>
-                        <p className="text-sm text-neutral-700">
-                          - {formatMoney(redeemPointsValue)}
-                        </p>
-                      </div>
-                    ) : null}
+                </div>
 
-                    <div className="my-4 border-t border-neutral-200" />
-
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold">Total</p>
-                      <p className="text-lg font-semibold">{formatMoney(total)}</p>
-                    </div>
-                    <p className="text-xs text-neutral-500">
-                      Taxes & duties may apply based on delivery location.
-                    </p>
+                <div className="mt-5 rounded-3xl border border-neutral-200 bg-neutral-50 p-4">
+                  <div className="flex items-center gap-1 text-amber-500" aria-label="Five star rating">
+                    {Array.from({ length: 5 }).map((_, index) => (
+                      <Star key={index} className="h-4 w-4 fill-current" aria-hidden="true" />
+                    ))}
                   </div>
-
-                  <div className="mt-6 grid gap-2">
-                    <Link
-                      href="/cart"
-                      className="rounded-2xl border border-neutral-200 px-5 py-3 text-center text-sm font-medium hover:bg-neutral-50"
-                    >
-                      Edit cart
-                    </Link>
-                    <button
-                      onClick={placeOrder}
-                      disabled={!canPlaceOrder}
-                      className={[
-                        "rounded-2xl px-5 py-3 text-center text-sm font-medium transition",
-                        canPlaceOrder
-                          ? "bg-neutral-900 text-white hover:bg-neutral-800"
-                          : "cursor-not-allowed bg-neutral-200 text-neutral-500",
-                      ].join(" ")}
-                    >
-                      Place order
-                    </button>
-                  </div>
-
-                  <p className="mt-5 text-xs text-neutral-500">
-                    Secure payments. Signature required for delivery. Returns within 7 days.
+                  <p className="mt-2 text-sm font-semibold text-neutral-900">
+                    Trusted by customers across Pakistan
                   </p>
+                  <p className="mt-1 text-xs text-neutral-500">Over 10,000+ orders delivered</p>
                 </div>
 
-                {/* Trust box */}
-                <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-6 sm:p-7">
-                  <p className="text-sm font-semibold">Why shop with us</p>
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-                    {[
-                      { t: "Quality checked", d: "Packed and checked before dispatch." },
-                      { t: "Pakistan shipping", d: "Tracked door-to-door delivery." },
-                      { t: "Priority support", d: "Fast WhatsApp + email help." },
-                      { t: "Easy returns", d: "7-day return policy." },
-                    ].map((x) => (
-                      <div key={x.t} className="rounded-3xl border border-neutral-200 bg-white p-5">
-                        <p className="text-xs font-semibold">{x.t}</p>
-                        <p className="mt-1 text-xs text-neutral-600">{x.d}</p>
-                      </div>
-                    ))}
-                  </div>
+                <div className="mt-5">
+                  <TrustList />
                 </div>
+
+                {formError ? (
+                  <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                    {formError}
+                  </div>
+                ) : null}
+
+                <button
+                  type="button"
+                  onClick={placeOrder}
+                  disabled={submitting || items.length === 0}
+                  className="hidden"
+                >
+                  <span className="block">{submitting ? "Placing Order..." : "🛒 Place My Order"}</span>
+                  <span className="mt-0.5 block text-xs font-semibold text-white/70">
+                    Pay Cash on Delivery
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={placeOrder}
+                  disabled={submitting || items.length === 0}
+                  className="mt-5 hidden w-full rounded-3xl bg-neutral-900 px-6 py-4 text-center text-base font-bold text-white shadow-lg shadow-neutral-900/20 transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-neutral-500 lg:block"
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    <ShoppingCart className="h-5 w-5" aria-hidden="true" />
+                    {submitting ? "Placing Order..." : "Place My Order"}
+                  </span>
+                  <span className="mt-0.5 block text-xs font-semibold text-white/70">
+                    Pay Cash on Delivery
+                  </span>
+                </button>
+
+                <div className="mt-4 rounded-3xl border border-neutral-200 bg-white p-4 text-center">
+                  <p className="text-sm font-semibold">Need help placing order?</p>
+                  <a
+                    href={WHATSAPP_LINK}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800 transition hover:bg-emerald-100"
+                  >
+                    <MessageCircle className="h-4 w-4" aria-hidden="true" />
+                    Chat on WhatsApp
+                  </a>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={placeOrder}
+                  disabled={submitting || items.length === 0}
+                  className="mt-4 flex min-h-16 w-full items-center justify-center gap-3 rounded-3xl bg-neutral-900 px-6 py-4 text-center text-base font-black text-white shadow-lg shadow-neutral-900/20 transition active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-neutral-500 lg:hidden"
+                >
+                  <ShoppingCart className="h-5 w-5" aria-hidden="true" />
+                  <span>
+                    <span className="block">{submitting ? "Placing Order..." : "Place My Order"}</span>
+                    <span className="block text-xs font-semibold text-white/70">Pay Cash on Delivery</span>
+                  </span>
+                </button>
               </div>
             </aside>
           </div>
         </Container>
       </main>
 
-      {/* Mobile sticky bar */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-neutral-200 bg-white/90 backdrop-blur lg:hidden">
-        <div className="mx-auto flex max-w-[1360px] items-center gap-3 px-5 py-3">
+      <div className="hidden">
+        <div className="mx-auto flex max-w-[1180px] items-center gap-3">
           <div className="min-w-0">
-            <p className="truncate text-xs text-neutral-500">
-              Total - {shippingCost === 0 ? "No shipping" : `Shipping ${formatMoney(shippingCost)}`}
+            <p className="text-[11px] font-bold uppercase tracking-wide text-neutral-500">
+              Total Payable
             </p>
-            <p className="text-base font-semibold leading-none">{formatMoney(total)}</p>
+            <p className="text-lg font-black leading-tight">{formatMoney(total, currency)}</p>
           </div>
-
+          <ChevronRight className="hidden h-4 w-4 text-neutral-300 min-[380px]:block" aria-hidden="true" />
           <button
+            type="button"
             onClick={placeOrder}
-            disabled={!canPlaceOrder}
-            className={[
-              "ml-auto rounded-2xl px-5 py-3 text-sm font-medium transition",
-              canPlaceOrder
-                ? "bg-neutral-900 text-white hover:bg-neutral-800"
-                : "cursor-not-allowed bg-neutral-200 text-neutral-500",
-            ].join(" ")}
+            disabled={submitting || items.length === 0}
+            className="ml-auto min-h-14 rounded-2xl bg-neutral-900 px-5 py-3 text-sm font-black text-white shadow-lg shadow-neutral-900/20 transition active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-neutral-500"
           >
-            Place order
+            <span className="flex items-center justify-center gap-2">
+              <ShoppingCart className="h-4 w-4" aria-hidden="true" />
+              {submitting ? "Placing..." : "🛒 Place My Order"}
+            </span>
+            <span className="block text-[11px] font-semibold text-white/70">Pay Cash on Delivery</span>
           </button>
         </div>
       </div>
