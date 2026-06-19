@@ -145,7 +145,10 @@ export default function ShopClient({
   const hasMore = products.length < total;
 
   const mapApiProduct = (p: any): ShopProduct => {
-    const img = p.images?.[0]?.url || "https://images.unsplash.com/photo-1523275335684-37898b6baf30";
+    const imageItems = [...(p.images ?? [])]
+      .sort((a: any, b: any) => (a?.sortOrder ?? 0) - (b?.sortOrder ?? 0))
+      .filter((img: any) => (img?.mediaType ?? "image") === "image");
+    const img = imageItems[0]?.url || "https://images.unsplash.com/photo-1523275335684-37898b6baf30";
     const slug = p.slug ?? String(p.id ?? "");
     return {
       id: slug,
@@ -156,6 +159,9 @@ export default function ShopClient({
       rating: typeof p.rating === "number" ? p.rating : 0,
       reviews: typeof p.reviewsCount === "number" ? p.reviewsCount : 0,
       image: img,
+      imageAlt: imageItems[0]?.alt || p.name,
+      hoverImage: imageItems[1]?.url,
+      hoverImageAlt: imageItems[1]?.alt || p.name,
       shortDesc: p.shortDesc ?? undefined,
       createdAt: p.createdAt ?? "",
     };
@@ -509,6 +515,9 @@ export default function ShopClient({
                       rating: p.rating,
                       reviews: p.reviews,
                       image: p.image,
+                      imageAlt: p.imageAlt,
+                      hoverImage: p.hoverImage,
+                      hoverImageAlt: p.hoverImageAlt,
                       shortDesc: p.shortDesc,
                       href: `/product/${p.id}`,
                     }}

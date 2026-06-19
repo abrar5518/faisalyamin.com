@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/adminAuth";
 import path from "path";
 import { promises as fs } from "fs";
 import { randomUUID } from "crypto";
+import { getUploadKindDir, getUploadPublicUrl } from "@/lib/uploadStorage";
 
 const UploadSchema = z.object({
   dataUrl: z.string().min(20),
@@ -65,7 +66,7 @@ export async function POST(req: NextRequest) {
       }
 
       const fileName = uniqueFileName(file.name, ext);
-      const uploadDir = path.join("/var/www/sahoolat-uploads", kind);
+      const uploadDir = getUploadKindDir(kind);
       await fs.mkdir(uploadDir, { recursive: true });
 
       const filePath = path.join(uploadDir, fileName);
@@ -74,7 +75,7 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({
         ok: true,
-        data: { url: `/uploads/${kind}/${fileName}` },
+        data: { url: getUploadPublicUrl(kind, fileName) },
       });
     }
 
@@ -96,7 +97,7 @@ export async function POST(req: NextRequest) {
     const kind = allowedKinds.has(data.kind ?? "") ? (data.kind as string) : "product";
     const fileName = uniqueFileName(data.filename, ext);
 
-    const uploadDir = path.join("/var/www/sahoolat-uploads", kind);
+    const uploadDir = getUploadKindDir(kind);
     await fs.mkdir(uploadDir, { recursive: true });
 
     const filePath = path.join(uploadDir, fileName);
@@ -104,7 +105,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       ok: true,
-      data: { url: `/uploads/${kind}/${fileName}` },
+      data: { url: getUploadPublicUrl(kind, fileName) },
     });
   } catch (err: any) {
     if (err?.name === "ZodError") {

@@ -1,0 +1,28 @@
+type ManagedPageBodyProps = {
+  page?: {
+    contentHtml?: string | null;
+  } | null;
+};
+
+function Container({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="mx-auto w-full max-w-[1200px] px-5 sm:px-8 lg:px-12">
+      {children}
+    </div>
+  );
+}
+
+export default function ManagedPageBody({ page }: ManagedPageBodyProps) {
+  if (!page?.contentHtml?.trim()) return null;
+
+  return (
+    <section className="bg-white py-12">
+      <Container>
+        <div
+          className="rt-content rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8"
+          dangerouslySetInnerHTML={{ __html: page.contentHtml }}
+        />
+      </Container>
+    </section>
+  );
+}

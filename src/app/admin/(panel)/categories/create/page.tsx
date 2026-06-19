@@ -130,7 +130,7 @@ export default function AdminCategoryCreatePage() {
                       if (!slug) setSlug(slugify(v));
                     }}
                     className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-900"
-                    placeholder="Luxury Watches"
+                    placeholder="Featured Products"
                   />
                 </div>
 
@@ -140,7 +140,7 @@ export default function AdminCategoryCreatePage() {
                     value={slug}
                     onChange={(e) => setSlug(slugify(e.target.value))}
                     className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-900"
-                    placeholder="watches"
+                    placeholder="featured-products"
                   />
                   <p className="mt-2 text-xs text-neutral-500">
                     Preview: <span className="text-neutral-700">/categories/{slug || "..."}</span>
@@ -209,7 +209,7 @@ export default function AdminCategoryCreatePage() {
                   value={metaTitle}
                   onChange={(e) => setMetaTitle(e.target.value)}
                   className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-900"
-                  placeholder="Luxury Watches in Pakistan"
+                  placeholder="Featured Products in Pakistan"
                 />
               </div>
 
@@ -220,7 +220,7 @@ export default function AdminCategoryCreatePage() {
                   onChange={(e) => setMetaDescription(e.target.value)}
                   className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-900"
                   rows={3}
-                  placeholder="Discover curated luxury watches with secure checkout."
+                  placeholder="Discover selected products with secure checkout and reliable delivery."
                 />
               </div>
 
@@ -232,7 +232,7 @@ export default function AdminCategoryCreatePage() {
                   onChange={(e) => setMetaKeywords(e.target.value)}
                   className="mt-3 w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-900"
                   rows={3}
-                  placeholder="luxury watches, rolex, omega"
+                  placeholder="products, offers, online shopping"
                 />
               </div>
             </div>

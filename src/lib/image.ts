@@ -1,13 +1,13 @@
 import { normalizeSiteUrl } from "@/lib/siteUrl";
 
-const SITE_URL = normalizeSiteUrl(
-  process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL,
-);
+const UPLOAD_BASE_URL = process.env.NEXT_PUBLIC_UPLOAD_BASE_URL
+  ? normalizeSiteUrl(process.env.NEXT_PUBLIC_UPLOAD_BASE_URL)
+  : "";
 
 export function toOptimizableImageSrc(src: string) {
   if (!src || src.startsWith("data:")) return src;
   if (src.startsWith("/uploads/")) {
-    return `${SITE_URL.replace(/\/$/, "")}${src}`;
+    return UPLOAD_BASE_URL ? `${UPLOAD_BASE_URL.replace(/\/$/, "")}${src}` : src;
   }
   return src;
 }

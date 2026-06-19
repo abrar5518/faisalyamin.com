@@ -4,17 +4,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { buildWhatsAppHref, fetchPublicContact } from "@/lib/contact";
 
 type NavItem = {
   label: string;
   href: string;
   desc?: string;
 };
-
-function buildWhatsappHref(raw: string) {
-  const digits = raw.replace(/[^\d+]/g, "").replace(/^\+/, "");
-  return digits ? `https://wa.me/${digits}` : "/contact";
-}
 
 const NAV: NavItem[] = [
   { label: "Overview", href: "/account", desc: "Dashboard & quick actions" },
@@ -97,17 +93,9 @@ export default function AccountSidebar() {
   useEffect(() => {
     let active = true;
     async function loadContact() {
-      try {
-        const res = await fetch("/api/contact", { cache: "no-store" });
-        const payload = await res.json();
-        if (!res.ok) return;
-        if (active) {
-          setWhatsappHref(buildWhatsappHref(payload?.data?.whatsapp ?? ""));
-        }
-      } catch {
-        if (active) {
-          setWhatsappHref("/contact");
-        }
+      const contact = await fetchPublicContact();
+      if (active) {
+        setWhatsappHref(buildWhatsAppHref(contact?.whatsapp));
       }
     }
     loadContact();

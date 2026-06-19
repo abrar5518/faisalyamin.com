@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/components/cart/CartProvider";
+import { useGlobalCopy } from "@/components/GlobalCopyProvider";
 
 function parsePriceLabel(label: string) {
   const parts = label.trim().split(/\s+/);
@@ -29,7 +30,7 @@ export default function BuyNowButton({
   sizeLabel,
   qty = 1,
   className,
-  label = "Buy Now",
+  label,
 }: {
   id: string;
   productId?: number;
@@ -48,6 +49,7 @@ export default function BuyNowButton({
   label?: string;
 }) {
   const { addItem } = useCart();
+  const globalCopy = useGlobalCopy();
   const router = useRouter();
   const price = useMemo(() => parsePriceLabel(priceLabel), [priceLabel]);
   const compareAt = compareAtLabel ? parsePriceLabel(compareAtLabel).amount : undefined;
@@ -77,7 +79,7 @@ export default function BuyNowButton({
 
   return (
     <button type="button" className={className} onClick={onBuyNow}>
-      {label}
+      {label || globalCopy.product.buyNow}
     </button>
   );
 }

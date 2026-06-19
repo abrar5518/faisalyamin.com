@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
       { pathname: "/uploads/**" },
       { pathname: "/favicon.ico" },
     ],
-    qualities: [75],
+    qualities: [70, 75, 80, 85, 90, 95],
     unoptimized: false,
     remotePatterns: [
       { protocol: "https", hostname: "sahoolat.pk" },

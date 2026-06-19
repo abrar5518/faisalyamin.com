@@ -2,6 +2,8 @@ export type AdminImage = {
   id?: string;
   url: string;
   alt?: string;
+  mediaType?: "image" | "video";
+  thumbnailUrl?: string;
 };
 
 export type AdminFaqItem = {
@@ -51,6 +53,7 @@ export type AdminProduct = {
   // images
   heroImage?: AdminImage; // main display
   gallery: AdminImage[];  // general product gallery (optional)
+  videos: AdminImage[];   // product gallery videos (optional)
   variants: AdminVariant[];
 
   status: "active" | "draft" | "archived";

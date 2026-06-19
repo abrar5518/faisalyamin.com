@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { sanitizeCustomScriptHtml } from "@/lib/trackingSettings";
 
 type SiteCustomScriptsProps = {
   headHtml?: string | null;
@@ -49,10 +50,13 @@ export default function SiteCustomScripts({
   bodyEndHtml,
 }: SiteCustomScriptsProps) {
   useEffect(() => {
+    const cleanHeadHtml = sanitizeCustomScriptHtml(headHtml);
+    const cleanBodyStartHtml = sanitizeCustomScriptHtml(bodyStartHtml);
+    const cleanBodyEndHtml = sanitizeCustomScriptHtml(bodyEndHtml);
     const appendedNodes = [
-      ...(headHtml?.trim() ? appendHtml(document.head, headHtml.trim()) : []),
-      ...(bodyStartHtml?.trim() ? appendHtml(document.body, bodyStartHtml.trim(), true) : []),
-      ...(bodyEndHtml?.trim() ? appendHtml(document.body, bodyEndHtml.trim()) : []),
+      ...(cleanHeadHtml ? appendHtml(document.head, cleanHeadHtml) : []),
+      ...(cleanBodyStartHtml ? appendHtml(document.body, cleanBodyStartHtml, true) : []),
+      ...(cleanBodyEndHtml ? appendHtml(document.body, cleanBodyEndHtml) : []),
     ];
 
     return () => {

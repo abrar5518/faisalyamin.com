@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import AdminTopbar from "@/components/admin/AdminTopbar";
 import ImageUploader from "@/components/admin/common/ImageUploader";
 import RichEditor from "@/components/admin/common/RichEditor";
@@ -9,6 +9,13 @@ import FaqEditor, { cleanFaqItems, type AdminFaqItem } from "@/components/admin/
 import BlogProductSelector, { BlogProductSelection } from "@/components/admin/blog/BlogProductSelector";
 import type { AdminImage } from "@/types/adminProduct";
 import { Fetch } from "@/lib/fetch";
+
+type AuthorOption = {
+  id?: number;
+  name: string;
+  slug: string;
+  role?: string | null;
+};
 
 function slugify(input: string) {
   return input
@@ -35,6 +42,10 @@ export default function AdminBlogCreatePage() {
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [status, setStatus] = useState<"draft" | "published">("draft");
+  const [category, setCategory] = useState("");
+  const [tags, setTags] = useState("");
+  const [authorId, setAuthorId] = useState<number | "">("");
+  const [author, setAuthor] = useState<AuthorOption | null>(null);
 
   const [excerpt, setExcerpt] = useState("Short excerpt for listing card...");
   const [coverImage, setCoverImage] = useState<AdminImage | null>(null);
@@ -46,6 +57,37 @@ export default function AdminBlogCreatePage() {
   const [seoTitle, setSeoTitle] = useState("");
   const [seoMetaDescription, setSeoMetaDescription] = useState("");
   const [metaKeywords, setMetaKeywords] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await Fetch("/api/admin/blog-author", { auth: true, cache: "no-store" });
+        if (!cancelled && res.ok && res.data) {
+          const row = res.data as AuthorOption;
+          setAuthor(row);
+          if (row.id) setAuthorId(row.id);
+        }
+      } catch {
+        // Author is optional for draft creation.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const seoPreview = useMemo(
+    () => ({
+      title: seoTitle.trim() || title.trim() || "Untitled blog post",
+      description:
+        seoMetaDescription.trim() ||
+        excerpt.trim() ||
+        "Add a meta description so searchers understand this article.",
+      url: `/blog/${slug || slugify(title) || "post-slug"}`,
+    }),
+    [excerpt, seoMetaDescription, seoTitle, slug, title]
+  );
 
   async function onSave() {
     setMsg(null);
@@ -62,6 +104,9 @@ export default function AdminBlogCreatePage() {
         coverImage: coverImage?.url || undefined,
         coverAlt: coverImage?.alt || undefined,
         contentHtml: html,
+        category: category || undefined,
+        tags,
+        authorId: authorId || undefined,
         isPublished: status === "published",
         metaTitle: seoTitle || undefined,
         metaDescription: seoMetaDescription || undefined,
@@ -93,6 +138,8 @@ export default function AdminBlogCreatePage() {
       setTitle("");
       setSlug("");
       setStatus("draft");
+      setCategory("");
+      setTags("");
     } catch (e: any) {
       setMsg(e?.message || "Failed to save.");
     } finally {
@@ -137,7 +184,10 @@ export default function AdminBlogCreatePage() {
         <div className="mt-8 grid gap-6 lg:grid-cols-12">
           <div className="lg:col-span-8 space-y-6">
             <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
-              <p className="text-sm font-semibold">Content</p>
+              <p className="text-sm font-semibold">Basics</p>
+              <p className="mt-1 text-xs text-neutral-500">
+                Same pattern as pages: basics first, then long content, FAQs, products, media, and SEO.
+              </p>
 
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 <div>
@@ -150,7 +200,7 @@ export default function AdminBlogCreatePage() {
                       if (!slug) setSlug(slugify(v));
                     }}
                     className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-900"
-                    placeholder="How to Buy Luxury Watches in Pakistan"
+                    placeholder="How to Choose the Right Product"
                   />
                 </div>
 
@@ -160,7 +210,7 @@ export default function AdminBlogCreatePage() {
                     value={slug}
                     onChange={(e) => setSlug(slugify(e.target.value))}
                     className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-900"
-                    placeholder="buy-luxury-watches-pakistan"
+                    placeholder="how-to-choose-the-right-product"
                   />
                 </div>
               </div>
@@ -177,6 +227,48 @@ export default function AdminBlogCreatePage() {
                     <option value="published">Published</option>
                   </select>
                 </div>
+                <div>
+                  <label className="text-xs font-medium text-neutral-700">Author</label>
+                  <select
+                    value={authorId}
+                    onChange={(e) => setAuthorId(e.target.value ? Number(e.target.value) : "")}
+                    className="mt-1 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none focus:border-neutral-900"
+                  >
+                    <option value="">No author selected</option>
+                    {author?.id ? (
+                      <option value={author.id}>
+                        {author.name}
+                        {author.role ? ` - ${author.role}` : ""}
+                      </option>
+                    ) : null}
+                  </select>
+                  <p className="mt-1 text-xs text-neutral-500">
+                    Manage the profile from Blog &gt; Author profile.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="text-xs font-medium text-neutral-700">Category</label>
+                  <input
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-900"
+                    placeholder="Buying Guide"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-neutral-700">Tags</label>
+                  <input
+                    value={tags}
+                    onChange={(e) => setTags(e.target.value)}
+                    className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-900"
+                    placeholder="COD, Delivery, Product Tips"
+                  />
+                  <p className="mt-1 text-xs text-neutral-500">Separate tags with commas.</p>
+                </div>
               </div>
 
               <div className="mt-4">
@@ -190,12 +282,12 @@ export default function AdminBlogCreatePage() {
               </div>
 
               <div className="mt-4">
-                <label className="text-xs font-medium text-neutral-700">HTML content</label>
+                <label className="text-xs font-medium text-neutral-700">
+                  Long description / article content
+                </label>
                 <RichEditor value={html} onChange={setHtml} />
               </div>
             </div>
-
-            <BlogProductSelector value={productSelections} onChange={setProductSelections} />
 
             <FaqEditor
               value={faqItems}
@@ -203,6 +295,8 @@ export default function AdminBlogCreatePage() {
               title="Blog FAQs"
               hint="Add post-specific FAQs that can appear below the blog content."
             />
+
+            <BlogProductSelector value={productSelections} onChange={setProductSelections} />
           </div>
 
           <aside className="lg:col-span-4 space-y-6">
@@ -216,7 +310,10 @@ export default function AdminBlogCreatePage() {
             />
 
             <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
-              <p className="text-sm font-semibold">SEO meta</p>
+              <p className="text-sm font-semibold">SEO metadata</p>
+              <p className="mt-1 text-xs text-neutral-500">
+                Preview how this post may appear in search results.
+              </p>
 
               <div className="mt-4">
                 <label className="text-xs font-medium text-neutral-700">SEO title</label>
@@ -244,6 +341,17 @@ export default function AdminBlogCreatePage() {
                   onChange={(e) => setMetaKeywords(e.target.value)}
                   className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-900"
                 />
+              </div>
+
+              <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+                <p className="text-xs font-semibold text-neutral-700">Search preview</p>
+                <p className="mt-2 line-clamp-1 text-sm font-semibold text-blue-700">
+                  {seoPreview.title}
+                </p>
+                <p className="mt-1 text-xs text-emerald-700">{seoPreview.url}</p>
+                <p className="mt-2 line-clamp-3 text-xs leading-5 text-neutral-600">
+                  {seoPreview.description}
+                </p>
               </div>
             </div>
           </aside>

@@ -4,7 +4,7 @@ const baseUrl = normalizeSiteUrl();
 
 export const metadata = {
   title: "Admin",
-  description: "Admin area for LuxStore staff.",
+  description: "Admin area for store staff.",
   alternates: { canonical: `${baseUrl}/admin` },
   robots: { index: false, follow: false },
 };

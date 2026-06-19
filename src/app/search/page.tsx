@@ -18,10 +18,10 @@ export async function generateMetadata({ searchParams }: SearchPageProps) {
   const { q } = await searchParams;
   const query = (q ?? "").trim();
   const shopUrl = canonicalUrl("/shop");
-  const title = query ? `Search: ${query}` : "Search water bottles, kids bottles, school bottles...";
+  const title = query ? `Search: ${query}` : "Search products, categories, or deals";
   const description = query
     ? `Search results for "${query}" on Sahoolat.`
-    : "Search and find the best water bottles online in Pakistan. Discover top products at Sahoolat.";
+    : "Search and find products online in Pakistan. Discover top products and current offers.";
 
   return {
     title,
@@ -70,7 +70,12 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const items = rows.slice(0, 20).map((p) => ({
     name: p.name ?? "Product",
     url: absoluteUrl(`/product/${p.slug}`, baseUrlResolved),
-    image: p.images?.[0]?.url ? absoluteUrl(p.images[0].url, baseUrlResolved) : undefined,
+    image: (() => {
+      const firstImage = [...(p.images ?? [])]
+        .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+        .find((image: any) => (image.mediaType ?? "image") === "image");
+      return firstImage?.url ? absoluteUrl(firstImage.url, baseUrlResolved) : undefined;
+    })(),
   }));
   const searchResultsSchema = query && items.length > 0
     ? itemListSchema({ url: pageUrl, items })
@@ -121,8 +126,9 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           <div className="mt-6 grid gap-3 max-[420px]:grid-cols-1 min-[421px]:grid-cols-2 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {rows.map((p) => {
               const sortedImages = [...(p.images ?? [])].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-              const img = sortedImages[0]?.url || "https://images.unsplash.com/photo-1523275335684-37898b6baf30";
-              const imgAlt = sortedImages[0]?.alt || p.name;
+              const imageItems = sortedImages.filter((img: any) => (img.mediaType ?? "image") === "image");
+              const img = imageItems[0]?.url || "https://images.unsplash.com/photo-1523275335684-37898b6baf30";
+              const imgAlt = imageItems[0]?.alt || p.name;
               return (
                 <ProductCard
                   key={p.id}
@@ -136,6 +142,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                     reviews: p.reviewsCount ?? 0,
                     image: img,
                     imageAlt: imgAlt,
+                    hoverImage: imageItems[1]?.url,
+                    hoverImageAlt: imageItems[1]?.alt || p.name,
                     shortDesc: p.shortDesc ?? undefined,
                     href: `/product/${p.slug}`,
                   }}

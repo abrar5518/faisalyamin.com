@@ -6,6 +6,9 @@ import { withImageParams } from "@/lib/image";
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/components/cart/CartProvider";
+import { useGlobalCopy } from "@/components/GlobalCopyProvider";
+import type { CatalogTemplateSettings } from "@/lib/catalogSettings";
+import { renderCatalogTemplate } from "@/lib/catalogSettings";
 import { trackViewItem } from "@/lib/googleAnalytics";
 import { trackViewContent } from "@/lib/metaPixel";
 
@@ -17,6 +20,13 @@ export type Variant = {
   imageAlts: string[];
   price: string;
   compareAt?: string;
+};
+
+export type ProductMediaItem = {
+  type: "image" | "video";
+  url: string;
+  alt?: string;
+  thumbnailUrl?: string;
 };
 
 export type ProductData = {
@@ -32,6 +42,7 @@ export type ProductData = {
   seoDescription: string;
   images: string[];
   imageAlts: string[];
+  media: ProductMediaItem[];
   sizes: string[];
   variants: Variant[];
   hasVariants?: boolean;
@@ -105,7 +116,15 @@ function HeartIcon({ filled }: { filled: boolean }) {
   );
 }
 
-function Stars({ rating, reviews }: { rating: number; reviews: number }) {
+function Stars({
+  rating,
+  reviews,
+  supportText,
+}: {
+  rating: number;
+  reviews: number;
+  supportText: string;
+}) {
   const full = Math.floor(rating);
   return (
     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -120,7 +139,7 @@ function Stars({ rating, reviews }: { rating: number; reviews: number }) {
       </span>
       <span className="hidden sm:inline text-neutral-300">-</span>
       <span className="text-xs text-neutral-500">
-        Quality checked before dispatch
+        {supportText}
       </span>
     </div>
   );
@@ -143,18 +162,31 @@ function TrustItem({ title, desc }: { title: string; desc: string }) {
   );
 }
 
-export default function ProductClient({ product }: { product: ProductData }) {
+function imageMedia(url: string, alt?: string): ProductMediaItem {
+  return { type: "image", url, alt };
+}
+
+export default function ProductClient({
+  product,
+  catalogSettings,
+  shippingFee,
+}: {
+  product: ProductData;
+  catalogSettings: CatalogTemplateSettings;
+  shippingFee: string;
+}) {
   const { addItem } = useCart();
+  const globalCopy = useGlobalCopy();
   const router = useRouter();
   const initialVariant = product.variants[0];
   const [variant, setVariant] = useState<Variant>(initialVariant);
   const [variantSelected, setVariantSelected] = useState(false);
-  const [image, setImage] = useState(product.images[0] ?? initialVariant.images[0] ?? "");
+  const initialMedia = product.media[0] ?? imageMedia(product.images[0] ?? initialVariant.images[0] ?? "", product.imageAlts[0]);
+  const [activeMedia, setActiveMedia] = useState<ProductMediaItem>(initialMedia);
   const [imageIndex, setImageIndex] = useState(0);
   const [size, setSize] = useState(product.sizes[0] || "");
   const [qty, setQty] = useState(1);
   const [tab, setTab] = useState<"description" | "reviews" | "shipping">("description");
-  const shippingFee = "250";
   const [wishlisted, setWishlisted] = useState(false);
   const [wishlistBusy, setWishlistBusy] = useState(false);
   const [isAuthed, setIsAuthed] = useState<boolean | null>(null);
@@ -163,6 +195,8 @@ export default function ProductClient({ product }: { product: ProductData }) {
   const [reviewMsg, setReviewMsg] = useState<string | null>(null);
   const [reviewBusy, setReviewBusy] = useState(false);
   const [reviewUploading, setReviewUploading] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [zoom, setZoom] = useState(1);
   const viewContentTracked = useRef(false);
 
   useEffect(() => {
@@ -201,14 +235,18 @@ export default function ProductClient({ product }: { product: ProductData }) {
     };
   }, []);
 
-  const images = useMemo(
-    () => (variantSelected ? variant.images : product.images),
-    [product.images, variant.images, variantSelected]
-  );
   const imageAlts = useMemo(
     () => (variantSelected ? variant.imageAlts : product.imageAlts),
     [product.imageAlts, variant.imageAlts, variantSelected]
   );
+  const galleryMedia = useMemo<ProductMediaItem[]>(() => {
+    if (variantSelected) {
+      return variant.images.map((url, idx) => imageMedia(url, variant.imageAlts[idx] || product.name));
+    }
+
+    if (product.media.length) return product.media;
+    return product.images.map((url, idx) => imageMedia(url, product.imageAlts[idx] || product.name));
+  }, [product.imageAlts, product.images, product.media, product.name, variant.imageAlts, variant.images, variantSelected]);
   const activePrice = useMemo(() => parsePKR(variant.price) ?? 0, [variant]);
   const compareAt = useMemo(() => parsePKR(variant.compareAt), [variant]);
 
@@ -217,6 +255,13 @@ export default function ProductClient({ product }: { product: ProductData }) {
     const pct = Math.round(((compareAt - activePrice) / compareAt) * 100);
     return pct > 0 ? pct : null;
   }, [compareAt, activePrice]);
+
+  useEffect(() => {
+    const current = galleryMedia[imageIndex];
+    if (current) {
+      setActiveMedia(current);
+    }
+  }, [galleryMedia, imageIndex]);
 
   useEffect(() => {
     if (viewContentTracked.current) return;
@@ -240,8 +285,9 @@ export default function ProductClient({ product }: { product: ProductData }) {
   const onSelectVariant = (v: Variant) => {
     setVariantSelected(true);
     setVariant(v);
-    setImage(v.images[0]);
+    setActiveMedia(imageMedia(v.images[0] ?? "", v.imageAlts[0] || product.name));
     setImageIndex(0);
+    setLightboxOpen(false);
   };
 
   const decQty = () => setQty((q) => Math.max(1, q - 1));
@@ -396,50 +442,101 @@ export default function ProductClient({ product }: { product: ProductData }) {
             <div className="lg:col-span-7">
               <div className="relative overflow-hidden rounded-3xl border border-neutral-200 bg-neutral-100">
                 <div className="aspect-square">
-                  <Image
-                    src={withImageParams(image, "auto=format&fit=crop&w=1600&q=90")}
-                    alt={imageAlts[imageIndex] || product.name}
-                    width={1600}
-                    height={1600}
-                    className="h-full w-full object-cover"
-                    loading="lazy"
-                  />
+                  {activeMedia.type === "video" ? (
+                    <video
+                      src={activeMedia.url}
+                      poster={activeMedia.thumbnailUrl || product.images[0]}
+                      className="h-full w-full bg-black object-contain"
+                      controls
+                      playsInline
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setZoom(1);
+                        setLightboxOpen(true);
+                      }}
+                      className="block h-full w-full cursor-zoom-in"
+                      aria-label="Open product image preview"
+                    >
+                      <Image
+                        src={withImageParams(activeMedia.url, "auto=format&fit=crop&w=1600&q=90")}
+                        alt={activeMedia.alt || imageAlts[imageIndex] || product.name}
+                        width={1600}
+                        height={1600}
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                      />
+                    </button>
+                  )}
                 </div>
 
                 {/* top-left badge area */}
                 <div className="pointer-events-none absolute left-4 top-4 flex flex-wrap gap-2">
-                  <Pill>Quality Checked</Pill>
-                  <Pill>Insured Shipping</Pill>
+                  {catalogSettings.productGalleryBadges.map((badge) => (
+                    <Pill key={badge}>{badge}</Pill>
+                  ))}
                   {discountPct ? <Pill>{discountPct}% off</Pill> : null}
                 </div>
+
+                {activeMedia.type === "image" ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setZoom(1);
+                      setLightboxOpen(true);
+                    }}
+                    className="absolute bottom-4 right-4 rounded-full bg-white/90 px-4 py-2 text-xs font-medium text-neutral-900 shadow-sm backdrop-blur hover:bg-white"
+                  >
+                    View larger
+                  </button>
+                ) : null}
               </div>
 
               {/* Thumbnails */}
               <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
-                {images.map((img, idx) => {
-                  const active = image === img;
+                {galleryMedia.map((item, idx) => {
+                  const active = activeMedia.url === item.url && activeMedia.type === item.type;
+                  const thumb = item.type === "video" ? item.thumbnailUrl || product.images[0] : item.url;
                   return (
                     <button
-                      key={img}
+                      key={`${item.type}-${item.url}-${idx}`}
                       onClick={() => {
-                        setImage(img);
+                        setActiveMedia(item);
                         setImageIndex(idx);
+                        setZoom(1);
                       }}
                       className={[
                         "group aspect-square overflow-hidden rounded-2xl border bg-white",
                         "focus:outline-none focus:ring-2 focus:ring-neutral-900/20",
                         active ? "border-neutral-900" : "border-neutral-200 hover:border-neutral-300",
                       ].join(" ")}
-                      aria-label={`Select ${imageAlts[idx] || `image ${idx + 1}`}`}
+                      aria-label={`Select ${item.type === "video" ? "video" : "image"} ${idx + 1}`}
                     >
-                      <Image
-                        src={withImageParams(img, "auto=format&fit=crop&w=320&q=80")}
-                        alt={imageAlts[idx] || product.name}
-                        width={320}
-                        height={320}
-                        className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.03]"
-                        loading="lazy"
-                      />
+                      <div className="relative h-full w-full">
+                        {thumb ? (
+                          <Image
+                            src={withImageParams(thumb, "auto=format&fit=crop&w=320&q=80")}
+                            alt={item.alt || product.name}
+                            width={320}
+                            height={320}
+                            className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.03]"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-neutral-950 text-xs font-medium text-white">
+                            Video
+                          </div>
+                        )}
+                        {item.type === "video" ? (
+                          <span className="absolute inset-0 flex items-center justify-center bg-black/20">
+                            <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-sm font-semibold text-neutral-900 shadow-sm">
+                              ▶
+                            </span>
+                          </span>
+                        ) : null}
+                      </div>
                     </button>
                   );
                 })}
@@ -447,9 +544,9 @@ export default function ProductClient({ product }: { product: ProductData }) {
 
               {/* Under-gallery micro info */}
               <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                <TrustItem title="Quality checked" desc="Bottle body, lid, straw, handle, and seal inspected." />
-                <TrustItem title="Secure checkout" desc="Protected payments and order confirmation checks." />
-                <TrustItem title="Fast dispatch" desc="Ships across Pakistan in 24-48 hours after confirmation." />
+                {catalogSettings.productGalleryTrustItems.map((item) => (
+                  <TrustItem key={item.title || item.text} title={item.title} desc={item.text} />
+                ))}
               </div>
             </div>
 
@@ -467,7 +564,11 @@ export default function ProductClient({ product }: { product: ProductData }) {
                   </h1>
 
                   <div className="mt-3 flex flex-wrap items-center gap-3 sm:flex-nowrap sm:justify-between">
-                    <Stars rating={product.rating} reviews={product.reviews} />
+                    <Stars
+                      rating={product.rating}
+                      reviews={product.reviews}
+                      supportText={globalCopy.trust.qualityText}
+                    />
                     <button
                       type="button"
                       onClick={toggleWishlist}
@@ -493,7 +594,7 @@ export default function ProductClient({ product }: { product: ProductData }) {
                   <div className="mt-6 rounded-2xl border border-neutral-200 bg-neutral-50 p-5">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                       <div>
-                        <p className="text-xs text-neutral-500">Price</p>
+                        <p className="text-xs text-neutral-500">{catalogSettings.productPriceLabel}</p>
                         <div className="mt-1 flex items-baseline gap-3">
                           <p className="text-3xl font-bold tracking-tight">
                             {variant.price}
@@ -505,7 +606,9 @@ export default function ProductClient({ product }: { product: ProductData }) {
                           ) : null}
                         </div>
                         <p className="mt-1 text-xs text-neutral-500">
-                          Inclusive of applicable taxes. Standard shipping is PKR {shippingFee} across Pakistan.
+                          {renderCatalogTemplate(catalogSettings.productShippingNote, {
+                            shipping: shippingFee,
+                          })}
                         </p>
                       </div>
 
@@ -590,7 +693,7 @@ export default function ProductClient({ product }: { product: ProductData }) {
                         })}
                       </div>
                       <p className="mt-2 text-xs text-neutral-500">
-                        Need help choosing? Chat with support for sizing guidance.
+                        {catalogSettings.productSizeHelper}
                       </p>
                     </div>
                   ) : null}
@@ -624,25 +727,25 @@ export default function ProductClient({ product }: { product: ProductData }) {
                       onClick={onBuyNow}
                       className="rounded-2xl cursor-pointer bg-neutral-900 px-6 py-4 text-sm font-medium text-white hover:bg-neutral-800"
                     >
-                      Buy Now
+                      {globalCopy.product.buyNow}
                     </button>
                     <button
                       onClick={() => onAddToCart()}
                       className="rounded-2xl cursor-pointer border border-neutral-200 px-6 py-4 text-sm font-medium hover:bg-neutral-50"
                     >
-                      Add to Cart
+                      {globalCopy.product.addToCart}
                     </button>
                   </div>
 
                   {/* Trust strip (below CTA) */}
                   <div className="mt-6 grid gap-3 sm:grid-cols-3">
                     <div className="rounded-2xl bg-neutral-50 p-3">
-                      <p className="text-xs font-semibold">Quality</p>
-                      <p className="mt-0.5 text-[11px] text-neutral-600">Checked before shipping</p>
+                      <p className="text-xs font-semibold">{globalCopy.trust.qualityTitle}</p>
+                      <p className="mt-0.5 text-[11px] text-neutral-600">{globalCopy.trust.qualityText}</p>
                     </div>
                     <div className="rounded-2xl bg-neutral-50 p-3">
-                      <p className="text-xs font-semibold">Shipping</p>
-                      <p className="mt-0.5 text-[11px] text-neutral-600">Insured Pakistan delivery</p>
+                      <p className="text-xs font-semibold">{globalCopy.trust.shippingTitle}</p>
+                      <p className="mt-0.5 text-[11px] text-neutral-600">{globalCopy.trust.shippingText}</p>
                     </div>
                     <div className="rounded-2xl bg-neutral-50 p-3">
                       <p className="text-xs font-semibold">Returns</p>
@@ -652,7 +755,7 @@ export default function ProductClient({ product }: { product: ProductData }) {
 
                   {/* Fine print */}
                   <p className="mt-5 text-xs text-neutral-500">
-                    By purchasing, you agree to our Terms, Shipping, and Returns policy. Color and accessory availability may vary by variant.
+                    {catalogSettings.productFinePrint}
                   </p>
                 </div>
               </div>
@@ -664,9 +767,9 @@ export default function ProductClient({ product }: { product: ProductData }) {
             <div className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8">
               <div className="flex flex-wrap gap-2 border-b border-neutral-200 pb-3 text-sm">
                 {[
-                  { id: "description", label: "Description" },
-                  { id: "reviews", label: "Reviews" },
-                  { id: "shipping", label: "Shipping & Returns" },
+                  { id: "description", label: catalogSettings.productDescriptionTabLabel },
+                  { id: "reviews", label: catalogSettings.productReviewsTabLabel },
+                  { id: "shipping", label: catalogSettings.productShippingTabLabel },
                 ].map((t) => {
                   const active = tab === t.id;
                   return (
@@ -699,7 +802,9 @@ export default function ProductClient({ product }: { product: ProductData }) {
                     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
                       <div className="space-y-5">
                         <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-5">
-                          <p className="text-sm font-semibold text-neutral-900">Customer reviews</p>
+                          <p className="text-sm font-semibold text-neutral-900">
+                            {catalogSettings.productReviewsTitle}
+                          </p>
                           <div className="mt-2 flex items-center gap-3">
                             <StarRow rating={product.rating} />
                             <p className="text-sm text-neutral-600">
@@ -710,7 +815,7 @@ export default function ProductClient({ product }: { product: ProductData }) {
                             </p>
                           </div>
                           <p className="mt-2 text-xs text-neutral-500">
-                            Real customer feedback to help you shop with confidence.
+                            {catalogSettings.productReviewsIntro}
                           </p>
                         </div>
 
@@ -894,17 +999,15 @@ export default function ProductClient({ product }: { product: ProductData }) {
 
                 {tab === "shipping" && (
                   <div className="space-y-3">
-                    <p className="text-sm text-neutral-700">
-                      We deliver orders across Pakistan only. Orders are normally processed and dispatched within 24-48 hours after confirmation. Standard shipping is PKR 250 and is shown at checkout before you place your order.
-                    </p>
-                    <ul className="list-disc pl-5 text-sm text-neutral-600">
-                      <li>Insured door-to-door delivery within courier serviceable areas in Pakistan.</li>
-                      <li>Estimated delivery is usually 3-7 business days, depending on city and courier coverage.</li>
-                      <li>Cash on Delivery orders may be confirmed by phone or WhatsApp before dispatch.</li>
-                      <li>7-day returns are accepted for defective and non-defective products in original condition with packaging and accessories.</li>
-                      <li>Customers can request a return through <a href="https://wa.me/923018980125" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">WhatsApp</a>, <a href="mailto:info@sahoolat.com" className="text-blue-500 hover:underline">email</a>, or the returns page. Refunds are processed after inspection and approval.</li>
-                      <li>Return shipping fees apply for change-of-mind returns; Sahoolat covers return shipping for wrong, damaged, or defective items.</li>
-                    </ul>
+                    <div
+                      className="rt-content"
+                      dangerouslySetInnerHTML={{
+                        __html: renderCatalogTemplate(
+                          catalogSettings.productShippingReturnsHtml,
+                          { shipping: shippingFee }
+                        ),
+                      }}
+                    />
                   </div>
                 )}
               </div>
@@ -912,6 +1015,65 @@ export default function ProductClient({ product }: { product: ProductData }) {
           </div>
 
       </Container>
+
+      {lightboxOpen && activeMedia.type === "image" ? (
+        <div className="fixed inset-0 z-[80] bg-black/90 text-white">
+          <div className="absolute left-4 right-4 top-4 z-10 flex flex-wrap items-center justify-between gap-3">
+            <p className="line-clamp-1 text-sm font-medium">{product.name}</p>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setZoom((value) => Math.max(1, Number((value - 0.25).toFixed(2))))}
+                className="rounded-full bg-white/10 px-4 py-2 text-sm backdrop-blur hover:bg-white/20"
+              >
+                -
+              </button>
+              <button
+                type="button"
+                onClick={() => setZoom(1)}
+                className="rounded-full bg-white/10 px-4 py-2 text-sm backdrop-blur hover:bg-white/20"
+              >
+                {Math.round(zoom * 100)}%
+              </button>
+              <button
+                type="button"
+                onClick={() => setZoom((value) => Math.min(3, Number((value + 0.25).toFixed(2))))}
+                className="rounded-full bg-white/10 px-4 py-2 text-sm backdrop-blur hover:bg-white/20"
+              >
+                +
+              </button>
+              <button
+                type="button"
+                onClick={() => setLightboxOpen(false)}
+                className="rounded-full bg-white px-4 py-2 text-sm font-medium text-neutral-950 hover:bg-neutral-100"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="absolute inset-0"
+            onClick={() => setLightboxOpen(false)}
+            aria-label="Close image preview"
+          />
+          <div className="pointer-events-none flex h-full w-full items-center justify-center overflow-auto p-4 sm:p-10">
+            <div
+              className="relative h-[82vh] w-full max-w-6xl transition-transform duration-200"
+              style={{ transform: `scale(${zoom})` }}
+            >
+              <Image
+                src={withImageParams(activeMedia.url, "auto=format&fit=contain&w=2200&q=95")}
+                alt={activeMedia.alt || product.name}
+                fill
+                sizes="100vw"
+                className="object-contain"
+                priority
+              />
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {/* Mobile sticky CTA bar */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-neutral-200 bg-white/90 backdrop-blur lg:hidden">
@@ -927,13 +1089,13 @@ export default function ProductClient({ product }: { product: ProductData }) {
             onClick={onBuyNow}
             className="ml-auto rounded-2xl bg-neutral-900 px-4 py-3 text-sm font-medium text-white hover:bg-neutral-800"
           >
-            Buy Now
+            {globalCopy.product.buyNow}
           </button>
           <button
             onClick={() => onAddToCart()}
             className="rounded-2xl border border-neutral-200 px-4 py-3 text-sm font-medium hover:bg-neutral-50"
           >
-            Cart
+            {globalCopy.product.mobileCartShort}
           </button>
         </div>
       </div>

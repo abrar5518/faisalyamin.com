@@ -7,8 +7,8 @@ import { Fetch } from "@/lib/fetch";
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("admin@luxstore.com");
-  const [password, setPassword] = useState("admin123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -46,10 +46,10 @@ export default function AdminLoginPage() {
         <div className="rounded-3xl border border-neutral-200 bg-white p-7 shadow-sm">
           <div className="flex items-center gap-3">
             <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-neutral-900 text-white text-sm font-semibold">
-              LX
+              A
             </span>
             <div>
-              <p className="text-sm font-semibold">LuxStore Admin</p>
+              <p className="text-sm font-semibold">Store Admin</p>
               <p className="text-xs text-neutral-500">Sign in to manage store</p>
             </div>
           </div>

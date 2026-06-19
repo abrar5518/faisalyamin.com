@@ -9,7 +9,7 @@ declare global {
 
 const CURRENCY = "PKR";
 const ITEM_BRAND = "Sahoolat";
-const DEFAULT_CATEGORY = "Water Bottles";
+const DEFAULT_CATEGORY = "Products";
 const DEDUPE_WINDOW_MS = 500;
 
 type ProductLike = {

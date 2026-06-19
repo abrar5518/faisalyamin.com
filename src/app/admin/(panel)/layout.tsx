@@ -12,7 +12,7 @@ const baseUrl = normalizeSiteUrl();
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await prisma.siteSettings.findFirst({ orderBy: { id: "asc" } });
-  const siteName = settings?.siteName?.trim() || "LuxStore";
+  const siteName = settings?.siteName?.trim() || "Store Admin";
 
   return {
     title: `Admin Panel | ${siteName}`,

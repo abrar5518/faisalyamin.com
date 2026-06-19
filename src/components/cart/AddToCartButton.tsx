@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { useCart } from "@/components/cart/CartProvider";
+import { useGlobalCopy } from "@/components/GlobalCopyProvider";
 
 function parsePriceLabel(label: string) {
   const parts = label.trim().split(/\s+/);
@@ -45,6 +46,7 @@ export default function AddToCartButton({
   className?: string;
 }) {
   const { addItem } = useCart();
+  const globalCopy = useGlobalCopy();
   const price = useMemo(() => parsePriceLabel(priceLabel), [priceLabel]);
   const compareAt = compareAtLabel ? parsePriceLabel(compareAtLabel).amount : undefined;
 
@@ -73,7 +75,7 @@ export default function AddToCartButton({
         });
       }}
     >
-      Add to Cart
+      {globalCopy.product.addToCart}
     </button>
   );
 }

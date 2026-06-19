@@ -1,18 +1,24 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import ManagedPageBody from "@/components/ManagedPageBody";
 import { prisma } from "@/lib/prisma";
 import Schema from "@/components/seo/Schema";
 import { absoluteUrl, contactPageSchema, organizationSchema } from "@/components/seo/schemas";
+import {
+  buildManagedPageMetadata,
+  hasManagedPageBody,
+} from "@/lib/managedPage";
 import { normalizeSiteUrl } from "@/lib/siteUrl";
 
 const baseUrl = normalizeSiteUrl();
 
-export const metadata: Metadata = {
-  title: "Contact Us – Sahoolat Pakistan",
-  description: "Get in touch with Sahoolat Pakistan for support, sales inquiries, and delivery questions. Contact our water bottle store for assistance.",
-  keywords: "contact Sahoolat, customer support Pakistan, water bottle store contact",
-  alternates: { canonical: `${baseUrl}/contact` },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return buildManagedPageMetadata("contact", {
+    title: "Contact Us | Customer Support",
+    description: "Get in touch for support, sales inquiries, delivery questions, and order assistance.",
+    keywords: "contact, customer support Pakistan, order support, ecommerce support",
+  });
+}
 
 function Container({ children }: { children: React.ReactNode }) {
   return (
@@ -23,10 +29,12 @@ function Container({ children }: { children: React.ReactNode }) {
 }
 
 export default async function ContactPage() {
-  const [contact, siteSettings] = await Promise.all([
+  const [contact, siteSettings, page] = await Promise.all([
     prisma.contact.findFirst({ orderBy: { id: "asc" } }),
     prisma.siteSettings.findFirst({ orderBy: { id: "asc" } }),
+    prisma.page.findUnique({ where: { slug: "contact" } }),
   ]);
+  const hasManagedContent = hasManagedPageBody(page);
 
   const address = [
     contact?.addressLine1,
@@ -83,15 +91,19 @@ export default async function ContactPage() {
           <div className="grid gap-8 py-10 lg:grid-cols-12">
             <div className="lg:col-span-7">
               <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-                Contact us
+                {page?.heroTitle || page?.title || "Contact us"}
               </h1>
               <p className="mt-3 text-sm text-neutral-600 sm:text-base">
-                Reach out for order support, shipping, or product questions.
+                {page?.heroSubtitle ||
+                  page?.shortDescription ||
+                  "Reach out for order support, shipping, or product questions."}
               </p>
             </div>
           </div>
         </Container>
       </section>
+
+      {hasManagedContent ? <ManagedPageBody page={page} /> : null}
 
       <section className="bg-white py-12">
         <Container>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -13,6 +13,14 @@ import {
 } from "lucide-react";
 import type { CartItem } from "@/components/cart/CartProvider";
 import { withImageParams } from "@/lib/image";
+import { useGlobalCopy } from "@/components/GlobalCopyProvider";
+import {
+  DEFAULT_CART_SETTINGS,
+  parseCartSettings,
+  parseMoneySetting,
+  type CartSettings,
+} from "@/lib/cartSettings";
+import { renderCopyTemplate } from "@/lib/globalCopy";
 
 type CartSidebarProps = {
   items: CartItem[];
@@ -39,12 +47,62 @@ export default function CartSidebar({
   onUpdateQty,
   onRemoveItem,
 }: CartSidebarProps) {
+  const globalCopy = useGlobalCopy();
+  const [cartSettings, setCartSettings] = useState<CartSettings>(DEFAULT_CART_SETTINGS);
+  const [shippingFee, setShippingFee] = useState(250);
+  const [freeShippingThreshold, setFreeShippingThreshold] = useState(0);
   const subtotal = useMemo(
     () => items.reduce((sum, item) => sum + item.price * item.qty, 0),
     [items],
   );
   const currency = items[0]?.currency || "PKR";
   const empty = items.length === 0;
+  const remainingForFreeShipping = Math.max(0, freeShippingThreshold - subtotal);
+  const freeShippingUnlocked =
+    freeShippingThreshold > 0 && subtotal > 0 && remainingForFreeShipping === 0;
+  const shippingMessage =
+    cartSettings.showFreeShippingProgress && freeShippingThreshold > 0
+      ? freeShippingUnlocked
+        ? globalCopy.cart.freeShippingUnlocked
+        : renderCopyTemplate(globalCopy.cart.freeShippingProgress, {
+            amount: formatMoney(remainingForFreeShipping, currency),
+          })
+      : globalCopy.cart.shippingNote;
+  const drawerShippingNote = renderCopyTemplate(globalCopy.cart.shippingNote, {
+    shipping: formatMoney(shippingFee, currency),
+    freeShippingMessage: shippingMessage,
+  });
+
+  useEffect(() => {
+    let active = true;
+
+    (async () => {
+      const [siteRes, storeRes] = await Promise.all([
+        fetch("/api/site-settings", { cache: "no-store" }),
+        fetch("/api/store-settings", { cache: "no-store" }),
+      ]);
+      const [sitePayload, storePayload] = await Promise.all([
+        siteRes.json().catch(() => ({})),
+        storeRes.json().catch(() => ({})),
+      ]);
+
+      if (!active) return;
+
+      if (siteRes.ok && sitePayload?.ok) {
+        setCartSettings(parseCartSettings(sitePayload.data?.cartSettings));
+      }
+      if (storeRes.ok && storePayload?.ok) {
+        setShippingFee(parseMoneySetting(storePayload.data?.defaultShippingFee, 250));
+        setFreeShippingThreshold(
+          parseMoneySetting(storePayload.data?.freeShippingThreshold, 0)
+        );
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -95,15 +153,17 @@ export default function CartSidebar({
       >
         <header className="border-b border-neutral-200 px-5 py-4 sm:px-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-neutral-900 text-white">
+            <div className="theme-primary-action flex h-11 w-11 items-center justify-center rounded-2xl bg-neutral-900 text-white">
               <ShoppingCart className="h-5 w-5" aria-hidden="true" />
             </div>
             <div className="min-w-0">
               <h2 id="cart-sidebar-title" className="text-base font-semibold">
-                Your cart
+                {globalCopy.cart.drawerTitle}
               </h2>
               <p className="mt-0.5 text-xs text-neutral-500">
-                {totalItems} {totalItems === 1 ? "item" : "items"} ready for checkout
+                {renderCopyTemplate(globalCopy.cart.drawerSubtitle, {
+                  count: totalItems,
+                })}
               </p>
             </div>
             <button
@@ -122,17 +182,16 @@ export default function CartSidebar({
             <div className="flex h-20 w-20 items-center justify-center rounded-full bg-neutral-100 text-neutral-500">
               <ShoppingBag className="h-8 w-8" aria-hidden="true" />
             </div>
-            <p className="mt-5 text-lg font-semibold">Your cart is empty</p>
+            <p className="mt-5 text-lg font-semibold">{globalCopy.cart.emptyTitle}</p>
             <p className="mt-2 max-w-xs text-sm leading-6 text-neutral-600">
-              Looks like you have not added anything yet. Find something useful
-              and we will keep it here.
+              {globalCopy.cart.emptyBody}
             </p>
             <Link
-              href="/shop"
+              href={cartSettings.continueShoppingHref}
               onClick={onClose}
-              className="mt-6 inline-flex items-center justify-center rounded-2xl bg-neutral-900 px-6 py-3 text-sm font-medium text-white transition hover:bg-neutral-800"
+              className="theme-primary-action mt-6 inline-flex items-center justify-center rounded-2xl bg-neutral-900 px-6 py-3 text-sm font-medium text-white transition hover:bg-neutral-800"
             >
-              Continue Shopping
+              {globalCopy.cart.continueShopping}
             </Link>
           </div>
         ) : (
@@ -145,7 +204,7 @@ export default function CartSidebar({
                   return (
                     <div
                       key={item.id}
-                      className="rounded-3xl border border-neutral-200 bg-white p-3 shadow-sm"
+                      className="theme-card rounded-3xl border border-neutral-200 bg-white p-3 shadow-sm"
                     >
                       <div className="flex gap-3">
                         <Link
@@ -240,7 +299,7 @@ export default function CartSidebar({
                           </div>
 
                           <p className="mt-2 text-right text-xs text-neutral-500">
-                            Line total{" "}
+                            {globalCopy.cart.lineTotal}{" "}
                             <span className="font-semibold text-neutral-900">
                               {formatMoney(lineTotal, item.currency)}
                             </span>
@@ -256,14 +315,24 @@ export default function CartSidebar({
             <footer className="border-t border-neutral-200 bg-white px-5 py-5 sm:px-6">
               <div className="rounded-3xl bg-neutral-50 p-4">
                 <div className="flex items-center justify-between gap-3">
-                  <span className="text-sm text-neutral-600">Subtotal</span>
+                  <span className="text-sm text-neutral-600">{globalCopy.cart.subtotal}</span>
                   <span className="text-lg font-semibold">
                     {formatMoney(subtotal, currency)}
                   </span>
                 </div>
                 <p className="mt-2 text-xs leading-5 text-neutral-500">
-                  Shipping and any discounts are calculated at checkout.
+                  {drawerShippingNote}
                 </p>
+                {cartSettings.showFreeShippingProgress && freeShippingThreshold > 0 ? (
+                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-neutral-200">
+                    <div
+                      className="theme-primary-action h-full rounded-full bg-neutral-900 transition-all"
+                      style={{
+                        width: `${Math.min(100, Math.round((subtotal / freeShippingThreshold) * 100))}%`,
+                      }}
+                    />
+                  </div>
+                ) : null}
               </div>
 
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -272,14 +341,14 @@ export default function CartSidebar({
                   onClick={onClose}
                   className="inline-flex items-center justify-center rounded-2xl border border-neutral-200 bg-white px-5 py-3 text-sm font-semibold text-neutral-900 transition hover:bg-neutral-50"
                 >
-                  View Cart
+                  {globalCopy.cart.viewCart}
                 </Link>
                 <Link
                   href="/checkout"
                   onClick={onClose}
-                  className="inline-flex items-center justify-center rounded-2xl bg-neutral-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-neutral-800"
+                  className="theme-primary-action inline-flex items-center justify-center rounded-2xl bg-neutral-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-neutral-800"
                 >
-                  Checkout
+                  {globalCopy.cart.checkout}
                 </Link>
               </div>
             </footer>

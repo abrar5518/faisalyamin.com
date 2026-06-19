@@ -5,6 +5,7 @@ import { withImageParams } from "@/lib/image";
 import CategoryCard, { Category } from "@/components/CategoryCard";
 import ProductCard, { Product } from "@/components/ProductCard";
 import SaleCarousel from "@/components/home/SaleCarousel";
+import HomeReviewsSlider from "@/components/home/HomeReviewsSlider";
 import type { ReactNode } from "react";
 import { prisma } from "@/lib/prisma";
 import type { Metadata } from "next";
@@ -23,7 +24,7 @@ type Testimonial = {
 };
 
 const baseUrl = normalizeSiteUrl();
-const SHOW_HOME_REVIEWS = false;
+const SHOW_HOME_REVIEWS = true;
 
 export async function generateMetadata(): Promise<Metadata> {
   const [page, settings] = await Promise.all([
@@ -33,7 +34,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const title = page?.metaTitle || "Home";
   const description =
     page?.metaDescription ||
-    "Shop water bottles in Pakistan including kids bottles, school bottles, stainless steel bottles and insulated bottles with secure checkout and clear returns.";
+    "Shop quality products in Pakistan with secure checkout, clear support, and reliable delivery.";
   const baseUrlResolved = normalizeSiteUrl(settings?.siteUrl);
   const ogImage = page?.heroImage
     ? page.heroImage.startsWith("http")
@@ -87,19 +88,19 @@ const IMAGES = {
 };
 
 const featuredProductsFallback: Product[] = [
-  { id: "1", name: "40oz Stainless Steel Tumbler", price: "PKR 2,450", compareAt: "PKR 2,950", badge: "Hot", rating: 4.8, reviews: 214, image: IMAGES.p1 },
-  { id: "2", name: "Kids School Water Bottle", price: "PKR 850", badge: "Popular", rating: 4.9, reviews: 98, image: IMAGES.p2 },
-  { id: "3", name: "Insulated Sports Bottle", price: "PKR 1,650", badge: "New", rating: 5.0, reviews: 41, image: IMAGES.p3 },
-  { id: "4", name: "Leakproof Travel Bottle", price: "PKR 1,150", rating: 4.7, reviews: 392, image: IMAGES.p4 },
-  { id: "5", name: "BPA-Free Plastic Bottle", price: "PKR 650", rating: 4.6, reviews: 167, image: IMAGES.p5 },
-  { id: "6", name: "Steel Vacuum Flask", price: "PKR 1,950", rating: 4.8, reviews: 120, image: IMAGES.p6 },
+  { id: "1", name: "Featured Everyday Product", price: "PKR 2,450", compareAt: "PKR 2,950", badge: "Hot", rating: 4.8, reviews: 214, image: IMAGES.p1 },
+  { id: "2", name: "Customer Favorite Item", price: "PKR 850", badge: "Popular", rating: 4.9, reviews: 98, image: IMAGES.p2 },
+  { id: "3", name: "New Arrival Product", price: "PKR 1,650", badge: "New", rating: 5.0, reviews: 41, image: IMAGES.p3 },
+  { id: "4", name: "Practical Daily Essential", price: "PKR 1,150", rating: 4.7, reviews: 392, image: IMAGES.p4 },
+  { id: "5", name: "Affordable Best Seller", price: "PKR 650", rating: 4.6, reviews: 167, image: IMAGES.p5 },
+  { id: "6", name: "Premium Value Product", price: "PKR 1,950", rating: 4.8, reviews: 120, image: IMAGES.p6 },
 ];
 
 const saleProductsFallback: Product[] = [
   {
     id: "s1",
-    name: "Weekend Deal: Bottle Bundle",
-    subtitle: "Bottle + straw brush included",
+    name: "Weekend Deal Bundle",
+    subtitle: "Limited-time bundle offer",
     price: "PKR 49,900",
     compareAt: "PKR 56,000",
     badge: "-10%",
@@ -110,7 +111,7 @@ const saleProductsFallback: Product[] = [
   },
   {
     id: "s2",
-    name: "School Bottle Special Price",
+    name: "Customer Favorite Special Price",
     subtitle: "Limited-time offer",
     price: "PKR 179,000",
     compareAt: "PKR 189,000",
@@ -122,8 +123,8 @@ const saleProductsFallback: Product[] = [
   },
   {
     id: "s3",
-    name: "Insulated Tumbler Offer",
-    subtitle: "Handle + straw included",
+    name: "Premium Product Offer",
+    subtitle: "Popular choice included",
     price: "PKR 339,000",
     compareAt: "PKR 355,000",
     badge: "Deal",
@@ -134,7 +135,7 @@ const saleProductsFallback: Product[] = [
   },
   {
     id: "s4",
-    name: "Sports Bottle Holiday Sale",
+    name: "Holiday Sale Product",
     subtitle: "Fast shipping across Pakistan",
     price: "PKR 21,900",
     compareAt: "PKR 23,900",
@@ -146,7 +147,7 @@ const saleProductsFallback: Product[] = [
   },
   {
     id: "s5",
-    name: "BPA-Free Bottle Promo",
+    name: "Best Seller Promo",
     subtitle: "Top rated - Best seller",
     price: "PKR 26,900",
     compareAt: "PKR 29,500",
@@ -158,7 +159,7 @@ const saleProductsFallback: Product[] = [
   },
   {
     id: "s6",
-    name: "Steel Flask Limited Offer",
+    name: "Limited Stock Offer",
     subtitle: "Durable and reusable",
     price: "PKR 38,900",
     compareAt: "PKR 41,800",
@@ -170,7 +171,7 @@ const saleProductsFallback: Product[] = [
   },
   {
     id: "s7",
-    name: "Large Capacity Water Bottle - Sale Edition",
+    name: "Large Capacity Product - Sale Edition",
     subtitle: "Limited stock - Popular choice",
     price: "PKR 52,900",
     compareAt: "PKR 58,500",
@@ -182,8 +183,8 @@ const saleProductsFallback: Product[] = [
   },
   {
     id: "s8",
-    name: "Leakproof Gym Water Bottle",
-    subtitle: "For gym, travel and daily hydration",
+    name: "Travel Ready Deal Product",
+    subtitle: "For daily use, travel and gifting",
     price: "PKR 21,500",
     compareAt: "PKR 24,000",
     badge: "-12%",
@@ -198,7 +199,7 @@ const testimonialsFallback: Testimonial[] = [
   {
     name: "Ayesha K.",
     title: "Lahore",
-    quote: "Bottle quality achi nikli, lid tight hai aur delivery bhi time par mil gayi.",
+    quote: "Product quality achi nikli, packaging clean thi aur delivery bhi time par mil gayi.",
     avatar: IMAGES.a1,
     rating: 4.6,
   },
@@ -245,13 +246,13 @@ function normalizeRating(value: unknown, fallback = 5) {
   return Number(clampFloat(value, fallback, 1, 5).toFixed(1));
 }
 
-function pickFirstImage(images: Array<{ url?: string; sortOrder?: number }> = []) {
-  if (!images.length) return "";
+function pickProductImages(images: Array<{ url?: string; alt?: string | null; sortOrder?: number; mediaType?: string | null }> = []) {
   const sorted = [...images].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-  return sorted[0]?.url || "";
+  return sorted.filter((image) => (image.mediaType ?? "image") === "image");
 }
 function toProduct(p: any, fallbackImage: string): Product {
-  const img = pickFirstImage(p.images || []) || fallbackImage;
+  const productImages = pickProductImages(p.images || []);
+  const img = productImages[0]?.url || fallbackImage;
   const slug = p.slug ?? String(p.id ?? "");
   return {
     id: slug,
@@ -262,6 +263,9 @@ function toProduct(p: any, fallbackImage: string): Product {
     rating: typeof p.rating === "number" ? p.rating : 0,
     reviews: typeof p.reviewsCount === "number" ? p.reviewsCount : 0,
     image: img,
+    imageAlt: productImages[0]?.alt || p.name,
+    hoverImage: productImages[1]?.url,
+    hoverImageAlt: productImages[1]?.alt || p.name,
     href: `/product/${slug}`,
     subtitle: p.shortDesc ?? undefined,
   };
@@ -321,13 +325,12 @@ export default async function HomePage() {
     saleRows.length > 0
       ? saleRows.map((p) => toProduct(p, IMAGES.p2))
       : saleProductsFallback;
-
   const hero = {
     badge: pageRow?.heroBadge || "Pakistan-based online shopping store",
     title: pageRow?.heroTitle || "Premium products, curated for people who care about details.",
     subtitle:
       pageRow?.heroSubtitle ||
-      "Shop best-selling water bottles with secure checkout, PKR 250 standard shipping, and 7-day returns in Pakistan.",
+      "Shop best-selling products with secure checkout, clear shipping, and helpful support across Pakistan.",
     primaryLabel: pageRow?.heroPrimaryLabel || "Shop Now",
     primaryHref: pageRow?.heroPrimaryHref || "/shop",
     secondaryLabel: pageRow?.heroSecondaryLabel || "Browse Categories",
@@ -342,7 +345,7 @@ export default async function HomePage() {
     highlights: [
       {
         k: pageRow?.heroHighlight1Title || "Quality",
-        v: pageRow?.heroHighlight1Desc || "Checked bottles",
+        v: pageRow?.heroHighlight1Desc || "Checked products",
       },
       {
         k: pageRow?.heroHighlight2Title || "Fast",
@@ -355,10 +358,10 @@ export default async function HomePage() {
     ],
   };
   const homeIntro = {
-    title: pageRow?.homeIntroTitle || "Introducing our premium water bottles",
+    title: pageRow?.homeIntroTitle || "Introducing our featured products",
     body:
       pageRow?.homeIntroBody ||
-      "Discover the best water bottles designed for everyday hydration. Our premium water bottles blend sleek design, safe materials, and performance that lasts. Choose eco-friendly water bottles that keep drinks fresh and support a sustainable lifestyle.",
+      "Discover quality products selected for everyday needs. Use this section to explain your brand, product benefits, and buying guide from the admin panel.",
   };
   const homeBenefits = {
     title: pageRow?.homeBenefitsTitle || "Benefits you can feel every day",
@@ -397,21 +400,21 @@ export default async function HomePage() {
       }))
       : [
         {
-          q: "Are these bottles BPA-free and safe for daily use?",
-          a: "Yes. Our premium water bottles are made with food-grade, BPA-free materials.",
+          q: "Are these products checked before dispatch?",
+          a: "Yes. Products can be checked before dispatch based on your store policy.",
         },
         {
-          q: "How long does the insulation keep water cold?",
-          a: "Most bottles keep drinks cold for up to 24 hours, depending on size and usage.",
+          q: "How long does delivery take?",
+          a: "Delivery time depends on your courier setup and can be managed from store settings.",
         },
         {
-          q: "Do you offer sizes for travel or gym use?",
-          a: "We stock multiple sizes so you can choose a compact travel bottle or a larger fitness bottle.",
+          q: "Can customers get support before ordering?",
+          a: "Yes. You can manage WhatsApp, phone, and email support details from the admin panel.",
         },
       ];
   const homeFaq = {
-    title: pageRow?.homeFaqTitle || "FAQs about our water bottles",
-    intro: pageRow?.homeFaqIntro || "Quick answers to help you choose the right bottle for your routine.",
+    title: pageRow?.homeFaqTitle || "FAQs about our products",
+    intro: pageRow?.homeFaqIntro || "Quick answers to help customers choose with confidence.",
     items: homeFaqItems,
   };
   const saleLimit = clampInt(pageRow?.homeSaleLimit, 8, 1, 50);
@@ -542,7 +545,7 @@ export default async function HomePage() {
               <div className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm">
                 <Image
                   src={withImageParams(hero.image, "auto=format&fit=crop&w=1400&q=80")}
-                  alt="Water bottles in Pakistan"
+                  alt="Featured products"
                   width={1400}
                   height={900}
                   className="h-64 w-full object-cover sm:h-80 lg:h-[440px]"
@@ -601,13 +604,13 @@ export default async function HomePage() {
         <Container>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight">Featured Water Bottles in Pakistan</h2>
+              <h2 className="text-2xl font-semibold tracking-tight">Featured Products</h2>
               <p className="mt-2 text-sm text-neutral-600">
-                Shop popular kids water bottles, school bottles, stainless steel bottles and insulated bottles at affordable prices.
+                Shop popular products selected for this store. Update this section from the admin panel.
               </p>
             </div>
             <div className="hidden sm:flex items-center gap-2">
-              {["All", "Kids Bottles", "School Bottles", "Stainless Steel"].map((t) => (
+              {["All", "Popular", "New Arrivals", "Best Value"].map((t) => (
                 <button
                   key={t}
                   className="rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm hover:bg-neutral-100"
@@ -631,7 +634,7 @@ export default async function HomePage() {
         <Container>
           <div className="grid gap-4 rounded-3xl border border-neutral-200 bg-neutral-50 p-6 sm:grid-cols-3">
             {[
-              { t: "Quality Checked", d: "Bottle, lid and accessories are checked before shipping." },
+              { t: "Quality Checked", d: "Products are checked before shipping." },
               { t: "Secure Payments", d: "Multiple gateways with fraud protection." },
               { t: "Priority Support", d: "Fast WhatsApp + email support." },
             ].map((x) => (
@@ -674,82 +677,7 @@ export default async function HomePage() {
               </Link>
             </div>
 
-            <div className="mt-8 grid gap-4 lg:grid-cols-3">
-              {testimonialsList.map((t) => (
-                <article
-                  key={t.name}
-                  className="group rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-                >
-                  {/* top row */}
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <Image
-                        src={withImageParams(t.avatar, "auto=format&fit=crop&w=160&q=80")}
-                        alt={t.name}
-                        width={160}
-                        height={160}
-                        className="h-11 w-11 rounded-2xl object-cover"
-                        loading="lazy"
-                      />
-                      <div className="leading-tight">
-                        <p className="text-sm font-semibold text-neutral-900">{t.name}</p>
-                        <div className="mt-1 inline-flex items-center gap-2">
-                          <span className="rounded-full border border-neutral-200 bg-neutral-50 px-2.5 py-1 text-[11px] text-neutral-700">
-                            {t.title}
-                          </span>
-                          <span className="hidden sm:inline text-neutral-300">•</span>
-                          <span className="hidden sm:inline text-[11px] text-neutral-500">
-                            Verified buyer
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* rating */}
-                    <div className="flex items-center gap-1" aria-label={`${t.rating} star rating`}>
-                      {Array.from({ length: 5 }).map((_, i) => {
-                        const filled = i < Math.round(t.rating);
-                        return (
-                          <svg
-                            key={i}
-                            viewBox="0 0 20 20"
-                            className={filled ? "h-4 w-4 text-neutral-900" : "h-4 w-4 text-neutral-300"}
-                            fill="currentColor"
-                            aria-hidden="true"
-                          >
-                            <path d="M10 2.25l2.47 5.01 5.53.8-4 3.9.94 5.52L10 14.8l-4.94 2.68.94-5.52-4-3.9 5.53-.8L10 2.25z" />
-                          </svg>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* quote */}
-                  <div className="mt-5">
-                    <p className="text-sm text-neutral-700 leading-relaxed">
-                      <span className="mr-1 align-top text-xl font-semibold text-neutral-300">
-                        “
-                      </span>
-                      {t.quote}
-                      <span className="ml-1 align-bottom text-xl font-semibold text-neutral-300">
-                        ”
-                      </span>
-                    </p>
-                  </div>
-
-                  {/* bottom micro */}
-                  <div className="mt-6 flex items-center justify-between border-t border-neutral-200 pt-4">
-                    <p className="text-xs text-neutral-500">Fast delivery • Secure checkout</p>
-                    <Link
-                      href="/reviews"
-                      className="text-xs font-medium text-neutral-900 group-hover:underline"
-                    >
-                      Read story
-                    </Link>
-                  </div>
-                </article>
-              ))}
-            </div>
+            <HomeReviewsSlider items={testimonialsList} />
           </section>
         </Container>
 

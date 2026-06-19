@@ -2,6 +2,8 @@
 import AdminTopbar from "@/components/admin/AdminTopbar";
 import StatCard from "@/components/admin/StatCard";
 import { Table } from "@/components/admin/Table";
+import { AdminCard, AdminPageHeader, AdminStatusBadge } from "@/components/admin/ui";
+import { getOnboardingSummary } from "@/lib/onboardingChecklist";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 
@@ -21,13 +23,15 @@ function formatStatus(status: string): string {
   return statusMap[status] || status;
 }
 
-function getStatusColor(status: string): string {
-  if (status.includes("Delivered")) return "bg-green-100 text-green-800";
-  if (status.includes("Shipped") || status.includes("Delivery")) return "bg-blue-100 text-blue-800";
-  if (status.includes("Processing") || status.includes("Confirmed")) return "bg-purple-100 text-purple-800";
-  if (status.includes("Pending")) return "bg-yellow-100 text-yellow-800";
-  if (status.includes("Cancelled") || status.includes("Refunded")) return "bg-red-100 text-red-800";
-  return "bg-neutral-100 text-neutral-800";
+function getStatusVariant(
+  status: string
+): "neutral" | "success" | "info" | "warning" | "danger" | "primary" {
+  if (status.includes("Delivered")) return "success";
+  if (status.includes("Shipped") || status.includes("Delivery")) return "info";
+  if (status.includes("Processing") || status.includes("Confirmed")) return "primary";
+  if (status.includes("Pending")) return "warning";
+  if (status.includes("Cancelled") || status.includes("Refunded")) return "danger";
+  return "neutral";
 }
 
 export default async function AdminDashboardPage() {
@@ -57,6 +61,7 @@ export default async function AdminDashboardPage() {
   const totalCategories = await prisma.category.count();
   const totalSubcategories = await prisma.subcategory.count();
   const totalBlogs = await prisma.blog.count();
+  const onboardingSummary = await getOnboardingSummary();
 
   // Recent orders (last 5)
   const recentOrders = await prisma.order.findMany({
@@ -100,7 +105,29 @@ export default async function AdminDashboardPage() {
       <AdminTopbar title="Dashboard" />
 
       <div className="mx-auto w-full max-w-[1360px] px-5 sm:px-8 lg:px-12 py-10">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <AdminPageHeader
+          eyebrow="Store overview"
+          title="Dashboard"
+          description="Track recent orders, revenue, and catalog health from one clean workspace."
+          actions={
+            <>
+              <Link
+                href="/admin/orders"
+                className="rounded-2xl border border-neutral-200 bg-white px-4 py-2 text-sm font-medium hover:bg-neutral-50"
+              >
+                View orders
+              </Link>
+              <Link
+                href="/admin/products/create"
+                className="rounded-2xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+              >
+                Add product
+              </Link>
+            </>
+          }
+        />
+
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {metrics.map((m) => (
             <StatCard key={m.label} label={m.label} value={m.value} hint={m.hint} />
           ))}
@@ -129,19 +156,62 @@ export default async function AdminDashboardPage() {
                 </Link>,
                 <span key={r.customer} className="text-neutral-700">{r.customer}</span>,
                 <span key={r.total} className="font-medium">{r.total}</span>,
-                <span
-                  key={r.status}
-                  className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${getStatusColor(r.status)}`}
-                >
+                <AdminStatusBadge key={r.status} variant={getStatusVariant(r.status)}>
                   {r.status}
-                </span>,
+                </AdminStatusBadge>,
               ])}
             />
           </div>
 
           <aside className="lg:col-span-4">
-            <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-6">
-              <p className="text-sm font-semibold">Quick Stats</p>
+            <AdminCard
+              title="Launch checklist"
+              description="White-label setup status for this store."
+              actions={
+                onboardingSummary.isLaunchReady ? (
+                  <AdminStatusBadge variant="success">Ready</AdminStatusBadge>
+                ) : (
+                  <AdminStatusBadge variant="warning">Needs setup</AdminStatusBadge>
+                )
+              }
+            >
+              <div className="space-y-4">
+                <div>
+                  <div className="flex items-end justify-between gap-3">
+                    <p className="text-3xl font-semibold text-neutral-950">
+                      {Math.round(
+                        (onboardingSummary.requiredCompleted / onboardingSummary.requiredTotal) * 100
+                      )}
+                      %
+                    </p>
+                    <p className="pb-1 text-xs text-neutral-500">
+                      {onboardingSummary.requiredCompleted}/{onboardingSummary.requiredTotal} required
+                    </p>
+                  </div>
+                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-neutral-100">
+                    <div
+                      className="h-full rounded-full bg-neutral-950"
+                      style={{
+                        width: `${Math.round(
+                          (onboardingSummary.requiredCompleted / onboardingSummary.requiredTotal) * 100
+                        )}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <Link
+                  href="/admin/onboarding"
+                  className="block rounded-2xl bg-neutral-900 px-5 py-3 text-center text-sm font-medium text-white hover:bg-neutral-800"
+                >
+                  Open onboarding
+                </Link>
+              </div>
+            </AdminCard>
+
+            <div className="mt-6" />
+
+            <AdminCard title="Quick stats" description="Catalog and content totals at a glance.">
               <div className="mt-3 space-y-3">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-neutral-600">Total Blogs</span>
@@ -171,7 +241,7 @@ export default async function AdminDashboardPage() {
                   View orders
                 </Link>
               </div>
-            </div>
+            </AdminCard>
           </aside>
         </div>
       </div>

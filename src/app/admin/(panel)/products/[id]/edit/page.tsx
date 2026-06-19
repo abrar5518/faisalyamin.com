@@ -10,6 +10,7 @@ import FaqEditor, { cleanFaqItems } from "@/components/admin/common/FaqEditor";
 import CategorySelector from "@/components/admin/products/CategorySelector";
 import SizesPicker from "@/components/admin/products/SizesPicker";
 import VariantsEditor from "@/components/admin/products/VariantEditor";
+import ProductVideosEditor from "@/components/admin/products/ProductVideosEditor";
 import type { AdminProduct } from "@/types/adminProduct";
 import { Fetch } from "@/lib/fetch";
 
@@ -30,20 +31,38 @@ function parseMoney(input: string) {
 }
 
 function buildImages(p: AdminProduct) {
-  const images: { url: string; alt?: string; sortOrder: number }[] = [];
+  const images: {
+    url: string;
+    alt?: string;
+    mediaType?: "image" | "video";
+    thumbnailUrl?: string;
+    sortOrder: number;
+  }[] = [];
   let sortOrder = 0;
 
   if (p.heroImage?.url) {
-    images.push({ url: p.heroImage.url, alt: p.heroImage.alt, sortOrder: sortOrder++ });
+    images.push({ url: p.heroImage.url, alt: p.heroImage.alt, mediaType: "image", sortOrder: sortOrder++ });
   }
 
   for (const img of p.gallery) {
-    if (img.url) images.push({ url: img.url, alt: img.alt, sortOrder: sortOrder++ });
+    if (img.url) images.push({ url: img.url, alt: img.alt, mediaType: "image", sortOrder: sortOrder++ });
+  }
+
+  for (const video of p.videos) {
+    if (video.url) {
+      images.push({
+        url: video.url,
+        alt: video.alt,
+        mediaType: "video",
+        thumbnailUrl: video.thumbnailUrl,
+        sortOrder: sortOrder++,
+      });
+    }
   }
 
   for (const variant of p.variants) {
     for (const img of variant.images) {
-      if (img.url) images.push({ url: img.url, alt: img.alt, sortOrder: sortOrder++ });
+      if (img.url) images.push({ url: img.url, alt: img.alt, mediaType: "image", sortOrder: sortOrder++ });
     }
   }
 
@@ -140,6 +159,7 @@ export default function AdminProductEditPage() {
           sizes: [],
           heroImage: undefined,
           gallery: [],
+          videos: [],
           variants: [],
           status: "draft",
           stock: 0,
@@ -205,14 +225,22 @@ export default function AdminProductEditPage() {
         const variantImageUrls = new Set(
           apiVariants.flatMap((variant: any) => variant.images.map((img: any) => img.url))
         );
+        const imageMedia = images.filter((img: any) => (img.mediaType ?? "image") === "image");
+        const videoMedia = images.filter((img: any) => img.mediaType === "video");
         const imageFields =
-          images.length > 0
+          imageMedia.length > 0
             ? {
-                heroImage: images[0]?.url ? { url: images[0].url, alt: images[0].alt ?? "" } : undefined,
-                gallery: images
+                heroImage: imageMedia[0]?.url ? { url: imageMedia[0].url, alt: imageMedia[0].alt ?? "" } : undefined,
+                gallery: imageMedia
                   .slice(1)
                   .filter((img: any) => img.url && !variantImageUrls.has(img.url))
                   .map((img: any) => ({ url: img.url, alt: img.alt ?? "" })),
+                videos: videoMedia.map((img: any) => ({
+                  url: img.url,
+                  alt: img.alt ?? "",
+                  mediaType: "video" as const,
+                  thumbnailUrl: img.thumbnailUrl ?? "",
+                })),
               }
             : {};
 
@@ -554,6 +582,11 @@ export default function AdminProductEditPage() {
               value={p.gallery}
               onChange={(gallery) => setP((x) => (x ? { ...x, gallery } : x))}
               max={12}
+            />
+
+            <ProductVideosEditor
+              value={p.videos}
+              onChange={(videos) => setP((x) => (x ? { ...x, videos } : x))}
             />
 
             <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">

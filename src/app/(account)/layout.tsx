@@ -26,15 +26,15 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
           <div className="flex h-10 items-center justify-between text-xs text-neutral-600">
             <p>Account area</p>
             <div className="flex items-center gap-4">
-              <a className="hover:text-neutral-900" href="/contact">
+              <Link className="hover:text-neutral-900" href="/contact">
                 Support
-              </a>
+              </Link>
               <Link className="hover:text-neutral-900" href="/account/orders">
                 Track Order
               </Link>
-              <a className="hover:text-neutral-900" href="/logout">
+              <Link className="hover:text-neutral-900" href="/logout">
                 Logout
-              </a>
+              </Link>
             </div>
           </div>
         </Container>

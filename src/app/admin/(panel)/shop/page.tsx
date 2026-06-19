@@ -34,20 +34,20 @@ const DEFAULT_PAYLOAD: ShopForm = {
   title: "Shop",
   metaTitle: "Shop",
   metaDescription:
-    "Browse premium watches and accessories with secure checkout and fast delivery.",
-  metaKeywords: "watches, accessories, luxury, shop",
-  shortDescription: "Browse premium pieces. Use filters to find the perfect match.",
+    "Browse products with secure checkout, clear support, and reliable delivery.",
+  metaKeywords: "shop, products, online shopping",
+  shortDescription: "Browse products and use filters to find the right match.",
   featureImage: "https://images.unsplash.com/photo-1523275335684-37898b6baf30",
-  featureImageAlt: "Luxury watch showcase",
+  featureImageAlt: "Featured product showcase",
   contentHtml: `
     <h2>Shop the full collection</h2>
     <p>
-      Use the filters above to narrow down your search by brand, price, and condition.
+      Use the filters above to narrow down your search by category, price, and availability.
       Update this section from the backend with your own buying guide, FAQs, or warranty details.
     </p>
     <ul>
-      <li>Verified products with detailed inspection notes</li>
-      <li>Secure checkout and insured shipping</li>
+      <li>Clear product details and helpful images</li>
+      <li>Secure checkout and reliable delivery</li>
       <li>Friendly support for pre and post-purchase questions</li>
     </ul>
   `,
