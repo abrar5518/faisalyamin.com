@@ -63,6 +63,51 @@ h1, h2, h3 {
   }
 }
 
+@keyframes cta-attention {
+  0%, 78%, 100% {
+    transform: translateX(0) rotate(0deg) scale(1);
+  }
+  80% {
+    transform: translateX(-5px) rotate(-1deg) scale(1.015);
+  }
+  82% {
+    transform: translateX(5px) rotate(1deg) scale(1.015);
+  }
+  84% {
+    transform: translateX(-4px) rotate(-0.8deg) scale(1.01);
+  }
+  86% {
+    transform: translateX(4px) rotate(0.8deg) scale(1.01);
+  }
+  88% {
+    transform: translateX(-2px) rotate(-0.4deg) scale(1.005);
+  }
+  90% {
+    transform: translateX(2px) rotate(0.4deg) scale(1.005);
+  }
+  92% {
+    transform: translateX(0) rotate(0deg) scale(1);
+  }
+}
+
+.cta-attention {
+  animation: cta-attention 4.2s ease-in-out infinite;
+  cursor: pointer;
+  transform-origin: center;
+  will-change: transform;
+}
+
+.cta-attention:disabled {
+  animation: none;
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta-attention {
+    animation: none;
+  }
+}
+
 /* ---------- Buttons (Global) FIX (no custom utilities) ---------- */
 .btn-primary {
   @apply inline-flex items-center justify-center

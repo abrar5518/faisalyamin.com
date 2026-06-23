@@ -5,12 +5,14 @@ import Image from "next/image";
 import { withImageParams } from "@/lib/image";
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useCart } from "@/components/cart/CartProvider";
 import { useGlobalCopy } from "@/components/GlobalCopyProvider";
 import type { CatalogTemplateSettings } from "@/lib/catalogSettings";
 import { renderCatalogTemplate } from "@/lib/catalogSettings";
 import { trackViewItem } from "@/lib/googleAnalytics";
 import { trackViewContent } from "@/lib/metaPixel";
+import { getVideoRenderInfo } from "@/lib/videoUrl";
 
 export type Variant = {
   id: string;
@@ -166,6 +168,40 @@ function imageMedia(url: string, alt?: string): ProductMediaItem {
   return { type: "image", url, alt };
 }
 
+function ProductVideoPlayer({
+  item,
+  poster,
+}: {
+  item: ProductMediaItem;
+  poster?: string;
+}) {
+  const video = getVideoRenderInfo(item.url);
+
+  if (video?.kind === "embed") {
+    return (
+      <iframe
+        src={video.src}
+        title={item.alt || "Product video"}
+        className="h-full w-full bg-black"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowFullScreen
+        loading="lazy"
+      />
+    );
+  }
+
+  return (
+    <video
+      src={video?.src || item.url}
+      poster={poster}
+      className="h-full w-full bg-black object-contain"
+      controls
+      playsInline
+      preload="metadata"
+    />
+  );
+}
+
 export default function ProductClient({
   product,
   catalogSettings,
@@ -198,6 +234,7 @@ export default function ProductClient({
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [zoom, setZoom] = useState(1);
   const viewContentTracked = useRef(false);
+  const touchStartX = useRef<number | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -247,6 +284,15 @@ export default function ProductClient({
     if (product.media.length) return product.media;
     return product.images.map((url, idx) => imageMedia(url, product.imageAlts[idx] || product.name));
   }, [product.imageAlts, product.images, product.media, product.name, variant.imageAlts, variant.images, variantSelected]);
+  const lightboxImages = useMemo(
+    () => galleryMedia.filter((item) => item.type === "image" && item.url),
+    [galleryMedia],
+  );
+  const activeLightboxIndex = useMemo(() => {
+    const index = lightboxImages.findIndex((item) => item.url === activeMedia.url);
+    return index >= 0 ? index : 0;
+  }, [activeMedia.url, lightboxImages]);
+  const currentLightboxImage = lightboxImages[activeLightboxIndex];
   const activePrice = useMemo(() => parsePKR(variant.price) ?? 0, [variant]);
   const compareAt = useMemo(() => parsePKR(variant.compareAt), [variant]);
 
@@ -255,7 +301,6 @@ export default function ProductClient({
     const pct = Math.round(((compareAt - activePrice) / compareAt) * 100);
     return pct > 0 ? pct : null;
   }, [compareAt, activePrice]);
-
   useEffect(() => {
     const current = galleryMedia[imageIndex];
     if (current) {
@@ -288,6 +333,54 @@ export default function ProductClient({
     setActiveMedia(imageMedia(v.images[0] ?? "", v.imageAlts[0] || product.name));
     setImageIndex(0);
     setLightboxOpen(false);
+  };
+
+  const setLightboxImageAt = (nextIndex: number) => {
+    if (!lightboxImages.length) return;
+    const normalizedIndex = (nextIndex + lightboxImages.length) % lightboxImages.length;
+    const item = lightboxImages[normalizedIndex];
+    const mediaIndex = galleryMedia.findIndex(
+      (media) => media.type === "image" && media.url === item.url,
+    );
+
+    setActiveMedia(item);
+    setImageIndex(mediaIndex >= 0 ? mediaIndex : normalizedIndex);
+    setZoom(1);
+  };
+
+  const openImageLightbox = (item: ProductMediaItem, mediaIndex: number) => {
+    if (item.type !== "image") return;
+    setActiveMedia(item);
+    setImageIndex(mediaIndex);
+    setZoom(1);
+    setLightboxOpen(true);
+  };
+
+  const handleThumbnailClick = (item: ProductMediaItem, idx: number) => {
+    setActiveMedia(item);
+    setImageIndex(idx);
+    setZoom(1);
+
+    if (item.type === "image" && window.matchMedia("(max-width: 1023px)").matches) {
+      setLightboxOpen(true);
+    }
+  };
+
+  const showPreviousLightboxImage = () => {
+    setLightboxImageAt(activeLightboxIndex - 1);
+  };
+
+  const showNextLightboxImage = () => {
+    setLightboxImageAt(activeLightboxIndex + 1);
+  };
+
+  const handleLightboxTouchEnd = (x: number) => {
+    if (touchStartX.current === null) return;
+    const delta = touchStartX.current - x;
+    touchStartX.current = null;
+    if (Math.abs(delta) < 45) return;
+    if (delta > 0) showNextLightboxImage();
+    else showPreviousLightboxImage();
   };
 
   const decQty = () => setQty((q) => Math.max(1, q - 1));
@@ -443,19 +536,15 @@ export default function ProductClient({
               <div className="relative overflow-hidden rounded-3xl border border-neutral-200 bg-neutral-100">
                 <div className="aspect-square">
                   {activeMedia.type === "video" ? (
-                    <video
-                      src={activeMedia.url}
+                    <ProductVideoPlayer
+                      item={activeMedia}
                       poster={activeMedia.thumbnailUrl || product.images[0]}
-                      className="h-full w-full bg-black object-contain"
-                      controls
-                      playsInline
                     />
                   ) : (
                     <button
                       type="button"
                       onClick={() => {
-                        setZoom(1);
-                        setLightboxOpen(true);
+                        openImageLightbox(activeMedia, imageIndex);
                       }}
                       className="block h-full w-full cursor-zoom-in"
                       aria-label="Open product image preview"
@@ -484,8 +573,7 @@ export default function ProductClient({
                   <button
                     type="button"
                     onClick={() => {
-                      setZoom(1);
-                      setLightboxOpen(true);
+                      openImageLightbox(activeMedia, imageIndex);
                     }}
                     className="absolute bottom-4 right-4 rounded-full bg-white/90 px-4 py-2 text-xs font-medium text-neutral-900 shadow-sm backdrop-blur hover:bg-white"
                   >
@@ -495,7 +583,7 @@ export default function ProductClient({
               </div>
 
               {/* Thumbnails */}
-              <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
+              <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto pb-1 sm:mt-4 sm:grid sm:grid-cols-4 sm:gap-3 sm:overflow-visible sm:pb-0">
                 {galleryMedia.map((item, idx) => {
                   const active = activeMedia.url === item.url && activeMedia.type === item.type;
                   const thumb = item.type === "video" ? item.thumbnailUrl || product.images[0] : item.url;
@@ -503,12 +591,10 @@ export default function ProductClient({
                     <button
                       key={`${item.type}-${item.url}-${idx}`}
                       onClick={() => {
-                        setActiveMedia(item);
-                        setImageIndex(idx);
-                        setZoom(1);
+                        handleThumbnailClick(item, idx);
                       }}
                       className={[
-                        "group aspect-square overflow-hidden rounded-2xl border bg-white",
+                        "group h-16 w-16 shrink-0 overflow-hidden rounded-xl border bg-white sm:aspect-square sm:h-auto sm:w-auto sm:rounded-2xl",
                         "focus:outline-none focus:ring-2 focus:ring-neutral-900/20",
                         active ? "border-neutral-900" : "border-neutral-200 hover:border-neutral-300",
                       ].join(" ")}
@@ -531,7 +617,7 @@ export default function ProductClient({
                         )}
                         {item.type === "video" ? (
                           <span className="absolute inset-0 flex items-center justify-center bg-black/20">
-                            <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-sm font-semibold text-neutral-900 shadow-sm">
+                            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-xs font-semibold text-neutral-900 shadow-sm sm:h-10 sm:w-10 sm:text-sm">
                               ▶
                             </span>
                           </span>
@@ -543,7 +629,7 @@ export default function ProductClient({
               </div>
 
               {/* Under-gallery micro info */}
-              <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              <div className="mt-6 hidden gap-3 sm:grid sm:grid-cols-3">
                 {catalogSettings.productGalleryTrustItems.map((item) => (
                   <TrustItem key={item.title || item.text} title={item.title} desc={item.text} />
                 ))}
@@ -553,7 +639,7 @@ export default function ProductClient({
             {/* RIGHT: Sticky Buy Box */}
             <div className="lg:col-span-5">
               <div className="lg:sticky lg:top-6">
-                <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
+                <div className="rounded-3xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6">
                   {/* Brand + title */}
                   <p className="text-xs font-medium uppercase tracking-wider text-neutral-500">
                     {product.brand}
@@ -591,12 +677,12 @@ export default function ProductClient({
                   </div>
 
                   {/* Price block */}
-                  <div className="mt-6 rounded-2xl border border-neutral-200 bg-neutral-50 p-5">
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4 sm:mt-6 sm:p-5">
+                    <div className="flex items-start justify-between gap-3">
                       <div>
                         <p className="text-xs text-neutral-500">{catalogSettings.productPriceLabel}</p>
-                        <div className="mt-1 flex items-baseline gap-3">
-                          <p className="text-3xl font-bold tracking-tight">
+                        <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                          <p className="text-2xl font-bold tracking-tight sm:text-3xl">
                             {variant.price}
                           </p>
                           {compareAt && compareAt > activePrice ? (
@@ -605,22 +691,17 @@ export default function ProductClient({
                             </p>
                           ) : null}
                         </div>
-                        <p className="mt-1 text-xs text-neutral-500">
-                          {renderCatalogTemplate(catalogSettings.productShippingNote, {
-                            shipping: shippingFee,
-                          })}
-                        </p>
                       </div>
 
                       {discountPct ? (
-                        <span className="rounded-2xl bg-neutral-900 px-3 py-1 text-xs font-semibold text-white">
+                        <span className="shrink-0 rounded-full bg-neutral-900 px-2.5 py-1 text-[11px] font-semibold text-white sm:rounded-2xl sm:px-3 sm:text-xs">
                           Save {discountPct}%
                         </span>
                       ) : null}
                     </div>
 
                     {/* Short description right under price (best conversion placement) */}
-                    <p className="mt-4 text-sm text-neutral-700 leading-relaxed">
+                    <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-neutral-700 sm:mt-4 sm:line-clamp-none">
                       {product.shortDescription}
                     </p>
                   </div>
@@ -725,7 +806,7 @@ export default function ProductClient({
                   <div className="mt-7 grid gap-3 sm:grid-cols-2">
                     <button
                       onClick={onBuyNow}
-                      className="rounded-2xl cursor-pointer bg-neutral-900 px-6 py-4 text-sm font-medium text-white hover:bg-neutral-800"
+                      className="cta-attention rounded-2xl cursor-pointer bg-neutral-900 px-6 py-4 text-sm font-medium text-white hover:bg-neutral-800"
                     >
                       {globalCopy.product.buyNow}
                     </button>
@@ -1016,55 +1097,92 @@ export default function ProductClient({
 
       </Container>
 
-      {lightboxOpen && activeMedia.type === "image" ? (
+      {lightboxOpen && currentLightboxImage ? (
         <div className="fixed inset-0 z-[80] bg-black/90 text-white">
-          <div className="absolute left-4 right-4 top-4 z-10 flex flex-wrap items-center justify-between gap-3">
-            <p className="line-clamp-1 text-sm font-medium">{product.name}</p>
+          <div className="absolute left-4 right-4 top-4 z-10 flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="line-clamp-1 text-sm font-medium">{product.name}</p>
+              <p className="mt-1 text-xs text-white/60">
+                {activeLightboxIndex + 1} / {lightboxImages.length}
+              </p>
+            </div>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setZoom((value) => Math.max(1, Number((value - 0.25).toFixed(2))))}
-                className="rounded-full bg-white/10 px-4 py-2 text-sm backdrop-blur hover:bg-white/20"
+                className="hidden rounded-full bg-white/10 px-4 py-2 text-sm backdrop-blur hover:bg-white/20 sm:inline-flex"
               >
                 -
               </button>
               <button
                 type="button"
                 onClick={() => setZoom(1)}
-                className="rounded-full bg-white/10 px-4 py-2 text-sm backdrop-blur hover:bg-white/20"
+                className="hidden rounded-full bg-white/10 px-4 py-2 text-sm backdrop-blur hover:bg-white/20 sm:inline-flex"
               >
                 {Math.round(zoom * 100)}%
               </button>
               <button
                 type="button"
                 onClick={() => setZoom((value) => Math.min(3, Number((value + 0.25).toFixed(2))))}
-                className="rounded-full bg-white/10 px-4 py-2 text-sm backdrop-blur hover:bg-white/20"
+                className="hidden rounded-full bg-white/10 px-4 py-2 text-sm backdrop-blur hover:bg-white/20 sm:inline-flex"
               >
                 +
               </button>
               <button
                 type="button"
                 onClick={() => setLightboxOpen(false)}
-                className="rounded-full bg-white px-4 py-2 text-sm font-medium text-neutral-950 hover:bg-neutral-100"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-white text-neutral-950 shadow-lg hover:bg-neutral-100"
+                aria-label="Close image preview"
               >
-                Close
+                <X className="h-6 w-6" aria-hidden="true" />
               </button>
             </div>
           </div>
+
           <button
             type="button"
             className="absolute inset-0"
             onClick={() => setLightboxOpen(false)}
             aria-label="Close image preview"
           />
-          <div className="pointer-events-none flex h-full w-full items-center justify-center overflow-auto p-4 sm:p-10">
+
+          {lightboxImages.length > 1 ? (
+            <>
+              <button
+                type="button"
+                onClick={showPreviousLightboxImage}
+                className="absolute left-3 top-1/2 z-10 inline-flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur transition hover:bg-white/25 sm:left-6"
+                aria-label="Previous product image"
+              >
+                <ChevronLeft className="h-7 w-7" aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                onClick={showNextLightboxImage}
+                className="absolute right-3 top-1/2 z-10 inline-flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur transition hover:bg-white/25 sm:right-6"
+                aria-label="Next product image"
+              >
+                <ChevronRight className="h-7 w-7" aria-hidden="true" />
+              </button>
+            </>
+          ) : null}
+
+          <div
+            className="relative z-[1] flex h-full w-full items-center justify-center overflow-auto p-4 pb-28 pt-20 sm:p-10 sm:pb-32"
+            onTouchStart={(event) => {
+              touchStartX.current = event.touches[0]?.clientX ?? null;
+            }}
+            onTouchEnd={(event) => {
+              handleLightboxTouchEnd(event.changedTouches[0]?.clientX ?? 0);
+            }}
+          >
             <div
-              className="relative h-[82vh] w-full max-w-6xl transition-transform duration-200"
+              className="relative h-[72vh] w-full max-w-6xl transition-transform duration-200 sm:h-[82vh]"
               style={{ transform: `scale(${zoom})` }}
             >
               <Image
-                src={withImageParams(activeMedia.url, "auto=format&fit=contain&w=2200&q=95")}
-                alt={activeMedia.alt || product.name}
+                src={withImageParams(currentLightboxImage.url, "auto=format&fit=contain&w=2200&q=95")}
+                alt={currentLightboxImage.alt || product.name}
                 fill
                 sizes="100vw"
                 className="object-contain"
@@ -1072,6 +1190,33 @@ export default function ProductClient({
               />
             </div>
           </div>
+
+          {lightboxImages.length > 1 ? (
+            <div className="absolute inset-x-0 bottom-4 z-10 px-4">
+              <div className="mx-auto flex max-w-4xl gap-2 overflow-x-auto rounded-2xl bg-black/35 p-2 backdrop-blur">
+                {lightboxImages.map((item, index) => (
+                  <button
+                    key={`${item.url}-${index}`}
+                    type="button"
+                    onClick={() => setLightboxImageAt(index)}
+                    className={[
+                      "relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border bg-neutral-900 sm:h-20 sm:w-20",
+                      index === activeLightboxIndex ? "border-white" : "border-white/20 hover:border-white/60",
+                    ].join(" ")}
+                    aria-label={`Open image ${index + 1}`}
+                  >
+                    <Image
+                      src={withImageParams(item.url, "auto=format&fit=crop&w=240&q=80")}
+                      alt={item.alt || product.name}
+                      fill
+                      sizes="80px"
+                      className="object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
       ) : null}
 
@@ -1087,7 +1232,7 @@ export default function ProductClient({
           </div>
           <button
             onClick={onBuyNow}
-            className="ml-auto rounded-2xl bg-neutral-900 px-4 py-3 text-sm font-medium text-white hover:bg-neutral-800"
+            className="cta-attention ml-auto rounded-2xl bg-neutral-900 px-4 py-3 text-sm font-medium text-white hover:bg-neutral-800"
           >
             {globalCopy.product.buyNow}
           </button>

@@ -654,7 +654,7 @@ export default function CheckoutPage() {
                   type="button"
                   onClick={placeOrder}
                   disabled={submitting || items.length === 0}
-                  className="theme-primary-action mt-4 hidden min-h-16 w-full items-center justify-center gap-3 rounded-3xl bg-neutral-900 px-6 py-4 text-center text-base font-black text-white shadow-lg shadow-neutral-900/20 transition hover:bg-neutral-800 active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-neutral-500 lg:flex"
+                  className="cta-attention theme-primary-action mt-4 hidden min-h-16 w-full items-center justify-center gap-3 rounded-3xl bg-neutral-900 px-6 py-4 text-center text-base font-black text-white shadow-lg shadow-neutral-900/20 transition hover:bg-neutral-800 active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-neutral-500 lg:flex"
                 >
                   <ShoppingCart className="h-5 w-5" aria-hidden="true" />
                   <span>
@@ -694,7 +694,7 @@ export default function CheckoutPage() {
             type="button"
             onClick={placeOrder}
             disabled={submitting || items.length === 0}
-            className="theme-primary-action ml-auto flex min-h-16 flex-1 items-center justify-center gap-2 rounded-2xl bg-neutral-900 px-5 py-3 text-sm font-black text-white shadow-lg shadow-neutral-900/20 transition active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-neutral-500"
+            className="cta-attention theme-primary-action ml-auto flex min-h-16 flex-1 items-center justify-center gap-2 rounded-2xl bg-neutral-900 px-5 py-3 text-sm font-black text-white shadow-lg shadow-neutral-900/20 transition active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-neutral-500"
           >
             <ShoppingCart className="h-4 w-4" aria-hidden="true" />
             <span>

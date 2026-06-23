@@ -6,6 +6,11 @@ import { promises as fs } from "fs";
 import { randomUUID } from "crypto";
 import { getUploadKindDir, getUploadPublicUrl } from "@/lib/uploadStorage";
 
+export const runtime = "nodejs";
+
+const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024;
+const MAX_VIDEO_SIZE_BYTES = 50 * 1024 * 1024;
+
 const UploadSchema = z.object({
   dataUrl: z.string().min(20),
   kind: z.enum(["category", "subcategory", "product", "blog", "branding"]).optional(),
@@ -22,9 +27,37 @@ function getExtensionFromMime(mime: string) {
       return "webp";
     case "image/gif":
       return "gif";
+    case "video/mp4":
+      return "mp4";
+    case "video/webm":
+      return "webm";
+    case "video/ogg":
+      return "ogv";
+    case "video/quicktime":
+      return "mov";
     default:
       return "";
   }
+}
+
+function isAllowedUploadExtension(ext: string) {
+  return ["jpg", "jpeg", "png", "webp", "gif", "mp4", "webm", "ogv", "ogg", "mov"].includes(
+    ext.toLowerCase(),
+  );
+}
+
+function isVideoExtension(ext: string) {
+  return ["mp4", "webm", "ogv", "ogg", "mov"].includes(ext.toLowerCase());
+}
+
+function isFileLike(value: FormDataEntryValue | null): value is File {
+  return (
+    !!value &&
+    typeof value === "object" &&
+    "arrayBuffer" in value &&
+    "name" in value &&
+    "size" in value
+  );
 }
 
 function cleanBaseName(input?: string | null) {
@@ -54,15 +87,24 @@ export async function POST(req: NextRequest) {
       const rawKind = String(form.get("kind") || "product");
       const kind = allowedKinds.has(rawKind) ? rawKind : "product";
 
-      if (!file || !(file instanceof File)) {
+      if (!isFileLike(file)) {
         return NextResponse.json({ ok: false, error: "File is required" }, { status: 400 });
       }
 
       const extFromMime = getExtensionFromMime(file.type || "");
       const ext = extFromMime || path.extname(file.name || "").replace(".", "");
 
-      if (!ext) {
-        return NextResponse.json({ ok: false, error: "Unsupported image type" }, { status: 400 });
+      if (!ext || !isAllowedUploadExtension(ext)) {
+        return NextResponse.json({ ok: false, error: "Unsupported file type" }, { status: 400 });
+      }
+
+      const maxSize = isVideoExtension(ext) ? MAX_VIDEO_SIZE_BYTES : MAX_IMAGE_SIZE_BYTES;
+      if (file.size > maxSize) {
+        const maxMb = Math.floor(maxSize / 1024 / 1024);
+        return NextResponse.json(
+          { ok: false, error: `File is too large. Maximum allowed size is ${maxMb}MB.` },
+          { status: 413 },
+        );
       }
 
       const fileName = uniqueFileName(file.name, ext);
@@ -90,8 +132,8 @@ export async function POST(req: NextRequest) {
     const mime = match[1];
     const base64 = match[2];
     const ext = getExtensionFromMime(mime);
-    if (!ext) {
-      return NextResponse.json({ ok: false, error: "Unsupported image type" }, { status: 400 });
+    if (!ext || !isAllowedUploadExtension(ext)) {
+      return NextResponse.json({ ok: false, error: "Unsupported file type" }, { status: 400 });
     }
 
     const kind = allowedKinds.has(data.kind ?? "") ? (data.kind as string) : "product";
@@ -113,6 +155,6 @@ export async function POST(req: NextRequest) {
     }
 
     console.error("POST /api/admin/uploads error:", err);
-    return NextResponse.json({ ok: false, error: "Failed to upload image" }, { status: 500 });
+    return NextResponse.json({ ok: false, error: "Failed to upload file" }, { status: 500 });
   }
 }
