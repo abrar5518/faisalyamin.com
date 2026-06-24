@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
+import redirects from "./public/redirects.json";
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return redirects;
+  },
   images: {
     localPatterns: [
       { pathname: "/uploads/**" },
