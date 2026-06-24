@@ -2,6 +2,8 @@ export type AdminImage = {
   id?: string;
   url: string;
   alt?: string;
+  mediaType?: "image" | "video";
+  thumbnailUrl?: string;
 };
 
 export type AdminFaqItem = {

@@ -246,6 +246,8 @@ model ProductImage {
   productId Int
   url       String
   alt       String?  @db.Text
+  mediaType String   @default("image")
+  thumbnailUrl String? @db.Text
   sortOrder Int      @default(0)
 
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -817,6 +819,35 @@ model SiteSettings {
     customHeadScripts String? @db.LongText
     customBodyStartScripts String? @db.LongText
     customBodyEndScripts String? @db.LongText
+    headerMenuItems String? @db.Text
+    headerSearchPlaceholder String? @db.Text
+    headerAnnouncementEnabled Boolean @default(true)
+    headerAnnouncementText String? @db.Text
+    headerAnnouncementHref String? @db.Text
+    headerShowSearch Boolean @default(true)
+    headerShowAccount Boolean @default(true)
+    headerShowCart Boolean @default(true)
+    headerShowSupportLinks Boolean @default(true)
+    footerCopyright String? @db.Text
+    footerColumns String? @db.Text
+    footerNewsletterEnabled Boolean @default(true)
+    footerNewsletterEyebrow String? @db.Text
+    footerNewsletterTitle String? @db.Text
+    footerNewsletterSubtitle String? @db.Text
+    footerNewsletterConsentText String? @db.Text
+    footerTrustItems String? @db.Text
+    footerSocialLinks String? @db.Text
+    metaPixelEnabled Boolean @default(true)
+    googleTagManagerEnabled Boolean @default(true)
+    microsoftClarityEnabled Boolean @default(true)
+    customHeadScriptsEnabled Boolean @default(true)
+    customBodyStartScriptsEnabled Boolean @default(true)
+    customBodyEndScriptsEnabled Boolean @default(true)
+    themeSettings String? @db.LongText
+    globalCopy String? @db.LongText
+    checkoutSettings String? @db.LongText
+    cartSettings String? @db.LongText
+    catalogSettings String? @db.LongText
     createdAt   DateTime @default(now())
     updatedAt   DateTime @updatedAt
   }
@@ -837,6 +868,40 @@ model StoreSettings {
   indexable             Boolean  @default(true)
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
+}
+
+model RedirectRule {
+  id          Int      @id @default(autoincrement())
+  source      String   @unique @db.VarChar(512)
+  destination String   @db.VarChar(512)
+  permanent   Boolean  @default(true)
+  isActive    Boolean  @default(true)
+  note        String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ReusableBlock {
+  id             Int      @id @default(autoincrement())
+  title          String
+  slug           String   @unique
+  type           String   @default("trust")
+  placement      String   @default("general")
+  eyebrow        String?
+  bodyHtml       String?  @db.LongText
+  icon           String?
+  primaryLabel   String?
+  primaryHref    String?
+  secondaryLabel String?
+  secondaryHref  String?
+  itemsJson      String?  @db.LongText
+  isEnabled      Boolean  @default(true)
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([placement])
+  @@index([isEnabled])
 }
 
 model Subscriber {

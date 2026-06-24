@@ -21,6 +21,14 @@ function getExtensionFromMime(mime: string) {
       return "webp";
     case "image/gif":
       return "gif";
+    case "video/mp4":
+      return "mp4";
+    case "video/webm":
+      return "webm";
+    case "video/ogg":
+      return "ogv";
+    case "video/quicktime":
+      return "mov";
     default:
       return "";
   }
@@ -61,7 +69,7 @@ export async function POST(req: NextRequest) {
       const ext = extFromMime || path.extname(file.name || "").replace(".", "");
 
       if (!ext) {
-        return NextResponse.json({ ok: false, error: "Unsupported image type" }, { status: 400 });
+        return NextResponse.json({ ok: false, error: "Unsupported media type" }, { status: 400 });
       }
 
       const fileName = uniqueFileName(file.name, ext);
@@ -90,7 +98,7 @@ export async function POST(req: NextRequest) {
     const base64 = match[2];
     const ext = getExtensionFromMime(mime);
     if (!ext) {
-      return NextResponse.json({ ok: false, error: "Unsupported image type" }, { status: 400 });
+      return NextResponse.json({ ok: false, error: "Unsupported media type" }, { status: 400 });
     }
 
     const kind = allowedKinds.has(data.kind ?? "") ? (data.kind as string) : "product";
@@ -112,6 +120,6 @@ export async function POST(req: NextRequest) {
     }
 
     console.error("POST /api/admin/uploads error:", err);
-    return NextResponse.json({ ok: false, error: "Failed to upload image" }, { status: 500 });
+    return NextResponse.json({ ok: false, error: "Failed to upload media" }, { status: 500 });
   }
 }
