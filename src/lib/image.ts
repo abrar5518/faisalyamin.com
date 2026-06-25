@@ -7,7 +7,8 @@ const UPLOAD_BASE_URL = process.env.NEXT_PUBLIC_UPLOAD_BASE_URL
 export function toOptimizableImageSrc(src: string) {
   if (!src || src.startsWith("data:")) return src;
   if (src.startsWith("/uploads/")) {
-    return UPLOAD_BASE_URL ? `${UPLOAD_BASE_URL.replace(/\/$/, "")}${src}` : src;
+    const baseUrl = UPLOAD_BASE_URL || normalizeSiteUrl();
+    return `${baseUrl.replace(/\/$/, "")}${src}`;
   }
   return src;
 }
