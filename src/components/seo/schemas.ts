@@ -179,6 +179,7 @@ export const productSchema = ({
   name,
   description,
   sku,
+  mpn,
   brand,
   images,
   url,
@@ -187,12 +188,16 @@ export const productSchema = ({
   availability = "https://schema.org/InStock",
   condition = "https://schema.org/NewCondition",
   category,
+  sellerName,
+  shipping,
+  returnPolicy,
   aggregateRating,
   reviews,
 }: {
   name: string;
   description: string;
   sku?: string;
+  mpn?: string;
   brand: string;
   images: string[];
   url: string;
@@ -201,11 +206,28 @@ export const productSchema = ({
   availability?: string;
   condition?: string;
   category?: string;
+  sellerName?: string;
+  shipping?: {
+    country: string;
+    price: number;
+    currency?: string;
+    handlingMinDays?: number;
+    handlingMaxDays?: number;
+    transitMinDays?: number;
+    transitMaxDays?: number;
+  };
+  returnPolicy?: {
+    country: string;
+    days: number;
+    fees?: "https://schema.org/FreeReturn" | "https://schema.org/ReturnShippingFees";
+    method?: "https://schema.org/ReturnByMail" | "https://schema.org/ReturnInStore" | "https://schema.org/ReturnAtKiosk";
+  };
   aggregateRating?: { ratingValue: number; reviewCount: number };
   reviews?: Array<{
     author: string;
     ratingValue: number;
     reviewBody: string;
+    name?: string;
     datePublished?: string;
   }>;
 }) => ({
@@ -215,6 +237,7 @@ export const productSchema = ({
   description,
   image: images,
   ...(sku ? { sku } : {}),
+  ...(mpn ? { mpn } : {}),
   brand: { "@type": "Brand", name: brand },
   ...(category ? { category } : {}),
   offers: {
@@ -224,13 +247,64 @@ export const productSchema = ({
     price: String(price),
     availability,
     itemCondition: condition,
+    ...(sellerName
+      ? {
+          seller: {
+            "@type": "Organization",
+            name: sellerName,
+          },
+        }
+      : {}),
+    ...(shipping
+      ? {
+          shippingDetails: {
+            "@type": "OfferShippingDetails",
+            shippingDestination: {
+              "@type": "DefinedRegion",
+              addressCountry: shipping.country,
+            },
+            shippingRate: {
+              "@type": "MonetaryAmount",
+              value: shipping.price,
+              currency: shipping.currency || currency,
+            },
+            deliveryTime: {
+              "@type": "ShippingDeliveryTime",
+              handlingTime: {
+                "@type": "QuantitativeValue",
+                minValue: shipping.handlingMinDays ?? 0,
+                maxValue: shipping.handlingMaxDays ?? 1,
+                unitCode: "DAY",
+              },
+              transitTime: {
+                "@type": "QuantitativeValue",
+                minValue: shipping.transitMinDays ?? 2,
+                maxValue: shipping.transitMaxDays ?? 5,
+                unitCode: "DAY",
+              },
+            },
+          },
+        }
+      : {}),
+    ...(returnPolicy
+      ? {
+          hasMerchantReturnPolicy: {
+            "@type": "MerchantReturnPolicy",
+            applicableCountry: returnPolicy.country,
+            returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+            merchantReturnDays: returnPolicy.days,
+            returnMethod: returnPolicy.method || "https://schema.org/ReturnByMail",
+            returnFees: returnPolicy.fees || "https://schema.org/ReturnShippingFees",
+          },
+        }
+      : {}),
   },
   ...(aggregateRating
     ? {
         aggregateRating: {
           "@type": "AggregateRating",
-          ratingValue: String(aggregateRating.ratingValue),
-          reviewCount: String(aggregateRating.reviewCount),
+          ratingValue: aggregateRating.ratingValue,
+          reviewCount: aggregateRating.reviewCount,
         },
       }
     : {}),
@@ -238,10 +312,13 @@ export const productSchema = ({
     ? {
         review: reviews.map((r) => ({
           "@type": "Review",
+          ...(r.name ? { name: r.name } : {}),
           author: { "@type": "Person", name: r.author },
           reviewRating: {
             "@type": "Rating",
-            ratingValue: String(r.ratingValue),
+            ratingValue: r.ratingValue,
+            bestRating: 5,
+            worstRating: 1,
           },
           reviewBody: r.reviewBody,
           ...(r.datePublished ? { datePublished: r.datePublished } : {}),

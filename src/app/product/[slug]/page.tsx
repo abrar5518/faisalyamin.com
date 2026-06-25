@@ -12,6 +12,7 @@ import {
   parseCatalogSettings,
   renderCatalogTemplate,
 } from "@/lib/catalogSettings";
+import { redirectIfManaged } from "@/lib/serverRedirects";
 
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
@@ -101,6 +102,18 @@ type ReviewItem = {
 
 function formatPKR(n: number) {
   return `PKR ${n.toLocaleString("en-PK")}`;
+}
+
+function parsePKRAmount(value?: string | null) {
+  if (!value) return null;
+  const amount = Number(value.replace(/[^\d.]/g, ""));
+  return Number.isFinite(amount) ? amount : null;
+}
+
+function schemaProductName(value: string) {
+  const normalized = value.replace(/\s+/g, " ").trim();
+  if (normalized.length <= 150) return normalized;
+  return `${normalized.slice(0, 147).trimEnd()}...`;
 }
 
 function normalizeVariants(
@@ -213,6 +226,7 @@ export default async function ProductPage({ params }: PageProps) {
   if (!slug) {
     notFound();
   }
+  await redirectIfManaged(`/product/${slug}`);
   const [product, siteSettings, storeSettings] = await Promise.all([
     prisma.product.findUnique({
       where: { slug },
@@ -312,6 +326,16 @@ export default async function ProductPage({ params }: PageProps) {
     user: { name: r.user?.name || "Customer" },
     images: r.images.map((img) => ({ url: img.url, alt: img.alt || undefined })),
   }));
+  const approvedReviewCount = reviewItems.length;
+  const approvedRating =
+    approvedReviewCount > 0
+      ? Number(
+          (
+            reviewItems.reduce((total, review) => total + review.rating, 0) /
+            approvedReviewCount
+          ).toFixed(1)
+        )
+      : 0;
 
   const productData: ProductData = {
     id: String(typedProduct.id),
@@ -319,8 +343,8 @@ export default async function ProductPage({ params }: PageProps) {
     brand: typedProduct.brand || typedProduct.category?.name || catalogSettings.productBrandFallback,
     category: typedProduct.category?.name ?? "Products",
     name: typedProduct.name,
-    rating: typedProduct.rating ?? 0,
-    reviews: typedProduct.reviewsCount ?? 0,
+    rating: approvedRating,
+    reviews: approvedReviewCount,
     reviewItems,
     shortDescription:
       typedProduct.shortDesc ??
@@ -378,13 +402,19 @@ export default async function ProductPage({ params }: PageProps) {
   const productImages = imageUrls.length ? imageUrls : ["/images/shopping.jpg"];
   const descriptionText = typedProduct.shortDesc || stripHtml(typedProduct.descriptionHtml || "");
   const priceValue = Number(typedProduct.price ?? 0);
-  const reviewsCount = typedProduct.reviewsCount ?? 0;
-  const schemaReviews = reviewItems.slice(0, 4).map((r) => ({
+  const schemaReviews = reviewItems.map((r) => ({
     author: r.user.name,
     ratingValue: r.rating,
+    name: r.title || `${typedProduct.name} review`,
     reviewBody: r.body,
     datePublished: r.createdAt,
   }));
+  const schemaBrand =
+    typedProduct.brand?.trim() || catalogSettings.productBrandFallback || "Sahoolat";
+  const schemaShippingPrice = parsePKRAmount(storeSettings?.defaultShippingFee) ?? 250;
+  const schemaReturnDays = storeSettings?.returnsDays ?? 7;
+  const schemaSellerName =
+    storeSettings?.storeName?.trim() || siteSettings?.siteName?.trim() || "Sahoolat";
 
   return (
     <div className="bg-white text-neutral-900">
@@ -397,18 +427,35 @@ export default async function ProductPage({ params }: PageProps) {
       />
       <Schema
         data={productSchema({
-          name: typedProduct.name,
+          name: schemaProductName(typedProduct.name),
           description: descriptionText || catalogSettings.productFallbackDescription,
-          sku: String(typedProduct.id),
-          brand: typedProduct.brand || typedProduct.category?.name || catalogSettings.productBrandFallback,
+          sku: `SAH-${typedProduct.id}`,
+          mpn: `SAH-${typedProduct.id}`,
+          brand: schemaBrand,
           images: productImages.map((img) => absoluteUrl(img, baseUrlResolved)),
           url: pageUrl,
           price: priceValue,
           currency: "PKR",
           availability: typedProduct.isActive ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
           category: typedProduct.category?.name ?? undefined,
-          aggregateRating: reviewsCount
-            ? { ratingValue: typedProduct.rating ?? 0, reviewCount: reviewsCount }
+          sellerName: schemaSellerName,
+          shipping: {
+            country: "PK",
+            price: schemaShippingPrice,
+            currency: "PKR",
+            handlingMinDays: 0,
+            handlingMaxDays: 1,
+            transitMinDays: 2,
+            transitMaxDays: 5,
+          },
+          returnPolicy: {
+            country: "PK",
+            days: schemaReturnDays,
+            fees: "https://schema.org/ReturnShippingFees",
+            method: "https://schema.org/ReturnByMail",
+          },
+          aggregateRating: approvedReviewCount
+            ? { ratingValue: approvedRating, reviewCount: approvedReviewCount }
             : undefined,
           reviews: schemaReviews.length ? schemaReviews : undefined,
         })}
