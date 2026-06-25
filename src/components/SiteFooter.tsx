@@ -5,8 +5,19 @@ import Image from "next/image";
 import { toOptimizableImageSrc } from "@/lib/image";
 import { usePathname } from "next/navigation";
 import type { FormEvent, ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MapPin } from "lucide-react";
+import { buildWhatsAppHref } from "@/lib/contact";
+import {
+  DEFAULT_FOOTER_COPYRIGHT,
+  DEFAULT_FOOTER_NEWSLETTER,
+  parseFooterColumns,
+  parseFooterSocialLinks,
+  parseFooterTrustItems,
+  type FooterColumn,
+  type FooterSocialLink,
+  type FooterTrustItem,
+} from "@/lib/footerSettings";
 
 function Container({ children }: { children: ReactNode }) {
   return (
@@ -16,92 +27,143 @@ function Container({ children }: { children: ReactNode }) {
   );
 }
 
-function Dot() {
-  return <span className="inline-block h-1 w-1 rounded-full bg-neutral-300" />;
-}
-
 function FooterLink({ href, children }: { href: string; children: ReactNode }) {
   return (
     <Link
       href={href}
-      className="text-sm text-neutral-600 hover:text-neutral-900 transition"
+      className="text-sm text-neutral-600 transition hover:text-neutral-900"
     >
       {children}
     </Link>
   );
 }
 
+type SiteSettingsPayload = {
+  siteName?: string | null;
+  logoUrl?: string | null;
+  siteFooterText?: string | null;
+  footerCopyright?: string | null;
+  footerColumns?: string | null;
+  footerNewsletterEnabled?: boolean;
+  footerNewsletterEyebrow?: string | null;
+  footerNewsletterTitle?: string | null;
+  footerNewsletterSubtitle?: string | null;
+  footerNewsletterConsentText?: string | null;
+  footerTrustItems?: string | null;
+  footerSocialLinks?: string | null;
+};
+
+type ContactPayload = {
+  phone?: string | null;
+  whatsapp?: string | null;
+  email?: string | null;
+  city?: string | null;
+  country?: string | null;
+  hoursWeekdays?: string | null;
+};
+
+function renderTemplate(value: string, siteName: string) {
+  return value
+    .replaceAll("{{year}}", String(new Date().getFullYear()))
+    .replaceAll("{{siteName}}", siteName);
+}
+
 export default function SiteFooter() {
   const pathname = usePathname();
-
-  const [branding, setBranding] = useState<{
-    siteName?: string;
-    logoUrl?: string;
-    siteFooterText?: string;
-  } | null>(null);
-  const [contact, setContact] = useState<{
-    phone?: string;
-    whatsapp?: string;
-    email?: string;
-    addressLine1?: string;
-    addressLine2?: string;
-    city?: string;
-    state?: string;
-    country?: string;
-    postalCode?: string;
-    hoursWeekdays?: string;
-    hoursWeekend?: string;
-  } | null>(null);
+  const [settings, setSettings] = useState<SiteSettingsPayload | null>(null);
+  const [contact, setContact] = useState<ContactPayload | null>(null);
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
+
     (async () => {
       try {
-        const settingsRes = await fetch("/api/site-settings", { cache: "no-store" });
+        const [settingsRes, contactRes] = await Promise.all([
+          fetch("/api/site-settings", { cache: "no-store" }),
+          fetch("/api/contact", { cache: "no-store" }),
+        ]);
         const settingsPayload = await settingsRes.json().catch(() => ({}));
-        if (active && settingsRes.ok && settingsPayload?.ok) {
-          setBranding(settingsPayload.data || null);
-        }
-        const res = await fetch("/api/contact", { cache: "no-store" });
-        const payload = await res.json().catch(() => ({}));
+        const contactPayload = await contactRes.json().catch(() => ({}));
         if (!active) return;
-        if (res.ok && payload?.ok) {
-          setContact(payload.data || null);
+
+        if (settingsRes.ok && settingsPayload?.ok) {
+          setSettings(settingsPayload.data || null);
+        }
+
+        if (contactRes.ok && contactPayload?.ok) {
+          setContact(contactPayload.data || null);
         }
       } catch {
-        // ignore
+        // Footer keeps safe defaults when public settings are unavailable.
       }
     })();
+
     return () => {
       active = false;
     };
   }, []);
 
   const hideFooter = pathname?.startsWith("/admin") || pathname?.startsWith("/checkout");
+  const footerColumns = useMemo<FooterColumn[]>(
+    () =>
+      parseFooterColumns(settings?.footerColumns).filter(
+        (column) => column.enabled !== false
+      ),
+    [settings?.footerColumns]
+  );
+  const footerTrustItems = useMemo<FooterTrustItem[]>(
+    () =>
+      parseFooterTrustItems(settings?.footerTrustItems).filter(
+        (item) => item.enabled !== false
+      ),
+    [settings?.footerTrustItems]
+  );
+  const footerSocialLinks = useMemo<FooterSocialLink[]>(
+    () =>
+      parseFooterSocialLinks(settings?.footerSocialLinks).filter(
+        (item) => item.enabled !== false
+      ),
+    [settings?.footerSocialLinks]
+  );
+
   if (hideFooter) return null;
 
-  const brandName = branding?.siteName?.trim() || "Sahoolat";
+  const brandName = settings?.siteName?.trim() || "Sahoolat";
   const footerText =
-    branding?.siteFooterText?.trim() ||
-    "Sahoolat.pk offers affordable water bottles in Pakistan including kids water bottles, school bottles, stainless steel bottles, BPA-free bottles and insulated bottles with fast delivery and secure checkout.";
-  const brandInitials = brandName
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((s) => s[0])
-    .join("")
-    .toUpperCase() || "LX";
-  const contactEmail = contact?.email || "support@sahoolat.pk";
+    settings?.siteFooterText?.trim() ||
+    "Shop quality products with secure checkout, clear support, and reliable delivery across Pakistan.";
+  const brandInitials =
+    brandName
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((s) => s[0])
+      .join("")
+      .toUpperCase() || "ST";
+  const contactEmail = contact?.email || "";
   const contactWhatsapp = contact?.whatsapp || "";
   const contactPhone = contact?.phone || "";
   const contactCity = contact?.city || "";
   const contactCountry = contact?.country || "";
   const contactHours = contact?.hoursWeekdays || "";
-  const whatsappDigits = contactWhatsapp.replace(/[^\d+]/g, "").replace(/^\+/, "");
-  const whatsappHref = whatsappDigits ? `https://wa.me/${whatsappDigits}` : "/contact";
+  const whatsappHref = buildWhatsAppHref(contactWhatsapp);
+  const showNewsletter = settings?.footerNewsletterEnabled !== false;
+  const newsletterEyebrow =
+    settings?.footerNewsletterEyebrow?.trim() || DEFAULT_FOOTER_NEWSLETTER.eyebrow;
+  const newsletterTitle =
+    settings?.footerNewsletterTitle?.trim() || DEFAULT_FOOTER_NEWSLETTER.title;
+  const newsletterSubtitle =
+    settings?.footerNewsletterSubtitle?.trim() || DEFAULT_FOOTER_NEWSLETTER.subtitle;
+  const newsletterConsent =
+    settings?.footerNewsletterConsentText?.trim() ||
+    DEFAULT_FOOTER_NEWSLETTER.consentText;
+  const copyright = renderTemplate(
+    settings?.footerCopyright?.trim() || DEFAULT_FOOTER_COPYRIGHT,
+    brandName
+  );
 
   async function handleSubscribe(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -120,7 +182,7 @@ export default function SiteFooter() {
         throw new Error(payload?.error || "Subscription failed");
       }
       setEmail("");
-      setMessage("Subscribed! Watch your inbox for offers.");
+      setMessage("Subscribed. Watch your inbox for offers.");
     } catch {
       setMessage("Unable to subscribe right now. Please try again.");
     } finally {
@@ -130,105 +192,90 @@ export default function SiteFooter() {
 
   return (
     <footer className="mt-16">
-      {/* Premium Newsletter */}
-      <section className="border-t border-neutral-200 bg-neutral-950 text-white">
-        <Container>
-          <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-neutral-950 px-6 py-10 sm:px-10 lg:px-12">
-            {/* subtle glow */}
-            <div className="pointer-events-none absolute -left-24 -top-24 h-64 w-64 rounded-full bg-white/5 blur-3xl" />
-            <div className="pointer-events-none absolute -right-24 -bottom-24 h-64 w-64 rounded-full bg-white/5 blur-3xl" />
+      {showNewsletter ? (
+        <section className="theme-border theme-footer-cta border-t border-neutral-200 bg-neutral-950 text-white">
+          <Container>
+            <div className="theme-footer-cta relative overflow-hidden rounded-3xl border border-white/10 bg-neutral-950 px-6 py-10 sm:px-10 lg:px-12">
+              <div className="relative grid items-center gap-8 lg:grid-cols-12">
+                <div className="lg:col-span-6">
+                  <p className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/80">
+                    <span className="h-1.5 w-1.5 rounded-full bg-white/60" />
+                    {newsletterEyebrow}
+                  </p>
 
-            <div className="relative grid items-center gap-8 lg:grid-cols-12">
-              <div className="lg:col-span-6">
-                <p className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/80">
-                  <span className="h-1.5 w-1.5 rounded-full bg-white/60" />
-                  Premium updates only
-                </p>
-
-                <h3 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl">
-                  Get drops, deals & restocks
-                </h3>
-                <p className="mt-2 text-sm text-white/70">
-                  Weekly water bottle deals, new arrivals and restock alerts.
-                </p>
-
-                <div className="mt-5 flex flex-wrap items-center gap-3 text-xs text-white/60">
-                  <span className="inline-flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-white/40" />
-                    One email per week
-                  </span>
-                  <span className="hidden sm:inline text-white/25">/</span>
-                  <span className="inline-flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-white/40" />
-                    Unsubscribe anytime
-                  </span>
+                  <h3 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl">
+                    {newsletterTitle}
+                  </h3>
+                  <p className="mt-2 text-sm text-white/70">
+                    {newsletterSubtitle}
+                  </p>
                 </div>
-              </div>
 
-              <div className="lg:col-span-6">
-                <form onSubmit={handleSubscribe} className="grid gap-3 sm:grid-cols-12">
-                  <div className="sm:col-span-8">
-                    <input
-                      className="w-full rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40 focus:border-white/25"
-                      placeholder="Enter your email"
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      disabled={submitting}
-                    />
-                    <p className="mt-2 text-[11px] text-white/50">
-                      By subscribing you agree to our privacy policy.
-                    </p>
-                    {message ? (
-                      <p className="mt-2 text-[11px] text-white/70">{message}</p>
-                    ) : null}
-                  </div>
-                  <div className="sm:col-span-4">
-                    <button
-                      type="submit"
-                      disabled={submitting}
-                      className="w-full rounded-2xl bg-white px-5 py-3 text-sm font-medium text-neutral-900 hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-70"
-                    >
-                      {submitting ? "Submitting..." : "Subscribe"}
-                    </button>
-                  </div>
-                </form>
+                <div className="lg:col-span-6">
+                  <form onSubmit={handleSubscribe} className="grid gap-3 sm:grid-cols-12">
+                    <div className="sm:col-span-8">
+                      <input
+                        className="w-full rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white outline-none placeholder:text-white/40 focus:border-white/25"
+                        placeholder="Enter your email"
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        disabled={submitting}
+                      />
+                      <p className="mt-2 text-[11px] text-white/50">
+                        {newsletterConsent}
+                      </p>
+                      {message ? (
+                        <p className="mt-2 text-[11px] text-white/70">{message}</p>
+                      ) : null}
+                    </div>
+                    <div className="sm:col-span-4">
+                      <button
+                        type="submit"
+                        disabled={submitting}
+                        className="w-full rounded-2xl bg-white px-5 py-3 text-sm font-medium text-neutral-900 hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-70"
+                      >
+                        {submitting ? "Submitting..." : "Subscribe"}
+                      </button>
+                    </div>
+                  </form>
 
-                {/* micro trust row */}
-                <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                    <p className="text-[11px] font-semibold text-white">Quality Checked</p>
-                    <p className="mt-0.5 text-[11px] text-white/60">Checked before dispatch</p>
-                  </div>
-                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                    <p className="text-[11px] font-semibold text-white">Shipping</p>
-                    <p className="mt-0.5 text-[11px] text-white/60">Fast delivery across Pakistan</p>
-                  </div>
-                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                    <p className="text-[11px] font-semibold text-white">Support</p>
-                    <p className="mt-0.5 text-[11px] text-white/60">WhatsApp help</p>
-                  </div>
+                  {footerTrustItems.length ? (
+                    <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                      {footerTrustItems.map((item) => (
+                        <div
+                          key={`${item.title}-${item.description}`}
+                          className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3"
+                        >
+                          <p className="text-[11px] font-semibold text-white">
+                            {item.title}
+                          </p>
+                          {item.description ? (
+                            <p className="mt-0.5 text-[11px] text-white/60">
+                              {item.description}
+                            </p>
+                          ) : null}
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
               </div>
             </div>
-          </div>
-        </Container>
+          </Container>
+          <div className="border-t border-white/10" />
+        </section>
+      ) : null}
 
-        {/* divider strip */}
-        <div className="border-t border-white/10" />
-      </section>
-
-      {/* Main footer */}
       <section className="bg-white py-12">
         <Container>
           <div className="grid gap-10 lg:grid-cols-12">
-            {/* Brand block */}
             <div className="lg:col-span-4">
               <Link href="/" className="inline-flex items-center">
-                {branding?.logoUrl ? (
+                {settings?.logoUrl ? (
                   <Image
-                    src={toOptimizableImageSrc(branding.logoUrl)}
+                    src={toOptimizableImageSrc(settings.logoUrl)}
                     alt={brandName}
                     width={180}
                     height={48}
@@ -236,13 +283,13 @@ export default function SiteFooter() {
                     loading="lazy"
                   />
                 ) : (
-                  <span className="inline-flex h-12 w-12 items-center justify-center bg-neutral-900 text-white text-sm font-semibold">
+                  <span className="inline-flex h-12 w-12 items-center justify-center bg-neutral-900 text-sm font-semibold text-white">
                     {brandInitials}
                   </span>
                 )}
               </Link>
 
-              <p className="mt-4 max-w-sm text-sm text-neutral-600 leading-relaxed">
+              <p className="mt-4 max-w-sm text-sm leading-relaxed text-neutral-600">
                 {footerText}
               </p>
 
@@ -261,40 +308,24 @@ export default function SiteFooter() {
               </div>
             </div>
 
-            {/* Links */}
             <div className="lg:col-span-8">
               <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-                <div>
-                  <p className="text-sm font-semibold text-neutral-900">Shop</p>
-                  <ul className="mt-4 space-y-2">
-                    <li><FooterLink href="/shop">Shop All</FooterLink></li>
-                    <li><FooterLink href="/categories">Categories</FooterLink></li>
-                    <li><FooterLink href="/deals">Deals</FooterLink></li>
-                    <li><FooterLink href="/blog">Blog</FooterLink></li>
-                    <li><FooterLink href="/cart">Cart</FooterLink></li>
-                    <li><FooterLink href="/account">Account</FooterLink></li>
-                  </ul>
-                </div>
-
-                <div>
-                  <p className="text-sm font-semibold text-neutral-900">Company</p>
-                  <ul className="mt-4 space-y-2">
-                    <li><FooterLink href="/contact">Contact</FooterLink></li>
-                    <li><FooterLink href="/privacy">Privacy Policy</FooterLink></li>
-                    <li><FooterLink href="/shipping">Shipping</FooterLink></li>
-                    <li><FooterLink href="/returns">Returns</FooterLink></li>
-                  </ul>
-                </div>
-
-                <div>
-                  <p className="text-sm font-semibold text-neutral-900">Support</p>
-                  <ul className="mt-4 space-y-2">
-                    <li><FooterLink href="/faq">FAQ</FooterLink></li>
-                    <li><FooterLink href="/returns">Returns</FooterLink></li>
-                    <li><FooterLink href="/contact">Contact Us</FooterLink></li>
-                    <li><FooterLink href="/account/orders">Track Order</FooterLink></li>
-                  </ul>
-                </div>
+                {footerColumns.map((column) => (
+                  <div key={column.title}>
+                    <p className="text-sm font-semibold text-neutral-900">
+                      {column.title}
+                    </p>
+                    <ul className="mt-4 space-y-2">
+                      {column.links
+                        .filter((link) => link.enabled !== false)
+                        .map((link) => (
+                          <li key={`${column.title}-${link.label}-${link.href}`}>
+                            <FooterLink href={link.href}>{link.label}</FooterLink>
+                          </li>
+                        ))}
+                    </ul>
+                  </div>
+                ))}
 
                 <div>
                   <p className="text-sm font-semibold text-neutral-900">Contact</p>
@@ -305,14 +336,16 @@ export default function SiteFooter() {
                     {contactPhone ? (
                       <li className="text-sm text-neutral-600">Call: {contactPhone}</li>
                     ) : null}
-                    <li>
-                      <a
-                        className="text-sm text-neutral-600 hover:text-neutral-900 transition"
-                        href={`mailto:${contactEmail}`}
-                      >
-                        {contactEmail}
-                      </a>
-                    </li>
+                    {contactEmail ? (
+                      <li>
+                        <a
+                          className="text-sm text-neutral-600 transition hover:text-neutral-900"
+                          href={`mailto:${contactEmail}`}
+                        >
+                          {contactEmail}
+                        </a>
+                      </li>
+                    ) : null}
                     {contactCity || contactCountry ? (
                       <li className="text-sm text-neutral-600">
                         {contactCity}
@@ -324,32 +357,10 @@ export default function SiteFooter() {
                       <li className="text-sm text-neutral-600">Hours: {contactHours}</li>
                     ) : null}
                   </ul>
-
-                  {/* tiny payment row */}
-                  <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-3">
-                    <p className="text-xs font-semibold text-neutral-900">
-                      Payments
-                    </p>
-                    <p className="mt-1 text-xs text-neutral-600">
-                      Cards / Bank Transfer / COD (optional)
-                    </p>
-                  </div>
                 </div>
               </div>
 
-              {/* bottom strip inside main section */}
               <div className="mt-10 flex flex-col gap-3 rounded-3xl border border-neutral-200 bg-neutral-50 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex flex-wrap items-center gap-3 text-xs text-neutral-600">
-                  <span className="font-semibold text-neutral-900">Pakistan delivery:</span>
-                  <span>Karachi</span>
-                  <Dot />
-                  <span>Lahore</span>
-                  <Dot />
-                  <span>Islamabad</span>
-                  <Dot />
-                  <span>Nationwide</span>
-                </div>
-
                 <div className="flex flex-wrap items-center gap-4 text-xs text-neutral-600">
                   <Link className="hover:text-neutral-900" href="/account/orders">
                     Track order
@@ -361,19 +372,38 @@ export default function SiteFooter() {
                     Account
                   </Link>
                 </div>
+
+                {footerSocialLinks.length ? (
+                  <div className="flex flex-wrap items-center gap-4 text-xs text-neutral-600">
+                    {footerSocialLinks.map((item) => (
+                      <Link
+                        key={`${item.label}-${item.href}`}
+                        className="hover:text-neutral-900"
+                        href={item.href}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                ) : null}
               </div>
             </div>
           </div>
 
-          {/* Final bar */}
           <div className="mt-10 flex flex-col gap-2 border-t border-neutral-200 pt-6 text-xs text-neutral-500 sm:flex-row sm:items-center sm:justify-between">
-            <p>Copyright © {new Date().getFullYear()} Softtex Solution. All rights reserved.</p>
+            <p>{copyright}</p>
             <div className="flex flex-wrap items-center gap-3">
-              <Link href="/privacy" className="hover:text-neutral-900">Privacy</Link>
+              <Link href="/privacy" className="hover:text-neutral-900">
+                Privacy
+              </Link>
               <span className="text-neutral-300">/</span>
-              <Link href="/shipping" className="hover:text-neutral-900">Shipping</Link>
+              <Link href="/shipping" className="hover:text-neutral-900">
+                Shipping
+              </Link>
               <span className="text-neutral-300">/</span>
-              <Link href="/returns" className="hover:text-neutral-900">Returns</Link>
+              <Link href="/returns" className="hover:text-neutral-900">
+                Returns
+              </Link>
             </div>
           </div>
         </Container>

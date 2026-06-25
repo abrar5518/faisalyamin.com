@@ -3,11 +3,15 @@ import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import Link from "next/link";
 import ProductCard from "@/components/ProductCard";
-import ProductClient, { ProductData, Variant } from "./ProductClient";
+import ProductClient, { ProductData, ProductMediaItem, Variant } from "./ProductClient";
 import Schema from "@/components/seo/Schema";
 import { absoluteUrl, breadcrumbSchema, productSchema, stripHtml } from "@/components/seo/schemas";
 import { normalizeSiteUrl } from "@/lib/siteUrl";
 import FaqSection from "@/components/FaqSection";
+import {
+  parseCatalogSettings,
+  renderCatalogTemplate,
+} from "@/lib/catalogSettings";
 import { redirectIfManaged } from "@/lib/serverRedirects";
 
 export async function generateMetadata({ params }: PageProps) {
@@ -37,7 +41,7 @@ export async function generateMetadata({ params }: PageProps) {
   const sortedImages = [...(product.images ?? [])].sort(
     (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)
   );
-  const rawImage = sortedImages[0]?.url;
+  const rawImage = sortedImages.find((img: any) => (img.mediaType ?? "image") === "image")?.url;
   const ogImage = rawImage
     ? rawImage.startsWith("http")
       ? rawImage
@@ -81,6 +85,8 @@ type RelatedProduct = {
   reviews: number;
   image: string;
   imageAlt?: string;
+  hoverImage?: string;
+  hoverImageAlt?: string;
   href: string;
 };
 
@@ -166,52 +172,52 @@ function collectVariantImageUrls(raw: unknown) {
 
 const RELATED_FALLBACK: RelatedProduct[] = [
   {
-    id: "insulated-sports-bottle",
-    name: "Insulated Sports Bottle",
+    id: "featured-product-one",
+    name: "Featured Product",
     price: "PKR 1,650",
     compareAt: "PKR 1,950",
     badge: "-12%",
     rating: 4.7,
     reviews: 189,
     image: "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3",
-    imageAlt: "Insulated sports water bottle",
-    href: "/product/insulated-sports-bottle",
+    imageAlt: "Featured product",
+    href: "/shop",
   },
   {
-    id: "kids-school-water-bottle",
-    name: "Kids School Water Bottle",
+    id: "customer-favorite",
+    name: "Customer Favorite",
     price: "PKR 850",
     compareAt: "PKR 1,050",
     badge: "Best Seller",
     rating: 4.6,
     reviews: 167,
     image: "https://images.unsplash.com/photo-1511379938547-c1f69419868d",
-    imageAlt: "Kids school water bottle",
-    href: "/product/kids-school-water-bottle",
+    imageAlt: "Customer favorite product",
+    href: "/shop",
   },
   {
-    id: "steel-vacuum-flask",
-    name: "Steel Vacuum Flask",
+    id: "new-arrival",
+    name: "New Arrival",
     price: "PKR 1,950",
     compareAt: "PKR 2,250",
-    badge: "Durable",
+    badge: "New",
     rating: 4.8,
     reviews: 120,
     image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30",
-    imageAlt: "Steel vacuum flask",
-    href: "/product/steel-vacuum-flask",
+    imageAlt: "New arrival product",
+    href: "/shop",
   },
   {
-    id: "leakproof-travel-bottle",
-    name: "Leakproof Travel Bottle",
+    id: "limited-offer",
+    name: "Limited Offer",
     price: "PKR 1,150",
     compareAt: "PKR 1,450",
-    badge: "Travel",
+    badge: "Deal",
     rating: 4.9,
     reviews: 98,
     image: "https://images.unsplash.com/photo-1547996160-81dfa63595aa",
-    imageAlt: "Leakproof travel water bottle",
-    href: "/product/leakproof-travel-bottle",
+    imageAlt: "Limited offer product",
+    href: "/shop",
   },
 ];
 
@@ -255,15 +261,32 @@ export default async function ProductPage({ params }: PageProps) {
   const sortedImages = [...typedProduct.images].sort(
     (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)
   );
+  const imageMedia = sortedImages.filter((img: any) => (img.mediaType ?? "image") === "image");
+  const videoMedia = sortedImages.filter((img: any) => img.mediaType === "video");
   const variantImageUrls = collectVariantImageUrls(typedProduct.variants);
-  const defaultGalleryImages = sortedImages.filter(
+  const defaultGalleryImages = imageMedia.filter(
     (img, index) => index === 0 || !variantImageUrls.has(img.url)
   );
   const imageUrls = defaultGalleryImages.map((img) => img.url);
   const imageAlts = defaultGalleryImages.map((img) => img.alt || typedProduct.name);
+  const defaultGalleryMedia: ProductMediaItem[] = [
+    ...defaultGalleryImages.map((img) => ({
+      type: "image" as const,
+      url: img.url,
+      alt: img.alt || typedProduct.name,
+    })),
+    ...videoMedia.map((video: any) => ({
+      type: "video" as const,
+      url: video.url,
+      alt: video.alt || typedProduct.name,
+      thumbnailUrl: video.thumbnailUrl || imageUrls[0],
+    })),
+  ];
 
   const price = formatPKR(Number(typedProduct.price));
   const compareAt = typedProduct.compareAt ? formatPKR(Number(typedProduct.compareAt)) : undefined;
+  const catalogSettings = parseCatalogSettings(siteSettings?.catalogSettings);
+  const shippingFee = storeSettings?.defaultShippingFee || "PKR 250";
 
   const sizeList = Array.isArray(typedProduct.sizes)
     ? typedProduct.sizes.filter((s) => typeof s === "string")
@@ -317,18 +340,23 @@ export default async function ProductPage({ params }: PageProps) {
   const productData: ProductData = {
     id: String(typedProduct.id),
     slug,
-    brand: typedProduct.brand || typedProduct.category?.name || "Sahoolat",
-    category: typedProduct.category?.name ?? "Water Bottles",
+    brand: typedProduct.brand || typedProduct.category?.name || catalogSettings.productBrandFallback,
+    category: typedProduct.category?.name ?? "Products",
     name: typedProduct.name,
     rating: approvedRating,
     reviews: approvedReviewCount,
     reviewItems,
     shortDescription:
       typedProduct.shortDesc ??
-      "A quality checked water bottle for everyday hydration.",
+      catalogSettings.productFallbackDescription,
     seoDescription: typedProduct.descriptionHtml || "<p>Product details will appear here.</p>",
     images: defaultImages,
     imageAlts: defaultAlts,
+    media: defaultGalleryMedia.length ? defaultGalleryMedia : defaultImages.map((url, idx) => ({
+      type: "image",
+      url,
+      alt: defaultAlts[idx] || typedProduct.name,
+    })),
     sizes: sizeList,
     variants: hasVariants ? apiVariants : fallbackVariants,
     hasVariants,
@@ -348,8 +376,10 @@ export default async function ProductPage({ params }: PageProps) {
     relatedRows.length > 0
       ? relatedRows.map((p) => {
           const imgs = [...p.images].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-          const img = imgs[0]?.url || "/images/shopping.jpg";
-          const imgAlt = imgs[0]?.alt || p.name;
+          const imageItems = imgs.filter((img: any) => (img.mediaType ?? "image") === "image");
+          const img = imageItems[0]?.url || "/images/shopping.jpg";
+          const imgAlt = imageItems[0]?.alt || p.name;
+          const hoverImage = imageItems[1]?.url;
           return {
             id: p.slug,
             name: p.name,
@@ -360,6 +390,8 @@ export default async function ProductPage({ params }: PageProps) {
             reviews: p.reviewsCount ?? 0,
             image: img,
             imageAlt: imgAlt,
+            hoverImage,
+            hoverImageAlt: imageItems[1]?.alt || p.name,
             shortDesc: p.shortDesc ?? undefined,
             href: `/product/${p.slug}`,
           };
@@ -377,10 +409,12 @@ export default async function ProductPage({ params }: PageProps) {
     reviewBody: r.body,
     datePublished: r.createdAt,
   }));
-  const schemaBrand = typedProduct.brand?.trim() || "Sahoolat";
+  const schemaBrand =
+    typedProduct.brand?.trim() || catalogSettings.productBrandFallback || "Sahoolat";
   const schemaShippingPrice = parsePKRAmount(storeSettings?.defaultShippingFee) ?? 250;
   const schemaReturnDays = storeSettings?.returnsDays ?? 7;
-  const schemaSellerName = storeSettings?.storeName?.trim() || siteSettings?.siteName?.trim() || "Sahoolat";
+  const schemaSellerName =
+    storeSettings?.storeName?.trim() || siteSettings?.siteName?.trim() || "Sahoolat";
 
   return (
     <div className="bg-white text-neutral-900">
@@ -394,7 +428,7 @@ export default async function ProductPage({ params }: PageProps) {
       <Schema
         data={productSchema({
           name: schemaProductName(typedProduct.name),
-          description: descriptionText || "Premium product details.",
+          description: descriptionText || catalogSettings.productFallbackDescription,
           sku: `SAH-${typedProduct.id}`,
           mpn: `SAH-${typedProduct.id}`,
           brand: schemaBrand,
@@ -439,14 +473,20 @@ export default async function ProductPage({ params }: PageProps) {
         </div>
       </div>
 
-      <ProductClient product={productData} />
+      <ProductClient
+        product={productData}
+        catalogSettings={catalogSettings}
+        shippingFee={shippingFee}
+      />
 
       {/* RELATED PRODUCTS */}
       <div className="mx-auto w-full max-w-[1360px] px-5 sm:px-8 lg:px-12 pb-24">
         <FaqSection
           items={typedProduct.faqItems}
-          title={`${typedProduct.name} FAQs`}
-          intro="Helpful answers about this product before you place an order."
+          title={renderCatalogTemplate(catalogSettings.productFaqTitleTemplate, {
+            product: typedProduct.name,
+          })}
+          intro={catalogSettings.productFaqIntro}
           eyebrow="Product FAQs"
           includeSchema
           variant="soft"
@@ -456,9 +496,11 @@ export default async function ProductPage({ params }: PageProps) {
         <div className="mt-14 lg:mt-16">
           <div className="flex items-end justify-between gap-6">
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight">Related products</h2>
+              <h2 className="text-2xl font-semibold tracking-tight">
+                {catalogSettings.relatedProductsTitle}
+              </h2>
               <p className="mt-2 text-sm text-neutral-600">
-                Similar picks customers often compare with this item.
+                {catalogSettings.relatedProductsSubtitle}
               </p>
             </div>
 
@@ -466,7 +508,7 @@ export default async function ProductPage({ params }: PageProps) {
               href="/shop"
               className="hidden sm:inline text-sm font-medium text-neutral-900 hover:underline"
             >
-              View all
+              {catalogSettings.relatedProductsViewAllLabel}
             </Link>
           </div>
 
@@ -481,7 +523,7 @@ export default async function ProductPage({ params }: PageProps) {
               href="/shop"
               className="inline-flex w-full items-center justify-center rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm font-medium hover:bg-neutral-50"
             >
-              View all products
+              {catalogSettings.relatedProductsViewAllLabel}
             </Link>
           </div>
         </div>

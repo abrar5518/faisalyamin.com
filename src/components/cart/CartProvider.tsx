@@ -56,14 +56,23 @@ type CartToast = {
   item: CartItem;
 };
 
-const STORAGE_KEY = "luxstore:cart";
+const STORAGE_KEY = "store:cart";
+const LEGACY_STORAGE_KEYS = ["luxstore:cart"];
 
 const CartContext = createContext<CartContextValue | null>(null);
 
 function readCart(): CartItem[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    let raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      const legacyKey = LEGACY_STORAGE_KEYS.find((key) => window.localStorage.getItem(key));
+      raw = legacyKey ? window.localStorage.getItem(legacyKey) : null;
+      if (legacyKey && raw) {
+        window.localStorage.setItem(STORAGE_KEY, raw);
+        window.localStorage.removeItem(legacyKey);
+      }
+    }
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];

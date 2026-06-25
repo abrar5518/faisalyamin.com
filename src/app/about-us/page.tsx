@@ -30,7 +30,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: page?.metaTitle || "About",
     description:
       page?.metaDescription ||
-      "Learn about Sahoolat, our water bottle quality checks, clear policies, and Pakistan delivery service.",
+      "Learn about our store, quality checks, clear policies, and customer support.",
     keywords: page?.metaKeywords || undefined,
     alternates: canonical ? { canonical } : undefined,
     openGraph: {
@@ -38,7 +38,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: page?.metaTitle || "About",
       description:
         page?.metaDescription ||
-        "Learn about Sahoolat, our water bottle quality checks, clear policies, and Pakistan delivery service.",
+        "Learn about our store, quality checks, clear policies, and customer support.",
       url: canonical,
       images: ogImage ? [{ url: ogImage }] : undefined,
     },
@@ -47,7 +47,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: page?.metaTitle || "About",
       description:
         page?.metaDescription ||
-        "Learn about Sahoolat, our water bottle quality checks, clear policies, and Pakistan delivery service.",
+        "Learn about our store, quality checks, clear policies, and customer support.",
       images: ogImage ? [ogImage] : undefined,
     },
   };

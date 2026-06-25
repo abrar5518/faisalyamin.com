@@ -62,6 +62,8 @@ const CreateProductSchema = z.object({
       z.object({
         url: z.string().min(5),
         alt: z.string().optional(),
+        mediaType: z.enum(["image", "video"]).optional(),
+        thumbnailUrl: z.string().optional(),
         sortOrder: z.number().int().min(0).optional(),
       })
     )
@@ -123,6 +125,8 @@ const UpdateProductSchema = z.object({
       z.object({
         url: z.string().min(5),
         alt: z.string().optional(),
+        mediaType: z.enum(["image", "video"]).optional(),
+        thumbnailUrl: z.string().optional(),
         sortOrder: z.number().int().min(0).optional(),
       })
     )
@@ -389,6 +393,8 @@ export async function POST(req: NextRequest) {
             create: data.images.map((img) => ({
               url: img.url,
               alt: img.alt,
+              mediaType: img.mediaType ?? "image",
+              thumbnailUrl: img.thumbnailUrl,
               sortOrder: img.sortOrder ?? 0,
             })),
             }
@@ -591,6 +597,8 @@ export async function PUT(req: NextRequest) {
               create: images.map((img) => ({
                 url: img.url,
                 alt: img.alt,
+                mediaType: img.mediaType ?? "image",
+                thumbnailUrl: img.thumbnailUrl,
                 sortOrder: img.sortOrder ?? 0,
               })),
             }

@@ -8,6 +8,9 @@ html, body {
 
 body {
   @apply bg-white text-neutral-900 antialiased font-sans;
+  background: var(--brand-bg);
+  color: var(--brand-text);
+  font-family: var(--brand-font-body, var(--font-inter), ui-sans-serif, system-ui, sans-serif);
 }
 
 .no-scrollbar {
@@ -22,6 +25,7 @@ body {
 /* Headings premium serif */
 h1, h2, h3 {
   @apply font-serif tracking-tight;
+  font-family: var(--brand-font-heading, var(--font-playfair), Georgia, serif);
 }
 
 /* ---------- Brand tokens (same look as your design) ---------- */
@@ -32,6 +36,16 @@ h1, h2, h3 {
   --brand-surface: #fafafa;
   --brand-primary: #0a0a0a;
   --brand-primary-hover: #1f1f1f;
+  --brand-secondary: #f5f5f5;
+  --brand-accent: #0f766e;
+  --brand-muted-text: #525252;
+  --brand-radius-button: 16px;
+  --brand-radius-card: 24px;
+  --brand-font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --brand-font-heading: var(--font-playfair), Georgia, serif;
+  --color-brand-bg: var(--brand-bg);
+  --color-brand-text: var(--brand-text);
+  --color-brand-primary: var(--brand-primary);
 }
 
 ::selection {
@@ -49,21 +63,118 @@ h1, h2, h3 {
   }
 }
 
+@keyframes cta-attention {
+  0%, 78%, 100% {
+    transform: translateX(0) rotate(0deg) scale(1);
+  }
+  80% {
+    transform: translateX(-5px) rotate(-1deg) scale(1.015);
+  }
+  82% {
+    transform: translateX(5px) rotate(1deg) scale(1.015);
+  }
+  84% {
+    transform: translateX(-4px) rotate(-0.8deg) scale(1.01);
+  }
+  86% {
+    transform: translateX(4px) rotate(0.8deg) scale(1.01);
+  }
+  88% {
+    transform: translateX(-2px) rotate(-0.4deg) scale(1.005);
+  }
+  90% {
+    transform: translateX(2px) rotate(0.4deg) scale(1.005);
+  }
+  92% {
+    transform: translateX(0) rotate(0deg) scale(1);
+  }
+}
+
+.cta-attention {
+  animation: cta-attention 4.2s ease-in-out infinite;
+  cursor: pointer;
+  transform-origin: center;
+  will-change: transform;
+}
+
+.cta-attention:disabled {
+  animation: none;
+  cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta-attention {
+    animation: none;
+  }
+}
+
 /* ---------- Buttons (Global) FIX (no custom utilities) ---------- */
 .btn-primary {
   @apply inline-flex items-center justify-center
-    rounded-2xl bg-neutral-900
     text-white font-medium
-    hover:bg-neutral-800
     transition-colors;
+  border-radius: var(--brand-radius-button);
+  background: var(--brand-primary);
+}
+
+.btn-primary:hover {
+  background: var(--brand-primary-hover);
 }
 
 .btn-secondary {
   @apply inline-flex items-center justify-center
-    rounded-2xl border border-neutral-200
-    bg-white text-neutral-900 font-medium
-    hover:bg-neutral-50
+    font-medium
     transition-colors;
+  border-radius: var(--brand-radius-button);
+  border: 1px solid var(--brand-border);
+  background: var(--brand-bg);
+  color: var(--brand-text);
+}
+
+.btn-secondary:hover {
+  background: var(--brand-surface);
+}
+
+.theme-card {
+  border-color: var(--brand-border) !important;
+  border-radius: var(--brand-radius-card) !important;
+  background: var(--brand-bg) !important;
+}
+
+.theme-surface {
+  background: var(--brand-surface) !important;
+}
+
+.theme-border {
+  border-color: var(--brand-border) !important;
+}
+
+.theme-primary-action {
+  border-radius: var(--brand-radius-button) !important;
+  background: var(--brand-primary) !important;
+  color: #ffffff !important;
+}
+
+.theme-primary-action:hover {
+  background: var(--brand-primary-hover) !important;
+}
+
+.theme-accent-text {
+  color: var(--brand-accent) !important;
+}
+
+.theme-muted-text {
+  color: var(--brand-muted-text) !important;
+}
+
+.theme-header {
+  border-color: var(--brand-border) !important;
+  background: color-mix(in srgb, var(--brand-bg) 88%, transparent) !important;
+}
+
+.theme-footer-cta {
+  background: var(--brand-primary) !important;
+  color: #ffffff !important;
 }
 
 

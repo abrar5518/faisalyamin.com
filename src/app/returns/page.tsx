@@ -1,17 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import ManagedPageBody from "@/components/ManagedPageBody";
 import Schema from "@/components/seo/Schema";
 import { breadcrumbSchema } from "@/components/seo/schemas";
+import {
+  buildManagedPageMetadata,
+  getManagedPage,
+  hasManagedPageBody,
+} from "@/lib/managedPage";
 import { normalizeSiteUrl } from "@/lib/siteUrl";
 
 const baseUrl = normalizeSiteUrl();
 
-export const metadata: Metadata = {
-  title: "Return & Refund Policy | Sahoolat Pakistan",
-  description: "Read Sahoolat's Pakistan return and refund policy, including return window, eligible products, return method, fees, exchanges and refund timing.",
-  keywords: "Sahoolat return policy, refund policy Pakistan, exchange policy Pakistan, water bottle returns",
-  alternates: { canonical: `${baseUrl}/returns` },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return buildManagedPageMetadata("returns", {
+    title: "Return & Refund Policy",
+    description:
+      "Read the return, exchange, and refund policy including eligibility, timing, and support instructions.",
+    keywords: "return policy, refund policy Pakistan, exchange policy Pakistan",
+  });
+}
 
 function Container({ children }: { children: React.ReactNode }) {
   return (
@@ -21,12 +29,14 @@ function Container({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function ReturnsPage() {
+export default async function ReturnsPage() {
+  const page = await getManagedPage("returns");
+  const hasManagedContent = hasManagedPageBody(page);
   const baseUrlResolved = baseUrl.replace(/\/$/, "");
   const breadcrumbItems = baseUrlResolved
     ? [
         { name: "Home", item: baseUrlResolved },
-        { name: "Returns", item: `${baseUrlResolved}/returns` },
+        { name: page?.title || "Returns", item: `${baseUrlResolved}/returns` },
       ]
     : [];
   return (
@@ -37,18 +47,21 @@ export default function ReturnsPage() {
           <div className="flex h-10 items-center gap-2 text-xs text-neutral-600">
             <Link className="hover:text-neutral-900" href="/">Home</Link>
             <span className="text-neutral-300">/</span>
-            <span className="text-neutral-900">Returns</span>
+            <span className="text-neutral-900">{page?.title || "Returns"}</span>
           </div>
         </Container>
       </div>
 
+      {hasManagedContent ? <ManagedPageBody page={page} /> : (
       <section className="bg-white py-12">
         <Container>
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Return & Refund Policy</h1>
+          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+            {page?.heroTitle || page?.title || "Return & Refund Policy"}
+          </h1>
           <p className="mt-3 max-w-3xl text-sm leading-relaxed text-neutral-600 sm:text-base">
-            This return policy applies to orders delivered within Pakistan through
-            Sahoolat. It is available publicly without login so customers can review
-            return, exchange and refund terms before placing an order.
+            {page?.heroSubtitle ||
+              page?.shortDescription ||
+              "This return policy is available publicly without login so customers can review return, exchange and refund terms before placing an order."}
           </p>
 
           <div className="mt-8 grid gap-6 lg:grid-cols-2">
@@ -73,8 +86,8 @@ export default function ReturnsPage() {
               <p className="text-sm font-semibold">Product condition</p>
               <p className="mt-2 text-sm leading-relaxed text-neutral-600">
                 Returned products must be in new, unused and resaleable condition.
-                For hygiene and safety, used bottles, opened drinkware, missing parts,
-                damaged packaging or products with signs of use may be rejected.
+                For hygiene and safety, used items, opened personal-use products,
+                missing parts, damaged packaging or products with signs of use may be rejected.
               </p>
             </div>
 
@@ -149,6 +162,7 @@ export default function ReturnsPage() {
           </div>
         </Container>
       </section>
+      )}
     </div>
   );
 }

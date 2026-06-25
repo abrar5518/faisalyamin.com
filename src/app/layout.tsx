@@ -11,7 +11,16 @@ import MetaPixel from "@/components/MetaPixel";
 import MicrosoftClarity from "@/components/MicrosoftClarity";
 import GoogleTagManager from "@/components/GoogleTagManager";
 import SiteCustomScripts from "@/components/SiteCustomScripts";
+import { GlobalCopyProvider } from "@/components/GlobalCopyProvider";
 import { normalizeSiteUrl } from "@/lib/siteUrl";
+import {
+  getTrackingStatus,
+  sanitizeGoogleTagManagerId,
+  sanitizeCustomScriptHtml,
+  sanitizeMetaPixelIds,
+  sanitizeMicrosoftClarityId,
+} from "@/lib/trackingSettings";
+import { parseThemeSettings, themeSettingsToCssVars } from "@/lib/themeSettings";
 
 export const dynamic = "force-dynamic";
 
@@ -22,12 +31,20 @@ type LayoutSiteSettings = {
   siteIconUrl?: string | null;
   facebookDomainVerification?: string | null;
   googleSiteVerification?: string | null;
+  metaPixelEnabled?: boolean | null;
   metaPixelIds?: string | null;
+  googleTagManagerEnabled?: boolean | null;
   googleTagManagerId?: string | null;
+  microsoftClarityEnabled?: boolean | null;
   microsoftClarityId?: string | null;
+  customHeadScriptsEnabled?: boolean | null;
   customHeadScripts?: string | null;
+  customBodyStartScriptsEnabled?: boolean | null;
   customBodyStartScripts?: string | null;
+  customBodyEndScriptsEnabled?: boolean | null;
   customBodyEndScripts?: string | null;
+  globalCopy?: string | null;
+  themeSettings?: string | null;
 };
 
 const inter = Inter({
@@ -41,22 +58,6 @@ const playfair = Playfair_Display({
   variable: "--font-playfair",
   display: "swap",
 });
-
-function splitIds(value?: string | null) {
-  return (value ?? "")
-    .split(/[\s,]+/)
-    .map((id) => id.trim())
-    .filter(Boolean);
-}
-
-function getMetaPixelIds(value?: string | null) {
-  return splitIds(value).filter((id) => /^\d{5,30}$/.test(id));
-}
-
-function getSafeToken(value?: string | null, pattern = /^[a-z0-9_-]+$/i) {
-  const token = value?.trim();
-  return token && pattern.test(token) ? token : "";
-}
 
 async function getSiteSettings() {
   return prisma.siteSettings.findFirst({
@@ -89,7 +90,7 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase,
     title: siteName,
     description:
-      "Pakistan-based online shopping store for water bottles with secure checkout, clear returns, and delivery across Pakistan.",
+      "Pakistan-based online shopping store with secure checkout, clear returns, and delivery across Pakistan.",
     robots: { index: true, follow: true },
     other: {
       ...(settings?.facebookDomainVerification?.trim()
@@ -104,16 +105,16 @@ export async function generateMetadata(): Promise<Metadata> {
       type: "website",
       siteName,
       url: baseUrlResolved || undefined,
-      title: `${siteName} | Water Bottles Pakistan`,
+      title: `${siteName} | Online Shopping Pakistan`,
       description:
-        "Pakistan-based online shopping store for water bottles with secure checkout, clear returns, and delivery across Pakistan.",
+        "Pakistan-based online shopping store with secure checkout, clear returns, and delivery across Pakistan.",
       images: ogImage ? [{ url: ogImage }] : undefined,
     },
     twitter: {
       card: ogImage ? "summary_large_image" : "summary",
-      title: `${siteName} | Water Bottles Pakistan`,
+      title: `${siteName} | Online Shopping Pakistan`,
       description:
-        "Pakistan-based online shopping store for water bottles with secure checkout, clear returns, and delivery across Pakistan.",
+        "Pakistan-based online shopping store with secure checkout, clear returns, and delivery across Pakistan.",
       images: ogImage ? [ogImage] : undefined,
     },
   };
@@ -121,19 +122,33 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const settings = await getSiteSettings();
-  const metaPixelIds = getMetaPixelIds(settings?.metaPixelIds);
-  const googleTagManagerId = getSafeToken(settings?.googleTagManagerId, /^GTM-[A-Z0-9]+$/i);
-  const microsoftClarityId = getSafeToken(settings?.microsoftClarityId);
-  const customHeadScripts = settings?.customHeadScripts?.trim();
-  const customBodyStartScripts = settings?.customBodyStartScripts?.trim();
-  const customBodyEndScripts = settings?.customBodyEndScripts?.trim();
+  const metaPixelIds = getTrackingStatus(settings?.metaPixelEnabled)
+    ? sanitizeMetaPixelIds(settings?.metaPixelIds)
+    : [];
+  const googleTagManagerId = getTrackingStatus(settings?.googleTagManagerEnabled)
+    ? sanitizeGoogleTagManagerId(settings?.googleTagManagerId)
+    : "";
+  const microsoftClarityId = getTrackingStatus(settings?.microsoftClarityEnabled)
+    ? sanitizeMicrosoftClarityId(settings?.microsoftClarityId)
+    : "";
+  const customHeadScripts = getTrackingStatus(settings?.customHeadScriptsEnabled)
+    ? sanitizeCustomScriptHtml(settings?.customHeadScripts)
+    : "";
+  const customBodyStartScripts = getTrackingStatus(settings?.customBodyStartScriptsEnabled)
+    ? sanitizeCustomScriptHtml(settings?.customBodyStartScripts)
+    : "";
+  const customBodyEndScripts = getTrackingStatus(settings?.customBodyEndScriptsEnabled)
+    ? sanitizeCustomScriptHtml(settings?.customBodyEndScripts)
+    : "";
+  const themeSettings = parseThemeSettings(settings?.themeSettings);
+  const themeStyle = themeSettingsToCssVars(themeSettings);
 
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <head>
         <MicrosoftClarity clarityId={microsoftClarityId} />
       </head>
-      <body className="min-h-screen bg-brand-bg text-brand-text antialiased">
+      <body className="min-h-screen bg-brand-bg text-brand-text antialiased" style={themeStyle}>
         <GoogleTagManager gtmId={googleTagManagerId} />
         <MetaPixel pixelIds={metaPixelIds} />
         <SiteCustomScripts
@@ -141,12 +156,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           bodyStartHtml={customBodyStartScripts}
           headHtml={customHeadScripts}
         />
-        <CartProvider>
-          <SiteHeader />
-          {children}
-          <SiteFooter />
-          <WhatsAppFloatButton />
-        </CartProvider>
+        <GlobalCopyProvider initialGlobalCopy={settings?.globalCopy}>
+          <CartProvider>
+            <SiteHeader />
+            {children}
+            <SiteFooter />
+            <WhatsAppFloatButton />
+          </CartProvider>
+        </GlobalCopyProvider>
       </body>
     </html>
   );

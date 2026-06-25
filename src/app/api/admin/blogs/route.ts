@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/adminAuth";
+import { serializeBlogTags } from "@/lib/blogContent";
 
 const BlogProductSelectionSchema = z.object({
   productId: z.number().int().positive(),
@@ -21,6 +22,9 @@ const CreateBlogSchema = z.object({
   coverImage: z.string().optional(),
   coverAlt: z.string().optional(),
   contentHtml: z.string().min(10),
+  category: z.string().optional(),
+  tags: z.union([z.string(), z.array(z.string())]).optional(),
+  authorId: z.number().int().positive().nullable().optional(),
   metaTitle: z.string().optional(),
   metaDescription: z.string().optional(),
   metaKeywords: z.string().optional(),
@@ -37,6 +41,9 @@ const UpdateBlogSchema = z.object({
   coverImage: z.string().optional(),
   coverAlt: z.string().optional(),
   contentHtml: z.string().min(10).optional(),
+  category: z.string().optional(),
+  tags: z.union([z.string(), z.array(z.string())]).optional(),
+  authorId: z.number().int().positive().nullable().optional(),
   metaTitle: z.string().optional(),
   metaDescription: z.string().optional(),
   metaKeywords: z.string().optional(),
@@ -94,6 +101,9 @@ export async function GET(req: NextRequest) {
             },
           },
           faqItems: { orderBy: { sortOrder: "asc" } },
+          author: {
+            select: { id: true, name: true, slug: true, role: true, avatar: true },
+          },
         },
       });
       if (!item) {
@@ -107,11 +117,16 @@ export async function GET(req: NextRequest) {
         product: row.product,
       }));
 
-      const { blogProducts: _ignored, ...clean } = item;
-      return NextResponse.json({ ok: true, data: { ...clean, productSelections } });
+      return NextResponse.json({ ok: true, data: { ...item, productSelections } });
     }
 
-    const items = await prisma.blog.findMany({ orderBy: { createdAt: "desc" } });
+    const items = await prisma.blog.findMany({
+      orderBy: { createdAt: "desc" },
+      include: {
+        author: { select: { id: true, name: true, slug: true } },
+        _count: { select: { faqItems: true, blogProducts: true } },
+      },
+    });
     return NextResponse.json({ ok: true, data: items });
   } catch (err) {
     console.error("GET /api/admin/blogs error:", err);
@@ -139,6 +154,9 @@ export async function POST(req: NextRequest) {
         coverImage: data.coverImage,
         coverAlt: data.coverAlt,
         contentHtml: data.contentHtml,
+        category: data.category?.trim() || null,
+        tags: serializeBlogTags(data.tags),
+        authorId: data.authorId ?? null,
         metaTitle: data.metaTitle,
         metaDescription: data.metaDescription,
         metaKeywords: data.metaKeywords,
@@ -216,6 +234,9 @@ export async function PUT(req: NextRequest) {
         coverImage: data.coverImage,
         coverAlt: data.coverAlt,
         contentHtml: data.contentHtml,
+        category: typeof data.category === "string" ? data.category.trim() || null : undefined,
+        tags: data.tags === undefined ? undefined : serializeBlogTags(data.tags),
+        authorId: data.authorId === undefined ? undefined : data.authorId,
         metaTitle: data.metaTitle,
         metaDescription: data.metaDescription,
         metaKeywords: data.metaKeywords,

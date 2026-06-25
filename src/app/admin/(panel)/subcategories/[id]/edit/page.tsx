@@ -260,7 +260,7 @@ export default function AdminSubcategoryEditPage() {
                     value={slug}
                     onChange={(e) => setSlug(slugify(e.target.value))}
                     className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-900"
-                    placeholder="rolex"
+                    placeholder="new-arrivals"
                   />
                   <p className="mt-2 text-xs text-neutral-500">
                     Preview: <span className="text-neutral-700">{previewUrl}</span>
@@ -278,7 +278,7 @@ export default function AdminSubcategoryEditPage() {
                     if (!slug) setSlug(slugify(v));
                   }}
                   className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-900"
-                  placeholder="Rolex Watches"
+                  placeholder="New Arrivals"
                 />
               </div>
 
@@ -332,7 +332,7 @@ export default function AdminSubcategoryEditPage() {
                   value={metaTitle}
                   onChange={(e) => setMetaTitle(e.target.value)}
                   className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-900"
-                  placeholder="Rolex Watches in Pakistan"
+                  placeholder="New Arrivals in Pakistan"
                 />
               </div>
 
@@ -343,7 +343,7 @@ export default function AdminSubcategoryEditPage() {
                   onChange={(e) => setMetaDescription(e.target.value)}
                   className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-900"
                   rows={3}
-                  placeholder="Buy verified Rolex watches..."
+                  placeholder="Explore selected products with clear details..."
                 />
               </div>
 
@@ -355,7 +355,7 @@ export default function AdminSubcategoryEditPage() {
                   onChange={(e) => setMetaKeywords(e.target.value)}
                   className="mt-3 w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-900"
                   rows={3}
-                  placeholder="rolex, watches, luxury"
+                  placeholder="products, category, online shopping"
                 />
               </div>
             </div>

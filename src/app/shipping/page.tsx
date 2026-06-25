@@ -1,17 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import ManagedPageBody from "@/components/ManagedPageBody";
 import Schema from "@/components/seo/Schema";
 import { breadcrumbSchema } from "@/components/seo/schemas";
+import {
+  buildManagedPageMetadata,
+  getManagedPage,
+  hasManagedPageBody,
+} from "@/lib/managedPage";
 import { normalizeSiteUrl } from "@/lib/siteUrl";
 
 const baseUrl = normalizeSiteUrl();
 
-export const metadata: Metadata = {
-  title: "Shipping Policy | Sahoolat Pakistan",
-  description: "Read Sahoolat's Pakistan shipping policy, including delivery areas, shipping charges, dispatch time, tracking, failed delivery and cash on delivery details.",
-  keywords: "Sahoolat shipping policy, delivery Pakistan, shipping charges Pakistan, COD delivery Pakistan",
-  alternates: { canonical: `${baseUrl}/shipping` },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return buildManagedPageMetadata("shipping", {
+    title: "Shipping Policy",
+    description:
+      "Read delivery areas, shipping fees, dispatch timelines, tracking, and cash on delivery details.",
+    keywords: "shipping policy, delivery Pakistan, shipping charges, COD delivery",
+  });
+}
 
 function Container({ children }: { children: React.ReactNode }) {
   return (
@@ -21,12 +29,14 @@ function Container({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function ShippingPage() {
+export default async function ShippingPage() {
+  const page = await getManagedPage("shipping");
+  const hasManagedContent = hasManagedPageBody(page);
   const baseUrlResolved = baseUrl.replace(/\/$/, "");
   const breadcrumbItems = baseUrlResolved
     ? [
         { name: "Home", item: baseUrlResolved },
-        { name: "Shipping", item: `${baseUrlResolved}/shipping` },
+        { name: page?.title || "Shipping", item: `${baseUrlResolved}/shipping` },
       ]
     : [];
   return (
@@ -37,18 +47,21 @@ export default function ShippingPage() {
           <div className="flex h-10 items-center gap-2 text-xs text-neutral-600">
             <Link className="hover:text-neutral-900" href="/">Home</Link>
             <span className="text-neutral-300">/</span>
-            <span className="text-neutral-900">Shipping</span>
+            <span className="text-neutral-900">{page?.title || "Shipping"}</span>
           </div>
         </Container>
       </div>
 
+      {hasManagedContent ? <ManagedPageBody page={page} /> : (
       <section className="bg-white py-12">
         <Container>
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Shipping Policy</h1>
+          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+            {page?.heroTitle || page?.title || "Shipping Policy"}
+          </h1>
           <p className="mt-3 max-w-3xl text-sm leading-relaxed text-neutral-600 sm:text-base">
-            Sahoolat currently ships products within Pakistan only. This page explains
-            our delivery areas, processing time, shipping cost, tracking and delivery
-            rules so customers can review our policy before placing an order.
+            {page?.heroSubtitle ||
+              page?.shortDescription ||
+              "This page explains delivery areas, processing time, shipping cost, tracking and delivery rules so customers can review the policy before placing an order."}
           </p>
 
           <div className="mt-8 grid gap-6 lg:grid-cols-2">
@@ -128,6 +141,7 @@ export default function ShippingPage() {
           </div>
         </Container>
       </section>
+      )}
     </div>
   );
 }

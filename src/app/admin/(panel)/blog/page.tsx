@@ -9,9 +9,16 @@ type BlogRow = {
   id: number;
   title: string;
   slug: string;
+  excerpt?: string | null;
+  category?: string | null;
+  tags?: string | null;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
   isPublished: boolean;
   updatedAt: string;
   publishedAt?: string | null;
+  author?: { name?: string | null; slug?: string | null } | null;
+  _count?: { faqItems?: number; blogProducts?: number };
 };
 
 function clampInt(v: any, fallback: number, min: number, max: number) {
@@ -26,6 +33,7 @@ export default function AdminBlogPage() {
   const [msg, setMsg] = useState<string | null>(null);
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<"all" | "published" | "draft">("all");
+  const [category, setCategory] = useState("all");
   const [page, setPage] = useState(1);
   const pageSize = 12;
 
@@ -56,11 +64,33 @@ export default function AdminBlogPage() {
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
     return items.filter((x) => {
-      const okQ = !needle || x.title.toLowerCase().includes(needle) || x.slug.toLowerCase().includes(needle);
+      const okQ =
+        !needle ||
+        x.title.toLowerCase().includes(needle) ||
+        x.slug.toLowerCase().includes(needle) ||
+        (x.category || "").toLowerCase().includes(needle) ||
+        (x.tags || "").toLowerCase().includes(needle);
       const okS = status === "all" ? true : status === "published" ? x.isPublished : !x.isPublished;
-      return okQ && okS;
+      const okC = category === "all" ? true : (x.category || "Uncategorized") === category;
+      return okQ && okS && okC;
     });
-  }, [items, q, status]);
+  }, [category, items, q, status]);
+
+  const categoryOptions = useMemo(() => {
+    const values = new Set<string>();
+    items.forEach((item) => values.add(item.category || "Uncategorized"));
+    return Array.from(values).sort((a, b) => a.localeCompare(b));
+  }, [items]);
+
+  const counts = useMemo(
+    () => ({
+      total: items.length,
+      published: items.filter((item) => item.isPublished).length,
+      draft: items.filter((item) => !item.isPublished).length,
+      seoMissing: items.filter((item) => !item.metaTitle || !item.metaDescription).length,
+    }),
+    [items]
+  );
 
   const total = filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -97,8 +127,22 @@ export default function AdminBlogPage() {
           </div>
         </div>
 
+        <div className="mt-6 grid gap-3 sm:grid-cols-4">
+          {[
+            ["Total posts", counts.total],
+            ["Published", counts.published],
+            ["Drafts", counts.draft],
+            ["SEO missing", counts.seoMissing],
+          ].map(([label, value]) => (
+            <div key={label} className="rounded-3xl border border-neutral-200 bg-white p-4 shadow-sm">
+              <p className="text-xs text-neutral-500">{label}</p>
+              <p className="mt-2 text-2xl font-semibold tracking-tight">{value}</p>
+            </div>
+          ))}
+        </div>
+
         <div className="mt-6 grid gap-3 rounded-3xl border border-neutral-200 bg-white p-4 sm:grid-cols-12">
-          <div className="sm:col-span-8">
+          <div className="sm:col-span-6">
             <div className="flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white px-3 py-2">
               <span className="h-2 w-2 rounded-full bg-neutral-900" />
               <input
@@ -114,7 +158,7 @@ export default function AdminBlogPage() {
             </div>
           </div>
 
-          <div className="sm:col-span-4">
+          <div className="sm:col-span-3">
             <select
               value={status}
               onChange={(e) => {
@@ -126,6 +170,23 @@ export default function AdminBlogPage() {
               <option value="all">Status: All</option>
               <option value="published">Published</option>
               <option value="draft">Draft</option>
+            </select>
+          </div>
+          <div className="sm:col-span-3">
+            <select
+              value={category}
+              onChange={(e) => {
+                setCategory(e.target.value);
+                setPage(1);
+              }}
+              className="h-10 w-full rounded-2xl border border-neutral-200 bg-white px-3 text-sm"
+            >
+              <option value="all">Category: All</option>
+              {categoryOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -150,8 +211,28 @@ export default function AdminBlogPage() {
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold">{x.title}</p>
                     <p className="mt-1 text-xs text-neutral-500">
-                      /blog/{x.slug} - Admin - Updated: {new Date(x.updatedAt).toLocaleDateString()}
+                      /blog/{x.slug} - Updated: {new Date(x.updatedAt).toLocaleDateString()}
                     </p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <span className="rounded-full border border-neutral-200 bg-neutral-50 px-2.5 py-1 text-[11px] text-neutral-700">
+                        {x.category || "Uncategorized"}
+                      </span>
+                      {x.author?.name ? (
+                        <span className="rounded-full border border-neutral-200 bg-white px-2.5 py-1 text-[11px] text-neutral-700">
+                          {x.author.name}
+                        </span>
+                      ) : null}
+                      {x.tags
+                        ?.split(",")
+                        .map((tag) => tag.trim())
+                        .filter(Boolean)
+                        .slice(0, 3)
+                        .map((tag) => (
+                          <span key={tag} className="rounded-full bg-neutral-100 px-2.5 py-1 text-[11px] text-neutral-700">
+                            #{tag}
+                          </span>
+                        ))}
+                    </div>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2 sm:justify-end">
@@ -162,6 +243,22 @@ export default function AdminBlogPage() {
                       ].join(" ")}
                     >
                       {x.isPublished ? "published" : "draft"}
+                    </span>
+                    <span
+                      className={[
+                        "rounded-full px-3 py-1 text-xs",
+                        x.metaTitle && x.metaDescription
+                          ? "bg-emerald-50 text-emerald-700"
+                          : "bg-amber-50 text-amber-700",
+                      ].join(" ")}
+                    >
+                      {x.metaTitle && x.metaDescription ? "SEO ok" : "SEO missing"}
+                    </span>
+                    <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs text-neutral-700">
+                      {x._count?.blogProducts ?? 0} products
+                    </span>
+                    <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs text-neutral-700">
+                      {x._count?.faqItems ?? 0} FAQs
                     </span>
 
                     <Link

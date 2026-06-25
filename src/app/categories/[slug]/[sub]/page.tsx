@@ -13,6 +13,7 @@ import {
 } from "@/components/seo/schemas";
 import { normalizeSiteUrl } from "@/lib/siteUrl";
 import FaqSection from "@/components/FaqSection";
+import { parseCatalogSettings } from "@/lib/catalogSettings";
 
 function Container({ children }: { children: ReactNode }) {
   return (
@@ -196,8 +197,9 @@ export default async function SubcategoryPage({ params, searchParams }: PageProp
 
   const pageProducts: Product[] = products.map((p) => {
     const sortedImages = [...p.images].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-    const img = sortedImages[0]?.url;
-    const imgAlt = sortedImages[0]?.alt || p.name;
+    const imageItems = sortedImages.filter((img: any) => (img.mediaType ?? "image") === "image");
+    const img = imageItems[0]?.url;
+    const imgAlt = imageItems[0]?.alt || p.name;
     return {
       id: p.slug,
       name: p.name,
@@ -208,27 +210,20 @@ export default async function SubcategoryPage({ params, searchParams }: PageProp
       reviews: p.reviewsCount ?? 0,
       image: img || "https://images.unsplash.com/photo-1523275335684-37898b6baf30",
       imageAlt: imgAlt,
+      hoverImage: imageItems[1]?.url,
+      hoverImageAlt: imageItems[1]?.alt || p.name,
       shortDesc: p.shortDesc ?? undefined,
       href: `/product/${p.slug}`,
     };
   });
 
+  const catalogSettings = parseCatalogSettings(siteSettings?.catalogSettings);
   const title = subcategory.name || `${safeLabel(sub)} | ${safeLabel(slug)}`;
   const intro =
-    subcategory.description || "Explore products with secure checkout and fast delivery.";
+    subcategory.description || catalogSettings.subcategoryFallbackIntro;
 
   const richHtml =
-    subcategory.descriptionHtml ||
-    `
-      <h2>Buying Guide</h2>
-      <p>We help you buy with confidence: clear product details, quality checks, and support for delivery within Pakistan.</p>
-      <h3>Delivery & Returns</h3>
-      <ul>
-        <li>Insured shipping available</li>
-        <li>Easy returns policy (where applicable)</li>
-        <li>Support via WhatsApp + email</li>
-      </ul>
-    `;
+    subcategory.descriptionHtml || catalogSettings.subcategoryFallbackRichHtml;
   const baseUrlResolved = normalizeSiteUrl(siteSettings?.siteUrl);
   const pageUrl = `${baseUrlResolved}/categories/${slug}/${sub}`;
   const categoryLabel = subcategory.category?.name || safeLabel(slug) || "Category";
@@ -339,7 +334,7 @@ export default async function SubcategoryPage({ params, searchParams }: PageProp
             <FaqSection
               items={subcategory.faqItems}
               title={`${title} FAQs`}
-              intro="Quick answers about this subcategory, delivery, returns and choosing the right product."
+              intro={catalogSettings.subcategoryFaqIntro}
               eyebrow="Subcategory FAQs"
               includeSchema
               variant="soft"

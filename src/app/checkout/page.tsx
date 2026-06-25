@@ -6,8 +6,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Banknote,
-  CheckCircle2,
-  ChevronRight,
   LockKeyhole,
   MessageCircle,
   ShieldCheck,
@@ -17,39 +15,16 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useCart } from "@/components/cart/CartProvider";
+import { useGlobalCopy } from "@/components/GlobalCopyProvider";
+import {
+  DEFAULT_CHECKOUT_SETTINGS,
+  parseCheckoutSettings,
+  type CheckoutSettings,
+} from "@/lib/checkoutSettings";
+import { buildWhatsAppHref, fetchPublicContact } from "@/lib/contact";
 import { trackBeginCheckout } from "@/lib/googleAnalytics";
 import { withImageParams, toOptimizableImageSrc } from "@/lib/image";
 import { trackInitiateCheckout } from "@/lib/metaPixel";
-
-const PAKISTAN_CITIES = [
-  "Karachi",
-  "Lahore",
-  "Islamabad",
-  "Rawalpindi",
-  "Faisalabad",
-  "Multan",
-  "Peshawar",
-  "Quetta",
-  "Hyderabad",
-  "Sialkot",
-  "Gujranwala",
-  "Sargodha",
-  "Bahawalpur",
-  "Sukkur",
-  "Larkana",
-  "Sheikhupura",
-  "Rahim Yar Khan",
-  "Jhelum",
-  "Gujrat",
-  "Abbottabad",
-  "Mardan",
-  "Okara",
-  "Sahiwal",
-  "Wah Cantt",
-  "Other",
-];
-
-const WHATSAPP_LINK = "https://wa.me/923018980125";
 
 type FieldErrors = Partial<Record<"phone" | "fullName" | "email" | "city" | "address", string>>;
 
@@ -77,9 +52,18 @@ function normalizePakistaniPhone(phone: string) {
   return phone.replace(/[^\d+]/g, "").trim();
 }
 
-function StepIndicator() {
-  const steps = ["Your Details", "Delivery Address", "Confirm Order"];
+function parseMoneySetting(value?: string | null, fallback = 250) {
+  const amount = Number(String(value || "").replace(/[^\d.]/g, ""));
+  return Number.isFinite(amount) && amount >= 0 ? amount : fallback;
+}
 
+function cityInputPlaceholder(value?: string | null) {
+  const placeholder = String(value || "").trim();
+  if (!placeholder || /select/i.test(placeholder)) return "Enter your city";
+  return placeholder;
+}
+
+function StepIndicator({ steps }: { steps: string[] }) {
   return (
     <section className="border-b border-neutral-200 bg-white">
       <Container>
@@ -88,7 +72,7 @@ function StepIndicator() {
             {steps.map((step, index) => (
               <div key={step} className="flex min-w-0 flex-1 items-center">
                 <div className="flex min-w-0 items-center gap-2">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-semibold text-white">
+                  <span className="theme-primary-action flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-900 text-xs font-semibold text-white">
                     {index + 1}
                   </span>
                   <span className="truncate text-xs font-semibold text-neutral-900 sm:text-sm">
@@ -97,7 +81,7 @@ function StepIndicator() {
                 </div>
                 {index < steps.length - 1 ? (
                   <div className="mx-2 h-1 flex-1 rounded-full bg-neutral-900/15">
-                    <div className="h-full rounded-full bg-neutral-900" />
+                    <div className="theme-primary-action h-full rounded-full bg-neutral-900" />
                   </div>
                 ) : null}
               </div>
@@ -119,9 +103,9 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-3xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6">
+    <section className="theme-card rounded-3xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6">
       <div className="flex items-center gap-3">
-        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-900 text-sm font-semibold text-white">
+        <span className="theme-primary-action flex h-9 w-9 items-center justify-center rounded-full bg-neutral-900 text-sm font-semibold text-white">
           {number}
         </span>
         <h2 className="text-lg font-semibold tracking-tight text-neutral-900">{title}</h2>
@@ -136,37 +120,15 @@ function ErrorText({ message }: { message?: string }) {
   return <p className="mt-2 text-sm font-medium text-red-600">{message}</p>;
 }
 
-function TrustList() {
-  const items = [
-    "Cash on Delivery",
-    "Delivery All Over Pakistan",
-    "Easy Returns",
-    "WhatsApp Support",
-    "Secure Checkout",
-  ];
-
-  return (
-    <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-4">
-      <div className="grid gap-2 sm:grid-cols-2">
-        {items.map((item) => (
-          <div key={item} className="flex items-center gap-2 text-sm font-medium text-emerald-900">
-            <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden="true" />
-            {item}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export default function CheckoutPage() {
   const { items, clearCart } = useCart();
+  const globalCopy = useGlobalCopy();
   const router = useRouter();
   const initiateCheckoutTracked = useRef(false);
   const phoneRef = useRef<HTMLInputElement | null>(null);
   const nameRef = useRef<HTMLInputElement | null>(null);
   const emailRef = useRef<HTMLInputElement | null>(null);
-  const cityRef = useRef<HTMLSelectElement | null>(null);
+  const cityRef = useRef<HTMLInputElement | null>(null);
   const addressRef = useRef<HTMLTextAreaElement | null>(null);
 
   const [submitting, setSubmitting] = useState(false);
@@ -177,6 +139,10 @@ export default function CheckoutPage() {
     logoUrl?: string | null;
     siteIconUrl?: string | null;
   } | null>(null);
+  const [checkoutSettings, setCheckoutSettings] =
+    useState<CheckoutSettings>(DEFAULT_CHECKOUT_SETTINGS);
+  const [shippingFee, setShippingFee] = useState(250);
+  const [whatsappHref, setWhatsappHref] = useState("/contact");
   const [userEmail, setUserEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [fullName, setFullName] = useState("");
@@ -188,7 +154,7 @@ export default function CheckoutPage() {
     () => items.reduce((sum, item) => sum + item.price * item.qty, 0),
     [items],
   );
-  const shippingCost = subtotal > 0 ? 250 : 0;
+  const shippingCost = subtotal > 0 ? shippingFee : 0;
   const total = subtotal + shippingCost;
   const totalItems = useMemo(
     () => items.reduce((sum, item) => sum + item.qty, 0),
@@ -200,10 +166,24 @@ export default function CheckoutPage() {
     let active = true;
     (async () => {
       try {
-        const settingsRes = await fetch("/api/site-settings", { cache: "no-store" });
+        const [settingsRes, storeRes, contact] = await Promise.all([
+          fetch("/api/site-settings", { cache: "no-store" }),
+          fetch("/api/store-settings", { cache: "no-store" }),
+          fetchPublicContact(),
+        ]);
         const settingsPayload = await settingsRes.json().catch(() => ({}));
+        const storePayload = await storeRes.json().catch(() => ({}));
         if (active && settingsRes.ok && settingsPayload?.ok) {
           setBranding(settingsPayload.data || null);
+          setCheckoutSettings(parseCheckoutSettings(settingsPayload.data?.checkoutSettings));
+        }
+
+        if (active && storeRes.ok && storePayload?.ok) {
+          setShippingFee(parseMoneySetting(storePayload.data?.defaultShippingFee, 250));
+        }
+
+        if (active) {
+          setWhatsappHref(buildWhatsAppHref(contact?.whatsapp, "Assalam o Alaikum, I need help placing my order."));
         }
 
         const accountRes = await fetch("/api/account/me", { cache: "no-store" });
@@ -277,7 +257,13 @@ export default function CheckoutPage() {
       nextErrors.fullName = "Please enter your full name.";
     }
 
-    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+    if (checkoutSettings.emailMode === "required" && !email.trim() && !userEmail) {
+      nextErrors.email = "Please enter your email address.";
+    } else if (
+      checkoutSettings.emailMode !== "hidden" &&
+      email.trim() &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+    ) {
       nextErrors.email = "Please enter a valid email address or leave it empty.";
     }
 
@@ -324,7 +310,7 @@ export default function CheckoutPage() {
     }
 
     if (items.length === 0) {
-      setFormError("Your cart is empty. Please add a product before checkout.");
+      setFormError(checkoutSettings.emptyCartMessage);
       return;
     }
 
@@ -332,7 +318,8 @@ export default function CheckoutPage() {
 
     try {
       const { firstName, lastName } = splitFullName(fullName);
-      const customerEmail = userEmail || email.trim() || undefined;
+      const customerEmail =
+        userEmail || (checkoutSettings.emailMode === "hidden" ? "" : email.trim()) || undefined;
 
       const res = await fetch("/api/checkout", {
         method: "POST",
@@ -419,7 +406,7 @@ export default function CheckoutPage() {
                 />
               ) : (
                 <span className="inline-flex items-center gap-2 text-2xl font-black tracking-tight text-neutral-900">
-                  <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-900 text-sm font-bold text-white">
+                  <span className="theme-primary-action inline-flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-900 text-sm font-bold text-white">
                     {brandInitials}
                   </span>
                   {brandName}
@@ -449,13 +436,19 @@ export default function CheckoutPage() {
         </Container>
       </header>
 
-      <StepIndicator />
+      <StepIndicator
+        steps={[
+          checkoutSettings.yourDetailsStepLabel,
+          checkoutSettings.deliveryAddressStepLabel,
+          checkoutSettings.confirmOrderStepLabel,
+        ]}
+      />
 
-      <main className="py-5 sm:py-8">
+      <main className="pb-28 pt-5 sm:py-8 lg:pb-8">
         <Container>
           <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_420px] lg:items-start">
             <section className="space-y-5">
-              <div className="rounded-3xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-5">
+              <div className="theme-card rounded-3xl border border-neutral-200 bg-white p-4 shadow-sm sm:p-5">
                 <div className="flex items-center gap-2 text-sm font-semibold text-neutral-900">
                   <Star className="h-4 w-4 fill-neutral-900" aria-hidden="true" />
                   Over 10,000+ orders delivered
@@ -465,14 +458,14 @@ export default function CheckoutPage() {
                 </p>
               </div>
 
-              <SectionCard number={1} title="Your Details">
+              <SectionCard number={1} title={checkoutSettings.yourDetailsStepLabel}>
                 <label className="block">
-                  <span className="text-sm font-semibold text-neutral-800">Phone Number *</span>
+                  <span className="text-sm font-semibold text-neutral-800">{checkoutSettings.phoneLabel} *</span>
                   <input
                     ref={phoneRef}
                     value={phone}
                     onChange={(event) => setPhone(event.target.value)}
-                    placeholder="03XX XXXXXXX"
+                    placeholder={checkoutSettings.phonePlaceholder}
                     inputMode="tel"
                     autoComplete="tel"
                     className={[
@@ -481,18 +474,18 @@ export default function CheckoutPage() {
                     ].join(" ")}
                   />
                   <p className="mt-2 text-sm text-neutral-500">
-                    We will call or WhatsApp for order confirmation.
+                    {checkoutSettings.phoneHelper}
                   </p>
                   <ErrorText message={errors.phone} />
                 </label>
 
                 <label className="block">
-                  <span className="text-sm font-semibold text-neutral-800">Full Name *</span>
+                  <span className="text-sm font-semibold text-neutral-800">{checkoutSettings.fullNameLabel} *</span>
                   <input
                     ref={nameRef}
                     value={fullName}
                     onChange={(event) => setFullName(event.target.value)}
-                    placeholder="Muhammad Ali"
+                    placeholder={checkoutSettings.fullNamePlaceholder}
                     autoComplete="name"
                     className={[
                       "mt-2 w-full rounded-2xl border bg-white px-4 py-4 text-base outline-none transition placeholder:text-neutral-400 focus:ring-4 focus:ring-neutral-900/10",
@@ -502,14 +495,19 @@ export default function CheckoutPage() {
                   <ErrorText message={errors.fullName} />
                 </label>
 
+                {checkoutSettings.emailMode !== "hidden" ? (
                 <label className="block">
-                  <span className="text-sm font-semibold text-neutral-800">Email</span>
-                  <span className="ml-2 text-xs text-neutral-500">Optional</span>
+                  <span className="text-sm font-semibold text-neutral-800">{checkoutSettings.emailLabel}</span>
+                  {checkoutSettings.emailMode === "optional" ? (
+                    <span className="ml-2 text-xs text-neutral-500">{checkoutSettings.emailOptionalLabel}</span>
+                  ) : (
+                    <span className="ml-2 text-xs text-neutral-500">*</span>
+                  )}
                   <input
                     ref={emailRef}
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
-                    placeholder="you@example.com"
+                    placeholder={checkoutSettings.emailPlaceholder}
                     type="email"
                     autoComplete="email"
                     disabled={Boolean(userEmail)}
@@ -520,38 +518,33 @@ export default function CheckoutPage() {
                   />
                   <ErrorText message={errors.email} />
                 </label>
+                ) : null}
               </SectionCard>
 
-              <SectionCard number={2} title="Delivery Address">
+              <SectionCard number={2} title={checkoutSettings.deliveryAddressStepLabel}>
                 <label className="block">
-                  <span className="text-sm font-semibold text-neutral-800">City *</span>
-                  <select
+                  <span className="text-sm font-semibold text-neutral-800">{checkoutSettings.cityLabel} *</span>
+                  <input
                     ref={cityRef}
                     value={city}
                     onChange={(event) => setCity(event.target.value)}
+                    placeholder={cityInputPlaceholder(checkoutSettings.cityPlaceholder)}
                     autoComplete="address-level2"
                     className={[
-                      "mt-2 w-full rounded-2xl border bg-white px-4 py-4 text-base outline-none transition focus:ring-4 focus:ring-neutral-900/10",
+                      "mt-2 w-full rounded-2xl border bg-white px-4 py-4 text-base outline-none transition placeholder:text-neutral-400 focus:ring-4 focus:ring-neutral-900/10",
                       errors.city ? "border-red-500 bg-red-50" : "border-neutral-300 focus:border-neutral-900",
                     ].join(" ")}
-                  >
-                    <option value="">Select your city</option>
-                    {PAKISTAN_CITIES.map((cityName) => (
-                      <option key={cityName} value={cityName}>
-                        {cityName}
-                      </option>
-                    ))}
-                  </select>
+                  />
                   <ErrorText message={errors.city} />
                 </label>
 
                 <label className="block">
-                  <span className="text-sm font-semibold text-neutral-800">Full Address *</span>
+                  <span className="text-sm font-semibold text-neutral-800">{checkoutSettings.addressLabel} *</span>
                   <textarea
                     ref={addressRef}
                     value={address}
                     onChange={(event) => setAddress(event.target.value)}
-                    placeholder="House number, street, area, city"
+                    placeholder={checkoutSettings.addressPlaceholder}
                     rows={4}
                     autoComplete="street-address"
                     className={[
@@ -560,56 +553,38 @@ export default function CheckoutPage() {
                     ].join(" ")}
                   />
                   <p className="mt-2 text-sm text-neutral-500">
-                    Courier will deliver your parcel on this address.
+                    {checkoutSettings.addressHelper}
                   </p>
                   <ErrorText message={errors.address} />
                 </label>
               </SectionCard>
 
-              <SectionCard number={3} title="Payment Method">
+              <SectionCard number={3} title={checkoutSettings.paymentSectionTitle}>
                 <div className="rounded-3xl border-2 border-neutral-900 bg-neutral-50 p-5">
                   <div className="flex items-start gap-3">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-neutral-900 text-white">
+                    <div className="theme-primary-action flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-neutral-900 text-white">
                       <Banknote className="h-6 w-6" aria-hidden="true" />
                     </div>
-                    <div className="hidden">
-                      <span aria-hidden="true">💵</span>
-                    </div>
                     <div>
-                      <p className="text-lg font-bold text-neutral-900">Cash on Delivery</p>
-                      <p className="mt-1 text-sm text-neutral-600">Pay when parcel arrives.</p>
+                      <p className="text-lg font-bold text-neutral-900">{globalCopy.checkout.codTitle}</p>
+                      <p className="mt-1 text-sm text-neutral-600">{globalCopy.checkout.codHelper}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="lg:hidden">
-                  <button
-                    type="button"
-                    onClick={placeOrder}
-                    disabled={submitting || items.length === 0}
-                    className="mt-4 flex min-h-16 w-full items-center justify-center gap-3 rounded-3xl bg-neutral-900 px-6 py-4 text-center text-base font-black text-white shadow-lg shadow-neutral-900/20 transition active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-neutral-500"
-                  >
-                    <ShoppingCart className="h-5 w-5" aria-hidden="true" />
-                    <span>
-                      <span className="block">{submitting ? "Placing Order..." : "Place My Order"}</span>
-                      <span className="block text-xs font-semibold text-white/70">Pay Cash on Delivery</span>
-                    </span>
-                  </button>
-
-                  {formError ? (
-                    <div className="mt-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
-                      {formError}
-                    </div>
-                  ) : null}
-                </div>
+                {formError ? (
+                  <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700 lg:hidden">
+                    {formError}
+                  </div>
+                ) : null}
               </SectionCard>
             </section>
 
             <aside className="lg:sticky lg:top-5">
-              <div className="rounded-3xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6">
+              <div className="theme-card rounded-3xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <h2 className="text-lg font-semibold tracking-tight">Confirm Order</h2>
+                    <h2 className="text-lg font-semibold tracking-tight">{checkoutSettings.orderSummaryTitle}</h2>
                     <p className="mt-1 text-sm text-neutral-500">{totalItems} item(s)</p>
                   </div>
                   <LockKeyhole className="h-5 w-5 text-neutral-500" aria-hidden="true" />
@@ -617,7 +592,7 @@ export default function CheckoutPage() {
 
                 {items.length === 0 ? (
                   <div className="mt-5 rounded-3xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-                    Your cart is empty. Please add a product before checkout.
+                    {checkoutSettings.emptyCartMessage}
                   </div>
                 ) : (
                   <div className="mt-5 space-y-4">
@@ -659,30 +634,14 @@ export default function CheckoutPage() {
                     <span className="text-neutral-600">Shipping</span>
                     <span className="font-medium">{formatMoney(shippingCost, currency)}</span>
                   </div>
-                  <div className="rounded-3xl bg-neutral-900 p-4 text-white">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-white/70">
+                  <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-4 text-neutral-900">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
                       Total Payable
                     </p>
                     <p className="mt-1 text-3xl font-bold tracking-tight">
                       {formatMoney(total, currency)}
                     </p>
                   </div>
-                </div>
-
-                <div className="mt-5 rounded-3xl border border-neutral-200 bg-neutral-50 p-4">
-                  <div className="flex items-center gap-1 text-amber-500" aria-label="Five star rating">
-                    {Array.from({ length: 5 }).map((_, index) => (
-                      <Star key={index} className="h-4 w-4 fill-current" aria-hidden="true" />
-                    ))}
-                  </div>
-                  <p className="mt-2 text-sm font-semibold text-neutral-900">
-                    Trusted by customers across Pakistan
-                  </p>
-                  <p className="mt-1 text-xs text-neutral-500">Over 10,000+ orders delivered</p>
-                </div>
-
-                <div className="mt-5">
-                  <TrustList />
                 </div>
 
                 {formError ? (
@@ -695,61 +654,35 @@ export default function CheckoutPage() {
                   type="button"
                   onClick={placeOrder}
                   disabled={submitting || items.length === 0}
-                  className="hidden"
+                  className="cta-attention theme-primary-action mt-4 hidden min-h-16 w-full items-center justify-center gap-3 rounded-3xl bg-neutral-900 px-6 py-4 text-center text-base font-black text-white shadow-lg shadow-neutral-900/20 transition hover:bg-neutral-800 active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-neutral-500 lg:flex"
                 >
-                  <span className="block">{submitting ? "Placing Order..." : "🛒 Place My Order"}</span>
-                  <span className="mt-0.5 block text-xs font-semibold text-white/70">
-                    Pay Cash on Delivery
+                  <ShoppingCart className="h-5 w-5" aria-hidden="true" />
+                  <span>
+                    <span className="block">{submitting ? globalCopy.checkout.placingOrder : globalCopy.checkout.placeOrder}</span>
+                    <span className="block text-xs font-semibold text-white/70">{globalCopy.checkout.placeOrderSubtext}</span>
                   </span>
                 </button>
 
-                <button
-                  type="button"
-                  onClick={placeOrder}
-                  disabled={submitting || items.length === 0}
-                  className="mt-5 hidden w-full rounded-3xl bg-neutral-900 px-6 py-4 text-center text-base font-bold text-white shadow-lg shadow-neutral-900/20 transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-neutral-500 lg:block"
-                >
-                  <span className="flex items-center justify-center gap-2">
-                    <ShoppingCart className="h-5 w-5" aria-hidden="true" />
-                    {submitting ? "Placing Order..." : "Place My Order"}
-                  </span>
-                  <span className="mt-0.5 block text-xs font-semibold text-white/70">
-                    Pay Cash on Delivery
-                  </span>
-                </button>
-
-                <div className="mt-4 rounded-3xl border border-neutral-200 bg-white p-4 text-center">
-                  <p className="text-sm font-semibold">Need help placing order?</p>
+                <div className="theme-card mt-4 rounded-3xl border border-neutral-200 bg-white p-4 text-center">
+                  <p className="text-sm font-semibold">{checkoutSettings.helpTitle}</p>
                   <a
-                    href={WHATSAPP_LINK}
+                    href={whatsappHref}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="mt-3 inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-800 transition hover:bg-emerald-100"
                   >
                     <MessageCircle className="h-4 w-4" aria-hidden="true" />
-                    Chat on WhatsApp
+                    {checkoutSettings.helpButtonLabel}
                   </a>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={placeOrder}
-                  disabled={submitting || items.length === 0}
-                  className="mt-4 flex min-h-16 w-full items-center justify-center gap-3 rounded-3xl bg-neutral-900 px-6 py-4 text-center text-base font-black text-white shadow-lg shadow-neutral-900/20 transition active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-neutral-500 lg:hidden"
-                >
-                  <ShoppingCart className="h-5 w-5" aria-hidden="true" />
-                  <span>
-                    <span className="block">{submitting ? "Placing Order..." : "Place My Order"}</span>
-                    <span className="block text-xs font-semibold text-white/70">Pay Cash on Delivery</span>
-                  </span>
-                </button>
               </div>
             </aside>
           </div>
         </Container>
       </main>
 
-      <div className="hidden">
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-neutral-200 bg-white/95 px-4 py-3 shadow-[0_-12px_30px_rgba(0,0,0,0.10)] backdrop-blur lg:hidden">
         <div className="mx-auto flex max-w-[1180px] items-center gap-3">
           <div className="min-w-0">
             <p className="text-[11px] font-bold uppercase tracking-wide text-neutral-500">
@@ -757,18 +690,17 @@ export default function CheckoutPage() {
             </p>
             <p className="text-lg font-black leading-tight">{formatMoney(total, currency)}</p>
           </div>
-          <ChevronRight className="hidden h-4 w-4 text-neutral-300 min-[380px]:block" aria-hidden="true" />
           <button
             type="button"
             onClick={placeOrder}
             disabled={submitting || items.length === 0}
-            className="ml-auto min-h-14 rounded-2xl bg-neutral-900 px-5 py-3 text-sm font-black text-white shadow-lg shadow-neutral-900/20 transition active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-neutral-500"
+            className="cta-attention theme-primary-action ml-auto flex min-h-16 flex-1 items-center justify-center gap-2 rounded-2xl bg-neutral-900 px-5 py-3 text-sm font-black text-white shadow-lg shadow-neutral-900/20 transition active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-neutral-300 disabled:text-neutral-500"
           >
-            <span className="flex items-center justify-center gap-2">
-              <ShoppingCart className="h-4 w-4" aria-hidden="true" />
-              {submitting ? "Placing..." : "🛒 Place My Order"}
+            <ShoppingCart className="h-4 w-4" aria-hidden="true" />
+            <span>
+              <span className="block">{submitting ? globalCopy.checkout.placingOrder : globalCopy.checkout.placeOrder}</span>
+              <span className="block text-[11px] font-semibold text-white/70">{globalCopy.checkout.placeOrderSubtext}</span>
             </span>
-            <span className="block text-[11px] font-semibold text-white/70">Pay Cash on Delivery</span>
           </button>
         </div>
       </div>

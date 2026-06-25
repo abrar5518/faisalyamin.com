@@ -265,17 +265,23 @@ model Blog {
   coverImage  String?
   coverAlt    String?   @db.Text
   contentHtml String    @db.LongText
+  category    String?
+  tags        String?   @db.Text
+  authorId    Int?
   metaTitle   String?   @db.Text
   metaDescription String? @db.Text
   metaKeywords String?  @db.Text
   isPublished Boolean   @default(false)
   publishedAt DateTime?
 
+  author       BlogAuthor? @relation(fields: [authorId], references: [id], onDelete: SetNull)
   blogProducts BlogProduct[]
   faqItems     BlogFaqItem[]
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+  @@index([authorId])
 }
 
 model BlogAuthor {
@@ -288,6 +294,8 @@ model BlogAuthor {
   metaTitle   String?   @db.Text
   metaDescription String? @db.Text
   metaKeywords String?  @db.Text
+
+  posts       Blog[]
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -304,6 +312,7 @@ model Page {
   shortDescription String? @db.Text
   featureImage String? @db.Text
   featureImageAlt String? @db.Text
+  sectionsJson String? @db.LongText
 
   heroBadge   String?
   heroTitle   String?   @db.Text
@@ -345,6 +354,29 @@ model Page {
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+}
+
+model ReusableBlock {
+  id          Int      @id @default(autoincrement())
+  title       String
+  slug        String   @unique
+  type        String   @default("trust")
+  placement   String   @default("general")
+  eyebrow     String?
+  bodyHtml    String?  @db.LongText
+  icon        String?
+  primaryLabel String?
+  primaryHref  String?
+  secondaryLabel String?
+  secondaryHref  String?
+  itemsJson   String?  @db.LongText
+  isEnabled   Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([placement])
+  @@index([isEnabled])
 }
 
 model AboutPage {
@@ -811,13 +843,19 @@ model SiteSettings {
     siteIconUrl String?  @db.Text
     siteIconAlt String?  @db.Text
     siteFooterText String? @db.Text
+    metaPixelEnabled Boolean @default(true)
     metaPixelIds String? @db.Text
     facebookDomainVerification String? @db.Text
     googleSiteVerification String? @db.Text
+    googleTagManagerEnabled Boolean @default(true)
     googleTagManagerId String? @db.Text
+    microsoftClarityEnabled Boolean @default(true)
     microsoftClarityId String? @db.Text
+    customHeadScriptsEnabled Boolean @default(true)
     customHeadScripts String? @db.LongText
+    customBodyStartScriptsEnabled Boolean @default(true)
     customBodyStartScripts String? @db.LongText
+    customBodyEndScriptsEnabled Boolean @default(true)
     customBodyEndScripts String? @db.LongText
     headerMenuItems String? @db.Text
     headerSearchPlaceholder String? @db.Text
@@ -837,17 +875,11 @@ model SiteSettings {
     footerNewsletterConsentText String? @db.Text
     footerTrustItems String? @db.Text
     footerSocialLinks String? @db.Text
-    metaPixelEnabled Boolean @default(true)
-    googleTagManagerEnabled Boolean @default(true)
-    microsoftClarityEnabled Boolean @default(true)
-    customHeadScriptsEnabled Boolean @default(true)
-    customBodyStartScriptsEnabled Boolean @default(true)
-    customBodyEndScriptsEnabled Boolean @default(true)
-    themeSettings String? @db.LongText
     globalCopy String? @db.LongText
     checkoutSettings String? @db.LongText
     cartSettings String? @db.LongText
     catalogSettings String? @db.LongText
+    themeSettings String? @db.LongText
     createdAt   DateTime @default(now())
     updatedAt   DateTime @updatedAt
   }
@@ -879,29 +911,6 @@ model RedirectRule {
   note        String?  @db.Text
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-}
-
-model ReusableBlock {
-  id             Int      @id @default(autoincrement())
-  title          String
-  slug           String   @unique
-  type           String   @default("trust")
-  placement      String   @default("general")
-  eyebrow        String?
-  bodyHtml       String?  @db.LongText
-  icon           String?
-  primaryLabel   String?
-  primaryHref    String?
-  secondaryLabel String?
-  secondaryHref  String?
-  itemsJson      String?  @db.LongText
-  isEnabled      Boolean  @default(true)
-  sortOrder      Int      @default(0)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  @@index([placement])
-  @@index([isEnabled])
 }
 
 model Subscriber {

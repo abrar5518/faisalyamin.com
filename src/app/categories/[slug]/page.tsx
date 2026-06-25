@@ -14,6 +14,7 @@ import {
 } from "@/components/seo/schemas";
 import { normalizeSiteUrl } from "@/lib/siteUrl";
 import FaqSection from "@/components/FaqSection";
+import { parseCatalogSettings, renderCatalogTemplate } from "@/lib/catalogSettings";
 
 function Container({ children }: { children: ReactNode }) {
   return (
@@ -164,8 +165,9 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
 
   const pageProducts: Product[] = products.map((p) => {
     const sortedImages = [...p.images].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-    const img = sortedImages[0]?.url;
-    const imgAlt = sortedImages[0]?.alt || p.name;
+    const imageItems = sortedImages.filter((img: any) => (img.mediaType ?? "image") === "image");
+    const img = imageItems[0]?.url;
+    const imgAlt = imageItems[0]?.alt || p.name;
     return {
       id: p.slug,
       name: p.name,
@@ -176,27 +178,29 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
       reviews: p.reviewsCount ?? 0,
       image: img || "https://images.unsplash.com/photo-1523362628745-0c100150b504",
       imageAlt: imgAlt,
+      hoverImage: imageItems[1]?.url,
+      hoverImageAlt: imageItems[1]?.alt || p.name,
       shortDesc: p.shortDesc ?? undefined,
       href: `/product/${p.slug}`,
     };
   });
 
+  const catalogSettings = parseCatalogSettings(siteSettings?.catalogSettings);
   const title = category.name || "Category";
-  const subtitle = category.description || "Explore curated products";
+  const subtitle = category.description || catalogSettings.categoryFallbackIntro;
   const heroImage = category.image || "https://images.unsplash.com/photo-1523362628745-0c100150b504";
   const richHtml =
     category.descriptionHtml ||
     `
       <h2>${title}</h2>
       <p>
-        This category page content is coming from a rich editor (CMS). You can add long-form SEO content here:
-        bottle sizes, materials, care tips, delivery details, return policy and FAQs.
+        ${catalogSettings.categoryFallbackIntro}
       </p>
       <h3>Buying tips</h3>
       <ul>
-        <li>Choose the right capacity for school, office, gym or travel</li>
-        <li>Check lid, straw, handle and insulation details before ordering</li>
-        <li>Review shipping, return and care instructions before checkout</li>
+        <li>Compare product details, images, and pricing before ordering</li>
+        <li>Review delivery, return, and support information before checkout</li>
+        <li>Contact support if you need help choosing the right option</li>
       </ul>
       <p>
         Add internal links to <a href="/shop">Shop All Products</a> and <a href="/deals">View Deals</a>
@@ -256,7 +260,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
             <div className="lg:col-span-7">
               <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs text-neutral-700">
                 <span className="h-2 w-2 rounded-full bg-neutral-900" />
-                Curated collection
+                {catalogSettings.categoryEyebrow}
               </div>
 
               <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
@@ -267,12 +271,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
               </p>
 
               <div className="mt-6 flex flex-wrap items-center gap-2">
-                {[
-                  "Quality Checked Bottles",
-                  "Fast Delivery in Pakistan",
-                  "Secure Checkout",
-                  "7-Day Return Policy",
-                ].map((x) => (
+                {catalogSettings.categoryTrustBadges.map((x) => (
                   <span
                     key={x}
                     className="rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-xs text-neutral-700"
@@ -323,7 +322,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
                 <span className="h-2 w-2 rounded-full bg-neutral-900" />
                 <input
                   className="w-56 bg-transparent text-sm outline-none placeholder:text-neutral-400"
-                  placeholder="Search in this category…"
+                  placeholder={catalogSettings.categorySearchPlaceholder}
                   type="search"
                 />
               </div>
@@ -352,7 +351,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
           {/* Pagination */}
           <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-neutral-200 pt-6 sm:flex-row">
             <div className="text-xs text-neutral-500">
-              Tip: Use filters by price, size, material and usage to find the right bottle.
+              {catalogSettings.categoryPaginationTip}
             </div>
 
             <div className="flex items-center gap-2">
@@ -421,10 +420,12 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
                 Subcategories
               </div>
               <h2 className="mt-4 text-2xl font-semibold tracking-tight">
-                Explore {title} Categories
+                {renderCatalogTemplate(catalogSettings.categorySubcategoryTitleTemplate, {
+                  category: title,
+                })}
               </h2>
               <p className="mt-2 text-sm text-neutral-600">
-                Find the right water bottle by use, material and lifestyle. Browse kids bottles, school bottles, gym bottles, BPA-free bottles, plastic bottles, stainless steel bottles and travel bottles.
+                {catalogSettings.categorySubcategoryIntro}
               </p>
             </div>
 
@@ -464,10 +465,10 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-sm font-semibold text-neutral-900">
-                    Can&apos;t find what you&apos;re looking for?
+                    {catalogSettings.categoryHelpTitle}
                   </p>
                   <p className="mt-1 text-sm text-neutral-600">
-                    Browse all products in {title} or contact our team for personalized recommendations.
+                    {catalogSettings.categoryHelpBody}
                   </p>
                 </div>
                 <div className="flex gap-2">
@@ -496,7 +497,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
             <FaqSection
               items={category.faqItems}
               title={`${title} FAQs`}
-              intro="Quick answers about this category, delivery, returns and choosing the right product."
+              intro={catalogSettings.categoryFaqIntro}
               eyebrow="Category FAQs"
               includeSchema
               variant="soft"
@@ -520,9 +521,9 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
 
             <aside className="lg:col-span-4 lg:self-start">
               <div className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-7 lg:sticky lg:top-5">
-                <p className="text-sm font-semibold">Need help choosing?</p>
+                <p className="text-sm font-semibold">{catalogSettings.categoryHelpTitle}</p>
                 <p className="mt-2 text-sm text-neutral-600">
-                  Share your budget, bottle size and usage. We will help you choose the best water bottle for school, office, gym, travel or kids.
+                  {catalogSettings.categoryHelpBody}
                 </p>
 
                 <div className="mt-5 grid gap-2">
@@ -530,13 +531,13 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
                     href={whatsappHref}
                     className="rounded-2xl bg-neutral-900 px-5 py-3 text-center text-sm font-medium text-white hover:bg-neutral-800"
                   >
-                    WhatsApp Support
+                    {catalogSettings.categoryHelpPrimaryLabel}
                   </Link>
                   <Link
                     href="/account/orders"
                     className="rounded-2xl border border-neutral-200 px-5 py-3 text-center text-sm font-medium hover:bg-neutral-50"
                   >
-                    Track Order
+                    {catalogSettings.categoryHelpSecondaryLabel}
                   </Link>
                 </div>
                 <p className="mt-4 text-xs text-neutral-500">
@@ -556,15 +557,10 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
                 </p>
 
                 <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-                  {[
-                    { t: "Quality", d: "Quality checked before dispatch" },
-                    { t: "Shipping", d: "Fast delivery across Pakistan" },
-                    { t: "Returns", d: "7-day return policy" },
-                    { t: "Payments", d: "Secure gateways + checks" },
-                  ].map((x) => (
-                    <div key={x.t} className="rounded-2xl bg-neutral-50 p-4">
-                      <p className="text-xs font-semibold">{x.t}</p>
-                      <p className="mt-1 text-xs text-neutral-600">{x.d}</p>
+                  {catalogSettings.categorySidebarTrustItems.map((x) => (
+                    <div key={x.title || x.text} className="rounded-2xl bg-neutral-50 p-4">
+                      <p className="text-xs font-semibold">{x.title}</p>
+                      <p className="mt-1 text-xs text-neutral-600">{x.text}</p>
                     </div>
                   ))}
                 </div>

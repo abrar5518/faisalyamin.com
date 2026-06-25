@@ -133,17 +133,17 @@ export type AboutPageDb = {
 };
 
 export const defaultAboutHero = {
-  badge: "Water bottle store in Pakistan",
-  title: "About Sahoolat",
+  badge: "Online store in Pakistan",
+  title: "About our store",
   subtitle:
-    "Sahoolat is built for buyers who want reliable water bottles, transparent listings, secure checkout, and delivery across Pakistan. Our goal is a simple purchase experience with clear shipping, returns, and customer support.",
+    "This store is built for buyers who want clear product details, secure checkout, reliable delivery, and helpful support. Update this content from admin to match your brand story.",
   primaryLabel: "Explore products",
   primaryHref: "/shop",
   secondaryLabel: "Contact us",
   secondaryHref: "/contact",
   image:
     "https://images.unsplash.com/photo-1523362628745-0c100150b504?auto=format&fit=crop&w=1600&q=85",
-  imageAlt: "Sahoolat water bottle shopping",
+  imageAlt: "Online shopping products",
 };
 
 export const defaultAboutContent: AboutContent = {
@@ -179,13 +179,13 @@ export const defaultAboutContent: AboutContent = {
   story: {
     title: "Our story",
     intro:
-      "Sahoolat started with a simple goal: make buying water bottles online in Pakistan reliable, clear, and easy.",
+      "This store started with a simple goal: make online shopping reliable, clear, and easy.",
     primaryLabel: "Browse categories",
     primaryHref: "/categories",
     secondaryLabel: "Contact us",
     secondaryHref: "/contact",
     bodyHtml:
-      "<h3>Built for Pakistani buyers</h3><p>Pakistan has a growing demand for practical, durable and affordable water bottles, but buyers often face unclear listings and uncertain delivery. Sahoolat was designed to keep product details, prices, shipping and returns easy to understand.</p><h3>Clear product details</h3><p>For every product, we aim to share accurate information, clear photos, capacity, material and delivery expectations. If you ever need help, the <a href=\"/contact\" class=\"text-neutral-900 hover:underline\">Contact</a> page is the fastest route.</p><h3>We care about long-term trust</h3><p>Instead of vague claims, we focus on consistent quality, reliable support and a smooth experience from browsing to delivery.</p><p>Check <a href=\"/deals\" class=\"text-neutral-900 hover:underline\">Deals</a> or browse the full <a href=\"/shop\" class=\"text-neutral-900 hover:underline\">Shop</a>.</p>",
+      "<h3>Built for confident shopping</h3><p>Customers need clear listings, transparent prices, reliable delivery, and easy support. This store is designed to keep product details, shipping, and returns simple to understand.</p><h3>Clear product details</h3><p>For every product, share accurate information, clear photos, and delivery expectations. If customers need help, the <a href=\"/contact\" class=\"text-neutral-900 hover:underline\">Contact</a> page is the fastest route.</p><h3>We care about long-term trust</h3><p>Instead of vague claims, focus on consistent quality, reliable support, and a smooth experience from browsing to delivery.</p><p>Check <a href=\"/deals\" class=\"text-neutral-900 hover:underline\">Deals</a> or browse the full <a href=\"/shop\" class=\"text-neutral-900 hover:underline\">Shop</a>.</p>",
   },
   values: {
     title: "What we stand for",
@@ -228,7 +228,7 @@ export const defaultAboutContent: AboutContent = {
       {
         n: "2",
         title: "Condition checks",
-        desc: "We check the bottle body, lid, straw, handle, packaging and accessories where applicable.",
+        desc: "We check product details, packaging, included items, and accessories where applicable.",
       },
       {
         n: "3",

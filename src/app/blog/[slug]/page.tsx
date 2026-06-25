@@ -12,6 +12,7 @@ import { absoluteUrl, blogPostingSchema, breadcrumbSchema } from "@/components/s
 import SubscribeCard from "@/components/SubscribeCard";
 import { normalizeSiteUrl } from "@/lib/siteUrl";
 import FaqSection from "@/components/FaqSection";
+import { parseBlogTags } from "@/lib/blogContent";
 
 type BlogPost = {
   slug: string;
@@ -67,7 +68,10 @@ function formatPKR(n: number) {
 
 function mapBlogProduct(row: any): ProductCardItem {
   const product = row?.product ?? row;
-  const img = product?.images?.[0]?.url || FALLBACK_IMAGE;
+  const imageItems = [...(product?.images ?? [])]
+    .sort((a: any, b: any) => (a?.sortOrder ?? 0) - (b?.sortOrder ?? 0))
+    .filter((image: any) => (image?.mediaType ?? "image") === "image");
+  const img = imageItems[0]?.url || FALLBACK_IMAGE;
   return {
     id: product?.slug ?? String(product?.id ?? ""),
     name: product?.name ?? "Untitled product",
@@ -77,7 +81,9 @@ function mapBlogProduct(row: any): ProductCardItem {
     rating: typeof product?.rating === "number" ? product.rating : 0,
     reviews: typeof product?.reviewsCount === "number" ? product.reviewsCount : 0,
     image: img,
-    imageAlt: product?.images?.[0]?.alt ?? product?.name ?? "Product image",
+    imageAlt: imageItems[0]?.alt ?? product?.name ?? "Product image",
+    hoverImage: imageItems[1]?.url,
+    hoverImageAlt: imageItems[1]?.alt ?? product?.name ?? "Product image",
     href: product?.slug ? `/product/${product.slug}` : undefined,
   };
 }
@@ -163,9 +169,10 @@ export async function generateMetadata({ params }: PageProps) {
     };
   }
 
-  const title = post.metaTitle?.trim() || "N/A";
-  const description = post.metaDescription?.trim() || "N/A";
-  const keywords = post.metaKeywords?.trim() || "N/A";
+  const title = post.metaTitle?.trim() || post.title;
+  const description =
+    post.metaDescription?.trim() || post.excerpt || excerptFromHtml(post.contentHtml);
+  const keywords = post.metaKeywords?.trim() || undefined;
   const imageUrl = post.coverImage ? absoluteUrl(post.coverImage, baseUrl.replace(/\/$/, "")) : undefined;
 
   return {
@@ -196,7 +203,7 @@ type PageProps = {
 export default async function BlogPostPage({ params }: PageProps) {
   const { slug } = await params;
 
-  const [postRow, siteSettings, contact, authorRow] = await Promise.all([
+  const [postRow, siteSettings, contact, fallbackAuthorRow] = await Promise.all([
     prisma.blog.findFirst({
       where: { slug, isPublished: true },
       select: {
@@ -205,8 +212,18 @@ export default async function BlogPostPage({ params }: PageProps) {
         excerpt: true,
         coverImage: true,
         contentHtml: true,
+        category: true,
+        tags: true,
         publishedAt: true,
         createdAt: true,
+        author: {
+          select: {
+            name: true,
+            slug: true,
+            role: true,
+            avatar: true,
+          },
+        },
         faqItems: {
           select: {
             question: true,
@@ -276,20 +293,29 @@ export default async function BlogPostPage({ params }: PageProps) {
     };
   });
 
-  const author = authorRow
+  const author = postRow.author
     ? {
-        name: authorRow.name,
-        role: authorRow.role || "Editorial",
+        name: postRow.author.name,
+        role: postRow.author.role || "Editorial",
         avatar:
-          authorRow.avatar ||
+          postRow.author.avatar ||
           "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
-        slug: authorRow.slug,
+        slug: postRow.author.slug,
+      }
+    : fallbackAuthorRow
+    ? {
+        name: fallbackAuthorRow.name,
+        role: fallbackAuthorRow.role || "Editorial",
+        avatar:
+          fallbackAuthorRow.avatar ||
+          "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
+        slug: fallbackAuthorRow.slug,
       }
     : {
-        name: "Sahoolat Editorial",
-        role: "Premium eCommerce Team",
+        name: "Store Editorial",
+        role: "Editorial Team",
         avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
-        slug: "luxstore-editorial",
+        slug: "store-editorial",
       };
 
   const post: BlogPost = {
@@ -299,7 +325,7 @@ export default async function BlogPostPage({ params }: PageProps) {
     coverImage: postRow.coverImage || FALLBACK_IMAGE,
     date: date.toISOString().slice(0, 10),
     author,
-    tags: [],
+    tags: parseBlogTags(postRow.tags),
     html: postRow.contentHtml,
     related,
   };
@@ -370,7 +396,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           <div className="grid gap-8 py-10 lg:grid-cols-12 lg:items-center">
             <div className="lg:col-span-7">
               <div className="flex flex-wrap gap-2">
-                <Pill>Guide</Pill>
+                <Pill>{postRow.category || "Guide"}</Pill>
                 <Pill>{formatDate(post.date)}</Pill>
                 <Pill>{rt.minutes} min read</Pill>
               </div>
@@ -466,9 +492,9 @@ export default async function BlogPostPage({ params }: PageProps) {
 
               {/* CTA strip */}
               <div className="mt-8 rounded-3xl border border-neutral-200 bg-neutral-50 p-6 sm:p-8">
-                <p className="text-sm font-semibold">Want help choosing the right water bottle?</p>
+                <p className="text-sm font-semibold">Need help choosing the right product?</p>
                 <p className="mt-2 text-sm text-neutral-600">
-                  Tell us your budget and preferred brand. We&apos;ll recommend the best options for you.
+                  Tell us your budget and requirements. We&apos;ll recommend the best options for you.
                 </p>
                 <div className="mt-5 flex flex-wrap gap-2">
                   <Link

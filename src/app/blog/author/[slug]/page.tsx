@@ -60,7 +60,7 @@ export default async function BlogAuthorPage({ params }: PageProps) {
   }
 
   const posts = await prisma.blog.findMany({
-    where: { isPublished: true },
+    where: { isPublished: true, authorId: author.id },
     orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
     select: {
       slug: true,

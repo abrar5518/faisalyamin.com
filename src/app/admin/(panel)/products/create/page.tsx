@@ -9,6 +9,7 @@ import FaqEditor, { cleanFaqItems } from "@/components/admin/common/FaqEditor";
 import CategorySelector from "@/components/admin/products/CategorySelector";
 import SizesPicker from "@/components/admin/products/SizesPicker";
 import VariantsEditor from "@/components/admin/products/VariantEditor";
+import ProductVideosEditor from "@/components/admin/products/ProductVideosEditor";
 import type { AdminProduct } from "@/types/adminProduct";
 import { Fetch } from "@/lib/fetch";
 
@@ -29,20 +30,38 @@ function parseMoney(input: string) {
 }
 
 function buildImages(p: AdminProduct) {
-  const images: { url: string; alt?: string; sortOrder: number }[] = [];
+  const images: {
+    url: string;
+    alt?: string;
+    mediaType?: "image" | "video";
+    thumbnailUrl?: string;
+    sortOrder: number;
+  }[] = [];
   let sortOrder = 0;
 
   if (p.heroImage?.url) {
-    images.push({ url: p.heroImage.url, alt: p.heroImage.alt, sortOrder: sortOrder++ });
+    images.push({ url: p.heroImage.url, alt: p.heroImage.alt, mediaType: "image", sortOrder: sortOrder++ });
   }
 
   for (const img of p.gallery) {
-    if (img.url) images.push({ url: img.url, alt: img.alt, sortOrder: sortOrder++ });
+    if (img.url) images.push({ url: img.url, alt: img.alt, mediaType: "image", sortOrder: sortOrder++ });
+  }
+
+  for (const video of p.videos) {
+    if (video.url) {
+      images.push({
+        url: video.url,
+        alt: video.alt,
+        mediaType: "video",
+        thumbnailUrl: video.thumbnailUrl,
+        sortOrder: sortOrder++,
+      });
+    }
   }
 
   for (const variant of p.variants) {
     for (const img of variant.images) {
-      if (img.url) images.push({ url: img.url, alt: img.alt, sortOrder: sortOrder++ });
+      if (img.url) images.push({ url: img.url, alt: img.alt, mediaType: "image", sortOrder: sortOrder++ });
     }
   }
 
@@ -97,6 +116,7 @@ export default function AdminProductCreatePage() {
     sizes: [],
     heroImage: undefined,
     gallery: [],
+    videos: [],
     variants: [],
     status: "draft",
     stock: 0,
@@ -238,7 +258,7 @@ export default function AdminProductCreatePage() {
                     value={p.brand}
                     onChange={(e) => setP((x) => ({ ...x, brand: e.target.value }))}
                     className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-900"
-                    placeholder="Rolex"
+                    placeholder="Brand or supplier"
                   />
                 </div>
                 <div>
@@ -250,7 +270,7 @@ export default function AdminProductCreatePage() {
                       setP((x) => ({ ...x, name, slug: x.slug ? x.slug : cleanSlug(name) }));
                     }}
                     className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-900"
-                    placeholder="Rolex Datejust 41 Oystersteel"
+                    placeholder="Premium Everyday Product"
                   />
                 </div>
 
@@ -260,7 +280,7 @@ export default function AdminProductCreatePage() {
                     value={p.slug}
                     onChange={(e) => setP((x) => ({ ...x, slug: cleanSlug(e.target.value) }))}
                     className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-900"
-                    placeholder="rolex-datejust-41"
+                    placeholder="premium-everyday-product"
                   />
                 </div>
 
@@ -361,7 +381,7 @@ export default function AdminProductCreatePage() {
                     value={p.metaKeywords ?? ""}
                     onChange={(e) => setP((x) => ({ ...x, metaKeywords: e.target.value }))}
                     className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-900"
-                    placeholder="rolex,datejust,watch,pakistan,luxury watches"
+                    placeholder="featured,new-arrival,pakistan,online shopping"
                   />
                 </div>
               </div>
@@ -405,6 +425,11 @@ export default function AdminProductCreatePage() {
               value={p.gallery}
               onChange={(gallery) => setP((x) => ({ ...x, gallery }))}
               max={12}
+            />
+
+            <ProductVideosEditor
+              value={p.videos}
+              onChange={(videos) => setP((x) => ({ ...x, videos }))}
             />
 
             <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">

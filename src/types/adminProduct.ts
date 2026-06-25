@@ -53,6 +53,7 @@ export type AdminProduct = {
   // images
   heroImage?: AdminImage; // main display
   gallery: AdminImage[];  // general product gallery (optional)
+  videos: AdminImage[];   // product gallery videos (optional)
   variants: AdminVariant[];
 
   status: "active" | "draft" | "archived";

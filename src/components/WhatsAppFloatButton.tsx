@@ -1,22 +1,35 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-
-const WHATSAPP_LINK = "https://wa.me/923018980125";
+import { useEffect, useState } from "react";
+import { buildWhatsAppHref, fetchPublicContact } from "@/lib/contact";
 
 export default function WhatsAppFloatButton() {
   const pathname = usePathname();
+  const [whatsappHref, setWhatsappHref] = useState("/contact");
   const hiddenRoute =
     pathname?.startsWith("/admin") ||
     pathname?.startsWith("/portal") ||
     pathname?.startsWith("/checkout");
   const isProductPage = pathname?.startsWith("/product/");
 
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const contact = await fetchPublicContact();
+      if (!active) return;
+      setWhatsappHref(buildWhatsAppHref(contact?.whatsapp));
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
   if (hiddenRoute) return null;
 
   return (
     <a
-      href={WHATSAPP_LINK}
+      href={whatsappHref}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Chat on WhatsApp"

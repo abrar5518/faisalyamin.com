@@ -1,17 +1,24 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import ManagedPageBody from "@/components/ManagedPageBody";
 import Schema from "@/components/seo/Schema";
 import { breadcrumbSchema } from "@/components/seo/schemas";
+import {
+  buildManagedPageMetadata,
+  getManagedPage,
+  hasManagedPageBody,
+} from "@/lib/managedPage";
 import { normalizeSiteUrl } from "@/lib/siteUrl";
 
 const baseUrl = normalizeSiteUrl();
 
-export const metadata: Metadata = {
-  title: "Privacy Policy | Sahoolat Pakistan",
-  description: "Read Sahoolat's privacy policy for Pakistan customers, including what data we collect, how we use it, payment privacy, cookies, third-party services and your choices.",
-  keywords: "Sahoolat privacy policy, data protection Pakistan, ecommerce privacy Pakistan",
-  alternates: { canonical: `${baseUrl}/privacy` },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return buildManagedPageMetadata("privacy", {
+    title: "Privacy Policy",
+    description: "Learn how customer data is collected, used, protected, and managed.",
+    keywords: "privacy policy, data protection Pakistan, ecommerce privacy",
+  });
+}
 
 function Container({ children }: { children: React.ReactNode }) {
   return (
@@ -21,12 +28,14 @@ function Container({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const page = await getManagedPage("privacy");
+  const hasManagedContent = hasManagedPageBody(page);
   const baseUrlResolved = baseUrl.replace(/\/$/, "");
   const breadcrumbItems = baseUrlResolved
     ? [
         { name: "Home", item: baseUrlResolved },
-        { name: "Privacy Policy", item: `${baseUrlResolved}/privacy` },
+        { name: page?.title || "Privacy Policy", item: `${baseUrlResolved}/privacy` },
       ]
     : [];
   return (
@@ -37,19 +46,21 @@ export default function PrivacyPage() {
           <div className="flex h-10 items-center gap-2 text-xs text-neutral-600">
             <Link className="hover:text-neutral-900" href="/">Home</Link>
             <span className="text-neutral-300">/</span>
-            <span className="text-neutral-900">Privacy Policy</span>
+            <span className="text-neutral-900">{page?.title || "Privacy Policy"}</span>
           </div>
         </Container>
       </div>
 
+      {hasManagedContent ? <ManagedPageBody page={page} /> : (
       <section className="bg-white py-12">
         <Container>
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Privacy Policy</h1>
+          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+            {page?.heroTitle || page?.title || "Privacy Policy"}
+          </h1>
           <p className="mt-3 max-w-3xl text-sm leading-relaxed text-neutral-600 sm:text-base">
-            This Privacy Policy explains how Sahoolat collects, uses, stores and
-            protects customer information when you visit our website or place an
-            order within Pakistan. By using our website, you agree to the practices
-            described below.
+            {page?.heroSubtitle ||
+              page?.shortDescription ||
+              "This Privacy Policy explains how customer information is collected, used, stored and protected when you visit the website or place an order."}
           </p>
 
           <div className="mt-8 grid gap-6 lg:grid-cols-2">
@@ -147,6 +158,7 @@ export default function PrivacyPage() {
           </div>
         </Container>
       </section>
+      )}
     </div>
   );
 }

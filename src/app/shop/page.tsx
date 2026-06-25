@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import Schema from "@/components/seo/Schema";
 import { absoluteUrl, breadcrumbSchema, collectionPageSchema, itemListSchema } from "@/components/seo/schemas";
 import { normalizeSiteUrl } from "@/lib/siteUrl";
+import { parseCatalogSettings } from "@/lib/catalogSettings";
 
 const baseUrl = normalizeSiteUrl();
 
@@ -24,10 +25,10 @@ export async function generateMetadata(): Promise<Metadata> {
     : undefined;
 
   return {
-    title: page?.metaTitle || page?.title || "Buy Water Bottles Online in Pakistan | Sahoolat",
+    title: page?.metaTitle || page?.title || "Shop Online in Pakistan",
     description:
       page?.metaDescription ||
-      "Browse water bottles in Pakistan with secure checkout, PKR 250 standard shipping, and 7-day returns.",
+      "Browse products with secure checkout, clear support, and reliable delivery.",
     keywords: page?.metaKeywords || undefined,
     alternates: canonical ? { canonical } : undefined,
     openGraph: {
@@ -35,7 +36,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: page?.metaTitle || page?.title || "Shop",
       description:
         page?.metaDescription ||
-        "Browse water bottles in Pakistan with secure checkout, PKR 250 standard shipping, and 7-day returns.",
+        "Browse products with secure checkout, clear support, and reliable delivery.",
       url: canonical,
       images: ogImage ? [{ url: ogImage }] : undefined,
     },
@@ -44,7 +45,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: page?.metaTitle || page?.title || "Shop",
       description:
         page?.metaDescription ||
-        "Browse water bottles in Pakistan with secure checkout, PKR 250 standard shipping, and 7-day returns.",
+        "Browse products with secure checkout, clear support, and reliable delivery.",
       images: ogImage ? [ogImage] : undefined,
     },
   };
@@ -55,7 +56,10 @@ function formatPKR(n: number) {
 }
 
 function mapProduct(p: any): ShopProduct {
-  const img = p.images?.[0]?.url || "https://images.unsplash.com/photo-1523275335684-37898b6baf30";
+  const imageItems = [...(p.images ?? [])]
+    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+    .filter((img) => (img.mediaType ?? "image") === "image");
+  const img = imageItems[0]?.url || "https://images.unsplash.com/photo-1523275335684-37898b6baf30";
   return {
     id: p.slug,
     name: p.name ?? "Untitled product",
@@ -65,6 +69,9 @@ function mapProduct(p: any): ShopProduct {
     rating: typeof p.rating === "number" ? p.rating : 0,
     reviews: typeof p.reviewsCount === "number" ? p.reviewsCount : 0,
     image: img,
+    imageAlt: imageItems[0]?.alt || p.name,
+    hoverImage: imageItems[1]?.url,
+    hoverImageAlt: imageItems[1]?.alt || p.name,
     shortDesc: p.shortDesc ?? undefined,
     createdAt: p.createdAt ? new Date(p.createdAt).toISOString().slice(0, 10) : "",
   };
@@ -97,6 +104,7 @@ export default async function ShopPage() {
   ]);
 
   const initialProducts = rows.map(mapProduct);
+  const catalogSettings = parseCatalogSettings(siteSettings?.catalogSettings);
   const baseUrlResolved = normalizeSiteUrl(siteSettings?.siteUrl || baseUrl);
   const pageUrl = `${baseUrlResolved}/shop`;
   const itemList = initialProducts.slice(0, 20).map((p) => ({
@@ -118,7 +126,7 @@ export default async function ShopPage() {
           name: pageRow?.title || "Shop",
           description:
             pageRow?.metaDescription ||
-            "Browse water bottles in Pakistan with secure checkout, PKR 250 standard shipping, and 7-day returns.",
+            "Browse products with secure checkout, clear support, and reliable delivery.",
           url: pageUrl,
         })}
       />
@@ -142,23 +150,12 @@ export default async function ShopPage() {
         }))}
         richHtml={
           pageRow?.contentHtml ||
-          `
-            <h2>Shop the full collection</h2>
-            <p>
-              Use the filters above to narrow down your search by brand, price, and condition.
-              Update this section from the backend with your own buying guide, FAQs, or warranty details.
-            </p>
-            <ul>
-              <li>Verified products with detailed inspection notes</li>
-              <li>Secure checkout and insured shipping</li>
-              <li>Friendly support for pre and post-purchase questions</li>
-            </ul>
-          `
+          catalogSettings.shopFallbackRichHtml
         }
-        title={pageRow?.title || "Shop"}
+        title={pageRow?.title || catalogSettings.shopFallbackTitle}
         shortDescription={
           pageRow?.shortDescription ||
-          "Browse premium pieces. Use filters to find the perfect match."
+          catalogSettings.shopFallbackSubtitle
         }
         featureImage={pageRow?.featureImage || undefined}
         featureImageAlt={pageRow?.featureImageAlt || undefined}
