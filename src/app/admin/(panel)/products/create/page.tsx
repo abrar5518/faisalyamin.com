@@ -121,6 +121,7 @@ export default function AdminProductCreatePage() {
     status: "draft",
     stock: 0,
     isFeatured: false,
+    isSale: false,
     ratingAvg: 0,
     reviewsCount: 0,
   });
@@ -172,6 +173,7 @@ export default function AdminProductCreatePage() {
         descriptionHtml: p.seoDescriptionHtml,
         isActive: p.status === "active",
         isFeatured: p.isFeatured,
+        isSale: p.isSale,
         metaTitle: p.metaTitle || undefined,
         metaDescription: p.metaDescription || undefined,
         metaKeywords: p.metaKeywords || undefined,
@@ -465,6 +467,16 @@ export default function AdminProductCreatePage() {
                   className="h-4 w-4"
                 />
                 <span className="text-neutral-700">Featured product</span>
+              </label>
+
+              <label className="mt-3 flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm">
+                <input
+                  type="checkbox"
+                  checked={p.isSale}
+                  onChange={(e) => setP((x) => ({ ...x, isSale: e.target.checked }))}
+                  className="h-4 w-4"
+                />
+                <span className="text-neutral-700">Sale product</span>
               </label>
 
               <div className="mt-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">

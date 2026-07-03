@@ -59,6 +59,7 @@ export type AdminProduct = {
   status: "active" | "draft" | "archived";
   stock: number;
   isFeatured: boolean;
+  isSale: boolean;
 
   // reviews (managed via backend, but show summary)
   ratingAvg?: number;

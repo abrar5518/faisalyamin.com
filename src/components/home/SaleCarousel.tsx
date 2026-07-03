@@ -78,12 +78,12 @@ export default function SaleCarousel({
     const compute = () => {
       const width = el.clientWidth;
       if (width < 640) {
-        setCardWidth(Math.max(150, Math.floor((width - GAP_PX) / 2)));
+        setCardWidth(Math.min(220, Math.max(150, Math.floor((width - GAP_PX) / 2))));
         return;
       }
       const count = Math.max(1, Math.min(6, Number(visibleCount) || 1));
       const totalGap = GAP_PX * Math.max(0, count - 1);
-      const next = Math.max(220, Math.floor((width - totalGap) / count));
+      const next = Math.min(320, Math.max(220, Math.floor((width - totalGap) / count)));
       setCardWidth(next);
     };
     compute();
@@ -141,7 +141,10 @@ export default function SaleCarousel({
               key={p.id}
               data-sale-card
               className="shrink-0"
-              style={cardWidth ? { width: `${cardWidth}px` } : undefined}
+              style={{
+                width: cardWidth ? `${cardWidth}px` : "min(78vw, 320px)",
+                flexBasis: cardWidth ? `${cardWidth}px` : "min(78vw, 320px)",
+              }}
             >
               <ProductCard p={p} variant="sale" />
             </div>

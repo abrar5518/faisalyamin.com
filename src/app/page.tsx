@@ -231,12 +231,14 @@ function formatPrice(value: unknown) {
 }
 
 function clampInt(value: unknown, fallback: number, min: number, max: number) {
+  if (value === null || value === undefined || value === "") return fallback;
   const num = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(num)) return fallback;
   return Math.max(min, Math.min(max, Math.floor(num)));
 }
 
 function clampFloat(value: unknown, fallback: number, min: number, max: number) {
+  if (value === null || value === undefined || value === "") return fallback;
   const num = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(num)) return fallback;
   return Math.max(min, Math.min(max, num));
