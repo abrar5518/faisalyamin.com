@@ -6,6 +6,7 @@ import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import { CartProvider } from "@/components/cart/CartProvider";
 import WhatsAppFloatButton from "@/components/WhatsAppFloatButton";
+import RichTextTableEnhancer from "@/components/RichTextTableEnhancer";
 import { prisma } from "@/lib/prisma";
 import MetaPixel from "@/components/MetaPixel";
 import MicrosoftClarity from "@/components/MicrosoftClarity";
@@ -13,6 +14,7 @@ import GoogleTagManager from "@/components/GoogleTagManager";
 import SiteCustomScripts from "@/components/SiteCustomScripts";
 import { GlobalCopyProvider } from "@/components/GlobalCopyProvider";
 import { normalizeSiteUrl } from "@/lib/siteUrl";
+import { parseCatalogSettings } from "@/lib/catalogSettings";
 import {
   getTrackingStatus,
   sanitizeGoogleTagManagerId,
@@ -45,6 +47,7 @@ type LayoutSiteSettings = {
   customBodyEndScripts?: string | null;
   globalCopy?: string | null;
   themeSettings?: string | null;
+  catalogSettings?: string | null;
 };
 
 const inter = Inter({
@@ -142,13 +145,18 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     : "";
   const themeSettings = parseThemeSettings(settings?.themeSettings);
   const themeStyle = themeSettingsToCssVars(themeSettings);
+  const catalogSettings = parseCatalogSettings(settings?.catalogSettings);
 
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <head>
         <MicrosoftClarity clarityId={microsoftClarityId} />
       </head>
-      <body className="min-h-screen bg-brand-bg text-brand-text antialiased" style={themeStyle}>
+      <body
+        className="min-h-screen bg-brand-bg text-brand-text antialiased"
+        data-mobile-card-layout={catalogSettings.mobileProductCardLayout}
+        style={themeStyle}
+      >
         <GoogleTagManager gtmId={googleTagManagerId} />
         <MetaPixel pixelIds={metaPixelIds} />
         <SiteCustomScripts
@@ -162,6 +170,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             {children}
             <SiteFooter />
             <WhatsAppFloatButton />
+            <RichTextTableEnhancer />
           </CartProvider>
         </GlobalCopyProvider>
       </body>

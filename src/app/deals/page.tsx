@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 import Schema from "@/components/seo/Schema";
 import { absoluteUrl, breadcrumbSchema, collectionPageSchema, itemListSchema } from "@/components/seo/schemas";
 import { normalizeSiteUrl } from "@/lib/siteUrl";
+import { withResponsiveTables } from "@/lib/richText";
 
 const baseUrl = normalizeSiteUrl();
 
@@ -194,7 +195,7 @@ export default async function DealsPage() {
 
       <section className="bg-white py-12">
         <Container>
-          <div className="grid gap-3 max-[420px]:grid-cols-1 min-[421px]:grid-cols-2 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="product-card-grid grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
             {products.map((p) => (
               <ProductCard key={p.id} p={p} variant="sale" />
             ))}
@@ -207,7 +208,7 @@ export default async function DealsPage() {
           <div className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8">
             <div
               className="rt-content"
-              dangerouslySetInnerHTML={{ __html: richHtml }}
+              dangerouslySetInnerHTML={{ __html: withResponsiveTables(richHtml) }}
             />
           </div>
         </Container>

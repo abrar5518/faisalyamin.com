@@ -64,7 +64,7 @@ export default function FaqSection({
       <div className={shellClass}>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="max-w-3xl">
-            <p className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-1 text-[11px] font-medium uppercase tracking-wide text-neutral-600 shadow-sm">
+            <p className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs font-medium uppercase tracking-wide text-neutral-600 shadow-sm">
               <HelpCircle className="h-3.5 w-3.5" aria-hidden="true" />
               {eyebrow}
             </p>
@@ -94,8 +94,8 @@ export default function FaqSection({
               key={`${item.q}-${index}`}
               className="group rounded-3xl border border-neutral-200 bg-white p-5 shadow-sm transition hover:border-neutral-300 hover:shadow-md sm:p-6"
             >
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
-                <h3 className="text-sm font-semibold leading-6 text-neutral-900">
+              <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between gap-4">
+                <h3 className="line-clamp-2 text-sm font-semibold leading-6 text-neutral-900">
                   {item.q}
                 </h3>
                 <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 text-neutral-900 transition group-open:bg-neutral-900 group-open:text-white">

@@ -13,6 +13,7 @@ import { renderCatalogTemplate } from "@/lib/catalogSettings";
 import { trackViewItem } from "@/lib/googleAnalytics";
 import { trackViewContent } from "@/lib/metaPixel";
 import { getVideoRenderInfo } from "@/lib/videoUrl";
+import { withResponsiveTables } from "@/lib/richText";
 
 export type Variant = {
   id: string;
@@ -63,7 +64,7 @@ export type ReviewItem = {
 
 function Container({ children }: { children: ReactNode }) {
   return (
-    <div className="mx-auto w-full max-w-[1360px] px-5 sm:px-8 lg:px-12">
+    <div className="box-border mx-auto w-full max-w-[1360px] px-4 sm:px-8 lg:px-12">
       {children}
     </div>
   );
@@ -232,9 +233,13 @@ export default function ProductClient({
   const [reviewBusy, setReviewBusy] = useState(false);
   const [reviewUploading, setReviewUploading] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [showMobileCta, setShowMobileCta] = useState(false);
   const [zoom, setZoom] = useState(1);
   const viewContentTracked = useRef(false);
+  const ctaBlockRef = useRef<HTMLDivElement | null>(null);
   const touchStartX = useRef<number | null>(null);
+  const mainTouchStartX = useRef<number | null>(null);
+  const mainImageSwiped = useRef(false);
 
   useEffect(() => {
     let active = true;
@@ -295,19 +300,26 @@ export default function ProductClient({
   const currentLightboxImage = lightboxImages[activeLightboxIndex];
   const activePrice = useMemo(() => parsePKR(variant.price) ?? 0, [variant]);
   const compareAt = useMemo(() => parsePKR(variant.compareAt), [variant]);
+  const descriptionHtml = useMemo(
+    () => withResponsiveTables(product.seoDescription),
+    [product.seoDescription],
+  );
+  const shippingHtml = useMemo(
+    () =>
+      withResponsiveTables(
+        renderCatalogTemplate(
+          catalogSettings.productShippingReturnsHtml,
+          { shipping: shippingFee },
+        ),
+      ),
+    [catalogSettings.productShippingReturnsHtml, shippingFee],
+  );
 
   const discountPct = useMemo(() => {
     if (!compareAt || compareAt <= activePrice) return null;
     const pct = Math.round(((compareAt - activePrice) / compareAt) * 100);
     return pct > 0 ? pct : null;
   }, [compareAt, activePrice]);
-  useEffect(() => {
-    const current = galleryMedia[imageIndex];
-    if (current) {
-      setActiveMedia(current);
-    }
-  }, [galleryMedia, imageIndex]);
-
   useEffect(() => {
     if (viewContentTracked.current) return;
     viewContentTracked.current = true;
@@ -326,6 +338,34 @@ export default function ProductClient({
       category: product.category,
     });
   }, [activePrice, product.category, product.id, product.name, product.slug]);
+
+  useEffect(() => {
+    const node = ctaBlockRef.current;
+    if (!node) return;
+
+    const syncMobileCta = () => {
+      setShowMobileCta(node.getBoundingClientRect().bottom <= 0);
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setShowMobileCta(!entry.isIntersecting && entry.boundingClientRect.top < 0);
+      },
+      { threshold: 0.01 },
+    );
+
+    observer.observe(node);
+    const frame = window.requestAnimationFrame(syncMobileCta);
+    window.addEventListener("scroll", syncMobileCta, { passive: true });
+    window.addEventListener("resize", syncMobileCta);
+
+    return () => {
+      observer.disconnect();
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", syncMobileCta);
+      window.removeEventListener("resize", syncMobileCta);
+    };
+  }, []);
 
   const onSelectVariant = (v: Variant) => {
     setVariantSelected(true);
@@ -354,6 +394,31 @@ export default function ProductClient({
     setImageIndex(mediaIndex);
     setZoom(1);
     setLightboxOpen(true);
+  };
+
+  const setGalleryMediaAt = (nextIndex: number) => {
+    if (!galleryMedia.length) return;
+    const normalizedIndex = (nextIndex + galleryMedia.length) % galleryMedia.length;
+    const item = galleryMedia[normalizedIndex];
+    setActiveMedia(item);
+    setImageIndex(normalizedIndex);
+    setZoom(1);
+  };
+
+  const handleMainImageTouchEnd = (x: number) => {
+    if (mainTouchStartX.current === null || galleryMedia.length < 2) {
+      mainTouchStartX.current = null;
+      return;
+    }
+    const delta = mainTouchStartX.current - x;
+    mainTouchStartX.current = null;
+    if (Math.abs(delta) < 45) return;
+    mainImageSwiped.current = true;
+    if (delta > 0) setGalleryMediaAt(imageIndex + 1);
+    else setGalleryMediaAt(imageIndex - 1);
+    window.setTimeout(() => {
+      mainImageSwiped.current = false;
+    }, 0);
   };
 
   const handleThumbnailClick = (item: ProductMediaItem, idx: number) => {
@@ -527,14 +592,14 @@ export default function ProductClient({
   };
 
   return (
-    <main className="pb-24 pt-10 lg:pb-16">
+    <main className="overflow-x-hidden pb-24 pt-6 sm:pb-0 sm:pt-10 lg:pb-16">
       <Container>
         {/* TOP SECTION */}
           <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
             {/* LEFT: Gallery */}
             <div className="lg:col-span-7">
               <div className="relative overflow-hidden rounded-3xl border border-neutral-200 bg-neutral-100">
-                <div className="aspect-square">
+                <div className="aspect-square w-full">
                   {activeMedia.type === "video" ? (
                     <ProductVideoPlayer
                       item={activeMedia}
@@ -544,18 +609,26 @@ export default function ProductClient({
                     <button
                       type="button"
                       onClick={() => {
+                        if (mainImageSwiped.current) return;
                         openImageLightbox(activeMedia, imageIndex);
                       }}
-                      className="block h-full w-full cursor-zoom-in"
+                      onTouchStart={(event) => {
+                        mainTouchStartX.current = event.touches[0]?.clientX ?? null;
+                      }}
+                      onTouchEnd={(event) => {
+                        handleMainImageTouchEnd(event.changedTouches[0]?.clientX ?? 0);
+                      }}
+                      className="block h-full w-full cursor-zoom-in touch-pan-y"
                       aria-label="Open product image preview"
                     >
                       <Image
-                        src={withImageParams(activeMedia.url, "auto=format&fit=crop&w=1600&q=90")}
+                        src={withImageParams(activeMedia.url, "auto=format&fit=contain&w=1600&q=90")}
                         alt={activeMedia.alt || imageAlts[imageIndex] || product.name}
                         width={1600}
                         height={1600}
-                        className="h-full w-full object-cover"
-                        loading="lazy"
+                        className="h-full w-full object-contain"
+                        priority
+                        sizes="(min-width: 1024px) 58vw, 100vw"
                       />
                     </button>
                   )}
@@ -575,7 +648,7 @@ export default function ProductClient({
                     onClick={() => {
                       openImageLightbox(activeMedia, imageIndex);
                     }}
-                    className="absolute bottom-4 right-4 rounded-full bg-white/90 px-4 py-2 text-xs font-medium text-neutral-900 shadow-sm backdrop-blur hover:bg-white"
+                    className="absolute bottom-3 right-3 min-h-10 rounded-full bg-white/90 px-4 py-2 text-xs font-medium text-neutral-900 shadow-sm backdrop-blur hover:bg-white sm:bottom-4 sm:right-4"
                   >
                     View larger
                   </button>
@@ -583,7 +656,7 @@ export default function ProductClient({
               </div>
 
               {/* Thumbnails */}
-              <div className="no-scrollbar mt-3 flex gap-2 overflow-x-auto pb-1 sm:mt-4 sm:grid sm:grid-cols-4 sm:gap-3 sm:overflow-visible sm:pb-0">
+              <div className="no-scrollbar mt-3 flex snap-x snap-mandatory gap-2 overflow-x-auto pb-1 sm:mt-4 sm:grid sm:grid-cols-4 sm:gap-3 sm:overflow-visible sm:pb-0">
                 {galleryMedia.map((item, idx) => {
                   const active = activeMedia.url === item.url && activeMedia.type === item.type;
                   const thumb = item.type === "video" ? item.thumbnailUrl || product.images[0] : item.url;
@@ -594,9 +667,9 @@ export default function ProductClient({
                         handleThumbnailClick(item, idx);
                       }}
                       className={[
-                        "group h-16 w-16 shrink-0 overflow-hidden rounded-xl border bg-white sm:aspect-square sm:h-auto sm:w-auto sm:rounded-2xl",
+                        "group h-16 min-w-16 shrink-0 snap-start overflow-hidden rounded-md border bg-white sm:aspect-square sm:h-auto sm:w-auto sm:rounded-2xl",
                         "focus:outline-none focus:ring-2 focus:ring-neutral-900/20",
-                        active ? "border-neutral-900" : "border-neutral-200 hover:border-neutral-300",
+                        active ? "border-neutral-900 ring-2 ring-black ring-offset-1" : "border-neutral-200 hover:border-neutral-300",
                       ].join(" ")}
                       aria-label={`Select ${item.type === "video" ? "video" : "image"} ${idx + 1}`}
                     >
@@ -694,7 +767,7 @@ export default function ProductClient({
                       </div>
 
                       {discountPct ? (
-                        <span className="shrink-0 rounded-full bg-neutral-900 px-2.5 py-1 text-[11px] font-semibold text-white sm:rounded-2xl sm:px-3 sm:text-xs">
+                        <span className="shrink-0 rounded-full bg-neutral-900 px-2.5 py-1 text-xs font-semibold text-white sm:rounded-2xl sm:px-3">
                           Save {discountPct}%
                         </span>
                       ) : null}
@@ -722,7 +795,7 @@ export default function ProductClient({
                               key={v.id}
                               onClick={() => onSelectVariant(v)}
                               className={[
-                                "group inline-flex items-center gap-2 rounded-2xl border px-3 py-2 text-sm",
+                                "group inline-flex min-h-10 items-center gap-2 rounded-2xl border px-3 py-2 text-sm transition",
                                 "focus:outline-none focus:ring-2 focus:ring-neutral-900/20",
                                 active
                                   ? "border-neutral-900 bg-neutral-900 text-white"
@@ -761,7 +834,7 @@ export default function ProductClient({
                               key={s}
                               onClick={() => setSize(s)}
                               className={[
-                                "rounded-2xl px-4 py-2 text-sm transition",
+                                "min-h-10 rounded-2xl px-4 py-2 text-sm transition",
                                 "focus:outline-none focus:ring-2 focus:ring-neutral-900/20",
                                 active
                                   ? "bg-neutral-900 text-white"
@@ -803,16 +876,16 @@ export default function ProductClient({
                   </div>
 
                   {/* CTA */}
-                  <div className="mt-7 grid gap-3 sm:grid-cols-2">
+                  <div ref={ctaBlockRef} className="mt-7 grid gap-3 sm:grid-cols-2">
                     <button
                       onClick={onBuyNow}
-                      className="cta-attention rounded-2xl cursor-pointer bg-neutral-900 px-6 py-4 text-sm font-medium text-white hover:bg-neutral-800"
+                      className="cta-attention min-h-11 rounded-2xl cursor-pointer bg-neutral-900 px-6 py-4 text-sm font-medium text-white hover:bg-neutral-800"
                     >
                       {globalCopy.product.buyNow}
                     </button>
                     <button
                       onClick={() => onAddToCart()}
-                      className="rounded-2xl cursor-pointer border border-neutral-200 px-6 py-4 text-sm font-medium hover:bg-neutral-50"
+                      className="min-h-11 rounded-2xl cursor-pointer border border-neutral-200 px-6 py-4 text-sm font-medium hover:bg-neutral-50"
                     >
                       {globalCopy.product.addToCart}
                     </button>
@@ -822,15 +895,15 @@ export default function ProductClient({
                   <div className="mt-6 grid gap-3 sm:grid-cols-3">
                     <div className="rounded-2xl bg-neutral-50 p-3">
                       <p className="text-xs font-semibold">{globalCopy.trust.qualityTitle}</p>
-                      <p className="mt-0.5 text-[11px] text-neutral-600">{globalCopy.trust.qualityText}</p>
+                      <p className="mt-0.5 text-xs text-neutral-600">{globalCopy.trust.qualityText}</p>
                     </div>
                     <div className="rounded-2xl bg-neutral-50 p-3">
                       <p className="text-xs font-semibold">{globalCopy.trust.shippingTitle}</p>
-                      <p className="mt-0.5 text-[11px] text-neutral-600">{globalCopy.trust.shippingText}</p>
+                      <p className="mt-0.5 text-xs text-neutral-600">{globalCopy.trust.shippingText}</p>
                     </div>
                     <div className="rounded-2xl bg-neutral-50 p-3">
                       <p className="text-xs font-semibold">Returns</p>
-                      <p className="mt-0.5 text-[11px] text-neutral-600">7-day return policy</p>
+                      <p className="mt-0.5 text-xs text-neutral-600">7-day return policy</p>
                     </div>
                   </div>
 
@@ -874,7 +947,7 @@ export default function ProductClient({
                 {tab === "description" && (
                   <div
                     className="rt-content"
-                    dangerouslySetInnerHTML={{ __html: product.seoDescription }}
+                    dangerouslySetInnerHTML={{ __html: descriptionHtml }}
                   />
                 )}
 
@@ -1048,7 +1121,7 @@ export default function ProductClient({
                                             prev.filter((_, i) => i !== idx)
                                           )
                                         }
-                                        className="absolute right-1 top-1 rounded-full bg-black/70 px-2 py-1 text-[10px] text-white"
+                                        className="absolute right-1 top-1 rounded-full bg-black/70 px-2 py-1 text-xs text-white"
                                       >
                                         Remove
                                       </button>
@@ -1083,10 +1156,7 @@ export default function ProductClient({
                     <div
                       className="rt-content"
                       dangerouslySetInnerHTML={{
-                        __html: renderCatalogTemplate(
-                          catalogSettings.productShippingReturnsHtml,
-                          { shipping: shippingFee }
-                        ),
+                        __html: shippingHtml,
                       }}
                     />
                   </div>
@@ -1221,8 +1291,11 @@ export default function ProductClient({
       ) : null}
 
       {/* Mobile sticky CTA bar */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-neutral-200 bg-white/90 backdrop-blur lg:hidden">
-        <div className="mx-auto flex max-w-[1360px] items-center gap-3 px-5 py-3">
+      <div
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-neutral-200 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.06)] transition-transform sm:hidden"
+        style={{ transform: showMobileCta ? "translateY(0)" : "translateY(100%)" }}
+      >
+        <div className="mx-auto flex max-w-[1360px] items-center gap-3 px-4 py-3">
           <div className="min-w-0">
             <p className="truncate text-xs text-neutral-500">
               {product.hasVariants ? variant.label : "Selected item"}
@@ -1231,16 +1304,16 @@ export default function ProductClient({
             <p className="text-base font-semibold leading-none">{variant.price}</p>
           </div>
           <button
-            onClick={onBuyNow}
-            className="cta-attention ml-auto rounded-2xl bg-neutral-900 px-4 py-3 text-sm font-medium text-white hover:bg-neutral-800"
-          >
-            {globalCopy.product.buyNow}
-          </button>
-          <button
             onClick={() => onAddToCart()}
-            className="rounded-2xl border border-neutral-200 px-4 py-3 text-sm font-medium hover:bg-neutral-50"
+            className="min-h-11 flex-1 rounded-lg border border-neutral-200 px-3 py-3 text-sm font-medium hover:bg-neutral-50"
           >
             {globalCopy.product.mobileCartShort}
+          </button>
+          <button
+            onClick={onBuyNow}
+            className="cta-attention min-h-11 flex-1 rounded-lg bg-neutral-900 px-3 py-3 text-sm font-medium text-white hover:bg-neutral-800"
+          >
+            {globalCopy.product.buyNow}
           </button>
         </div>
       </div>

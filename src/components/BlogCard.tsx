@@ -66,7 +66,7 @@ function DefaultCard({ p }: { p: BlogPostCard }) {
             {p.tags.slice(0, 3).map((t) => (
               <span
                 key={t}
-                className="rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-[11px] text-neutral-700"
+                className="rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-xs text-neutral-700"
               >
                 #{t}
               </span>

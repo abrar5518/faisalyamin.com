@@ -198,7 +198,7 @@ export default function SiteFooter() {
             <div className="theme-footer-cta relative overflow-hidden rounded-3xl border border-white/10 bg-neutral-950 px-6 py-10 sm:px-10 lg:px-12">
               <div className="relative grid items-center gap-8 lg:grid-cols-12">
                 <div className="lg:col-span-6">
-                  <p className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] text-white/80">
+                  <p className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/80">
                     <span className="h-1.5 w-1.5 rounded-full bg-white/60" />
                     {newsletterEyebrow}
                   </p>
@@ -223,11 +223,11 @@ export default function SiteFooter() {
                         onChange={(e) => setEmail(e.target.value)}
                         disabled={submitting}
                       />
-                      <p className="mt-2 text-[11px] text-white/50">
+                      <p className="mt-2 text-xs text-white/50">
                         {newsletterConsent}
                       </p>
                       {message ? (
-                        <p className="mt-2 text-[11px] text-white/70">{message}</p>
+                        <p className="mt-2 text-xs text-white/70">{message}</p>
                       ) : null}
                     </div>
                     <div className="sm:col-span-4">
@@ -248,11 +248,11 @@ export default function SiteFooter() {
                           key={`${item.title}-${item.description}`}
                           className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3"
                         >
-                          <p className="text-[11px] font-semibold text-white">
+                          <p className="text-xs font-semibold text-white">
                             {item.title}
                           </p>
                           {item.description ? (
-                            <p className="mt-0.5 text-[11px] text-white/60">
+                            <p className="mt-0.5 text-xs text-white/60">
                               {item.description}
                             </p>
                           ) : null}
@@ -301,7 +301,7 @@ export default function SiteFooter() {
                   <p className="text-xs font-semibold text-neutral-900">
                     Pakistan-based online shopping store
                   </p>
-                  <p className="mt-0.5 text-[11px] text-neutral-500">
+                  <p className="mt-0.5 text-xs text-neutral-500">
                     Serving customers across Pakistan
                   </p>
                 </div>

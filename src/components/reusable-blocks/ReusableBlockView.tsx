@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Banknote, BadgeCheck, Gift, Headphones, MessageCircle, RotateCcw, ShieldCheck, Truck } from "lucide-react";
 import type { ReusableBlockViewModel } from "@/lib/reusableBlocks";
+import { withResponsiveTables } from "@/lib/richText";
 
 function BlockIcon({ block }: { block: ReusableBlockViewModel }) {
   const key = (block.icon || block.type || "trust").toLowerCase();
@@ -57,7 +58,7 @@ export default function ReusableBlockView({
             {block.bodyHtml ? (
               <div
                 className="rt-content mt-2 text-sm"
-                dangerouslySetInnerHTML={{ __html: block.bodyHtml }}
+                dangerouslySetInnerHTML={{ __html: withResponsiveTables(block.bodyHtml) }}
               />
             ) : null}
           </div>

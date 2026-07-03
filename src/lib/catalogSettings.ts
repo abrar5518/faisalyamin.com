@@ -1,4 +1,5 @@
 export type CatalogTemplateSettings = {
+  mobileProductCardLayout: "compact-2" | "classic-1";
   shopFallbackTitle: string;
   shopFallbackSubtitle: string;
   shopFallbackRichHtml: string;
@@ -40,6 +41,7 @@ export type CatalogTemplateSettings = {
 };
 
 export const DEFAULT_CATALOG_SETTINGS: CatalogTemplateSettings = {
+  mobileProductCardLayout: "compact-2",
   shopFallbackTitle: "Shop",
   shopFallbackSubtitle: "Browse products with secure checkout and reliable delivery.",
   shopFallbackRichHtml: `
@@ -149,6 +151,10 @@ function cleanItems(
   return items.length ? items : fallback;
 }
 
+function cleanMobileProductCardLayout(value: unknown): CatalogTemplateSettings["mobileProductCardLayout"] {
+  return value === "classic-1" ? "classic-1" : "compact-2";
+}
+
 function mergeCatalogSettings(value: unknown): CatalogTemplateSettings {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return DEFAULT_CATALOG_SETTINGS;
@@ -158,6 +164,7 @@ function mergeCatalogSettings(value: unknown): CatalogTemplateSettings {
 
   return {
     ...DEFAULT_CATALOG_SETTINGS,
+    mobileProductCardLayout: cleanMobileProductCardLayout(input.mobileProductCardLayout),
     shopFallbackTitle: cleanString(input.shopFallbackTitle, DEFAULT_CATALOG_SETTINGS.shopFallbackTitle),
     shopFallbackSubtitle: cleanString(
       input.shopFallbackSubtitle,

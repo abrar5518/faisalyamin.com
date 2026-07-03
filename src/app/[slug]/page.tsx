@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { withImageParams } from "@/lib/image";
 import { prisma } from "@/lib/prisma";
 import { normalizeSiteUrl } from "@/lib/siteUrl";
+import { withResponsiveTables } from "@/lib/richText";
 
 type PublicPageProps = {
   params: Promise<{ slug: string }>;
@@ -110,7 +111,7 @@ export default async function PublicPage({ params }: PublicPageProps) {
           <Container>
             <div
               className="rt-content rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8"
-              dangerouslySetInnerHTML={{ __html: page.contentHtml }}
+              dangerouslySetInnerHTML={{ __html: withResponsiveTables(page.contentHtml) }}
             />
           </Container>
         </section>

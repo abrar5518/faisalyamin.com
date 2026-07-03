@@ -99,7 +99,7 @@ export default function SubCategories({
                         {s.name}
                       </p>
                       {s.badge ? (
-                        <span className="shrink-0 rounded-full bg-neutral-900 px-2.5 py-1 text-[11px] font-medium text-white">
+                        <span className="shrink-0 rounded-full bg-neutral-900 px-2.5 py-1 text-xs font-medium text-white">
                           {s.badge}
                         </span>
                       ) : null}
@@ -111,11 +111,11 @@ export default function SubCategories({
 
                     <div className="mt-3 flex items-center justify-between">
                       {typeof s.count === "number" ? (
-                        <span className="rounded-full bg-neutral-100 px-3 py-1 text-[11px] text-neutral-700">
+                        <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs text-neutral-700">
                           {s.count} items
                         </span>
                       ) : (
-                        <span className="rounded-full bg-neutral-100 px-3 py-1 text-[11px] text-neutral-700">
+                        <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs text-neutral-700">
                           Explore
                         </span>
                       )}

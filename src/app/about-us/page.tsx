@@ -6,6 +6,7 @@ import { breadcrumbSchema } from "@/components/seo/schemas";
 import FaqSection from "@/components/FaqSection";
 import { aboutContentFromDb, defaultAboutHero, parseAboutContent } from "@/lib/aboutContent";
 import { normalizeSiteUrl } from "@/lib/siteUrl";
+import { withResponsiveTables } from "@/lib/richText";
 
 const baseUrl = normalizeSiteUrl();
 
@@ -146,7 +147,7 @@ function InlineHtml({ html }: { html: string }) {
 }
 
 function BlockHtml({ html, className }: { html: string; className?: string }) {
-  return <div className={className} dangerouslySetInnerHTML={{ __html: html }} />;
+  return <div className={className} dangerouslySetInnerHTML={{ __html: withResponsiveTables(html) }} />;
 }
 
 export default async function AboutPage() {

@@ -180,7 +180,7 @@ export default function AccountWishlistPage() {
             </Link>
           </div>
 
-          <div className="grid gap-3 max-[420px]:grid-cols-1 min-[421px]:grid-cols-2 sm:gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="product-card-grid grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-3">
             {filtered.map((p) => (
               <div key={p.id} className="relative">
                 {/* Remove button */}

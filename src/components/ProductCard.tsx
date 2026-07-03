@@ -34,7 +34,7 @@ function Stars({ value }: { value: number }) {
   const total = 5;
 
   return (
-    <div className="flex items-center gap-1" aria-label={`Rating ${value} out of 5`}>
+    <div className="flex items-center gap-0.5 sm:gap-1" aria-label={`Rating ${value} out of 5`}>
       {Array.from({ length: total }).map((_, i) => {
         const idx = i + 1;
         const filled = idx <= full;
@@ -43,7 +43,7 @@ function Stars({ value }: { value: number }) {
           <span
             key={i}
             className={[
-              "inline-block h-4 w-4 rounded-sm",
+              "inline-block h-3 w-3 rounded-sm sm:h-4 sm:w-4",
               filled ? "theme-primary-action bg-neutral-900" : halfFill ? "bg-neutral-400" : "bg-neutral-200",
             ].join(" ")}
           />
@@ -56,8 +56,8 @@ function Stars({ value }: { value: number }) {
 
 function PriceBlock({ p }: { p: Product }) {
   return (
-    <div>
-      <p className="text-sm font-semibold">{p.price}</p>
+    <div className="min-w-0">
+      <p className="text-base font-semibold leading-5">{p.price}</p>
       {p.compareAt ? (
         <p className="text-xs text-neutral-500 line-through">{p.compareAt}</p>
       ) : (
@@ -205,11 +205,13 @@ function FeaturedCard({ p }: { p: Product }) {
 
 /** ✅ Variant 3: Compact (BIG image, clean, minimal, modern) */
 function CompactCard({ p }: { p: Product }) {
-  const displayName = p.name.length > 28 ? `${p.name.slice(0, 28)}...` : p.name;
+  const href = p.href ?? `/product/${p.id}`;
+  const globalCopy = useGlobalCopy();
+
   return (
-    <div className="theme-card group rounded-3xl border border-neutral-200 bg-white p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:p-5">
-      <Link href={p.href ?? `/product/${p.id}`} >
-        <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-neutral-100 sm:h-64 sm:aspect-auto lg:h-72">
+    <div className="product-card product-card-compact theme-card group flex h-full flex-col rounded-2xl border border-neutral-200 bg-white p-2.5 shadow-sm transition-transform active:scale-[0.98] hover:-translate-y-0.5 hover:shadow-md sm:rounded-3xl sm:p-5">
+      <Link href={href} className="block">
+        <div className="product-card-image relative aspect-[1/1.05] w-full overflow-hidden rounded-xl bg-neutral-100 sm:h-64 sm:aspect-auto sm:rounded-2xl lg:h-72">
           <ProductImageSwap
             p={p}
             params="auto=format&fit=crop&w=1200&q=85"
@@ -218,35 +220,53 @@ function CompactCard({ p }: { p: Product }) {
             className="h-full w-full object-cover object-center transition duration-500 group-hover:scale-105"
           />
           {p.badge ? (
-            <span className="theme-primary-action absolute left-3 top-3 rounded-full bg-neutral-900 px-3 py-1 text-xs text-white">
+            <span className="theme-primary-action absolute left-2 top-2 rounded-full bg-neutral-900 px-2 py-0.5 text-xs text-white sm:left-3 sm:top-3 sm:px-3 sm:py-1">
               {p.badge}
             </span>
           ) : null}
         </div>
       </Link>
-      <div className="mt-4 flex items-start justify-between gap-3">
+      <div className="mt-2.5 min-w-0 sm:mt-4">
+        <Link href={href} className="block min-h-10">
+          <p className="line-clamp-2 text-sm font-semibold leading-5 text-neutral-900">{p.name}</p>
+        </Link>
+        <p className="mt-1 hidden line-clamp-2 min-h-8 text-xs leading-4 text-neutral-500 sm:block">
+          {p.shortDesc || "Verified • Box & Papers • Fast Shipping"}
+        </p>
+      </div>
+
+      <div className="mt-1.5 flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+        <span className="text-base font-semibold leading-5 text-neutral-900">{p.price}</span>
+        {p.compareAt ? (
+          <span className="text-xs text-neutral-400 line-through">{p.compareAt}</span>
+        ) : (
+          <span className="text-xs text-neutral-500">In stock</span>
+        )}
+      </div>
+
+      <div className="mt-1.5 flex min-w-0 items-center justify-between gap-2">
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold">{displayName}</p>
-          <p className="mt-1 line-clamp-2 text-xs text-neutral-500">
-            {p.shortDesc || "Verified • Box & Papers • Fast Shipping"}
-          </p>
+          <Stars value={p.rating} />
         </div>
-
-        <div className="text-right">
-          <p className="text-sm font-semibold">{p.price}</p>
-          {p.compareAt ? (
-            <p className="text-xs text-neutral-500 line-through">{p.compareAt}</p>
-          ) : null}
-        </div>
+        <p className="hidden text-xs text-neutral-500 min-[390px]:block">{p.reviews} reviews</p>
       </div>
 
-      <div className="mt-3 flex items-center justify-between">
-        <Stars value={p.rating} />
-        <p className="text-xs text-neutral-500">{p.reviews} reviews</p>
-      </div>
-
-      <div className="mt-4">
-        <Link href={p.href ?? `/product/${p.id}`} className="btn-primary w-full px-4 py-2.5 text-xs sm:py-3 sm:text-sm">
+      <div className="mt-auto pt-2.5 sm:pt-4">
+        <Link href={href} className="mobile-card-new-cta theme-primary-action inline-flex min-h-10 w-full items-center justify-center rounded-xl bg-neutral-900 px-3 py-2 text-center text-xs font-medium text-white transition hover:bg-neutral-800 sm:hidden">
+          {globalCopy.product.buyNow}
+        </Link>
+        <AddToCartButton
+          id={p.id}
+          slug={p.id}
+          name={p.name}
+          priceLabel={p.price}
+          compareAtLabel={p.compareAt}
+          image={p.image}
+          href={href}
+          badge={p.badge}
+          className="mobile-card-old-cta hidden min-h-10 w-full items-center justify-center rounded-xl border border-neutral-200 px-3 py-2 text-xs font-medium text-neutral-900 cursor-pointer transition hover:bg-neutral-50 sm:hidden"
+        />
+        <Link href={href} className="hidden min-h-10 w-full items-center justify-center rounded-xl bg-neutral-900 px-4 py-2.5 text-center text-xs font-medium text-white transition hover:bg-neutral-800 sm:inline-flex sm:py-3 sm:text-sm">
           View details
         </Link>
       </div>
@@ -260,11 +280,11 @@ function SaleCard({ p }: { p: Product }) {
   const href = p.href ?? `/product/${p.id}`;
 
   return (
-    <div className="theme-card group overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+    <div className="product-card product-card-sale theme-card group flex h-full flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition-transform active:scale-[0.98] hover:-translate-y-0.5 hover:shadow-md sm:rounded-3xl">
 
       {/* IMAGE AREA */}
       <Link href={href}>
-        <div className="relative aspect-[4/4.6] w-full overflow-hidden bg-neutral-100">
+        <div className="product-card-image relative aspect-square w-full overflow-hidden bg-neutral-100 sm:aspect-[4/4.6]">
           <ProductImageSwap
             p={p}
             params="auto=format&fit=crop&w=1400&q=85"
@@ -276,15 +296,15 @@ function SaleCard({ p }: { p: Product }) {
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-black/5" />
 
           {p.badge ? (
-            <div className="absolute left-3 top-3">
-              <span className="theme-primary-action rounded-full bg-neutral-900 px-2.5 py-1 text-[11px] font-medium text-white">
+            <div className="absolute left-2 top-2 sm:left-3 sm:top-3">
+              <span className="theme-primary-action rounded-full bg-neutral-900 px-2 py-0.5 text-xs font-medium text-white sm:px-2.5 sm:py-1">
                 {p.badge}
               </span>
             </div>
           ) : null}
 
-          <div className="absolute bottom-3 left-3">
-            <span className="inline-flex items-center rounded-2xl bg-white/90 px-3 py-1.5 text-[11px] font-medium text-neutral-900 backdrop-blur">
+          <div className="absolute bottom-2 left-2 hidden sm:bottom-3 sm:left-3 sm:block">
+            <span className="inline-flex items-center rounded-2xl bg-white/90 px-3 py-1.5 text-xs font-medium text-neutral-900 backdrop-blur">
               Limited time offer
             </span>
           </div>
@@ -292,16 +312,18 @@ function SaleCard({ p }: { p: Product }) {
       </Link>
 
       {/* CONTENT AREA */}
-      <div className="p-4">
+      <div className="flex flex-1 flex-col p-2.5 sm:p-4">
         {/* Title */}
-        <p className="line-clamp-2 text-sm font-semibold leading-snug text-neutral-900">
-          {p.name}
-        </p>
+        <Link href={href} className="block min-h-10">
+          <p className="line-clamp-2 text-sm font-semibold leading-5 text-neutral-900">
+            {p.name}
+          </p>
+        </Link>
 
         {/* Price */}
-        <div className="mt-2 flex items-end justify-between">
-          <div className="flex items-end gap-2">
-            <span className="text-base font-semibold text-neutral-900">
+        <div className="mt-1.5 flex items-end justify-between gap-2 sm:mt-2">
+          <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <span className="text-base font-semibold leading-5 text-neutral-900">
               {p.price}
             </span>
             {p.compareAt ? (
@@ -311,17 +333,17 @@ function SaleCard({ p }: { p: Product }) {
             ) : null}
           </div>
 
-          <span className="text-[11px] text-neutral-600">
+          <span className="shrink-0 text-xs text-neutral-600">
             ★ {p.rating.toFixed(1)}
           </span>
         </div>
 
         {/* CTA BUTTONS */}
-        <div className="mt-3 grid grid-cols-2 gap-2">
+        <div className="mt-auto grid gap-1.5 pt-2.5 sm:grid-cols-2 sm:gap-2 sm:pt-3">
           {/* Buy Now */}
           <Link
             href={href}
-            className="theme-primary-action rounded-xl bg-neutral-900 px-3 py-2 text-center text-xs font-medium text-white transition hover:bg-neutral-800"
+            className="mobile-card-new-cta theme-primary-action inline-flex min-h-10 items-center justify-center rounded-xl bg-neutral-900 px-3 py-2 text-center text-xs font-medium text-white transition hover:bg-neutral-800"
           >
             {globalCopy.product.buyNow}
           </Link>
@@ -336,7 +358,7 @@ function SaleCard({ p }: { p: Product }) {
             image={p.image}
             href={href}
             badge={p.badge}
-            className="rounded-xl border border-neutral-200 px-3 py-2 text-xs font-medium text-neutral-900 cursor-pointer transition hover:bg-neutral-50"
+            className="mobile-card-old-cta hidden min-h-10 rounded-xl border border-neutral-200 px-3 py-2 text-xs font-medium text-neutral-900 cursor-pointer transition hover:bg-neutral-50 sm:inline-flex sm:items-center sm:justify-center"
           />
         </div>
       </div>

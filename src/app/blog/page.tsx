@@ -7,6 +7,7 @@ import { absoluteUrl, breadcrumbSchema, itemListSchema } from "@/components/seo/
 import { parseBlogTags, readTimeMin } from "@/lib/blogContent";
 import { prisma } from "@/lib/prisma";
 import { canonicalUrl, normalizeSiteUrl } from "@/lib/siteUrl";
+import { withResponsiveTables } from "@/lib/richText";
 
 const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1523275335684-37898b6baf30";
 
@@ -245,7 +246,7 @@ export default async function BlogPage({ searchParams }: PageProps) {
           <Container>
             <div
               className="rt-content rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8"
-              dangerouslySetInnerHTML={{ __html: pageRow.contentHtml }}
+              dangerouslySetInnerHTML={{ __html: withResponsiveTables(pageRow.contentHtml) }}
             />
           </Container>
         </section>

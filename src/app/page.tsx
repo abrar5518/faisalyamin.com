@@ -621,7 +621,7 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="product-card-grid mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
             {featuredList.map((p) => (
               <ProductCard key={p.id} p={p} variant="sale" />
             ))}
@@ -655,7 +655,7 @@ export default async function HomePage() {
           <section className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-[11px] font-medium text-neutral-700">
+                <p className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-xs font-medium text-neutral-700">
                   <span className="h-1.5 w-1.5 rounded-full bg-neutral-900" />
                   Trusted by buyers
                 </p>
@@ -705,7 +705,7 @@ export default async function HomePage() {
         <Container>
           <div className="grid gap-8 lg:grid-cols-12 lg:items-start">
             <div className="lg:col-span-4">
-              <p className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-[11px] font-medium text-neutral-700">
+              <p className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-xs font-medium text-neutral-700">
                 <span className="h-1.5 w-1.5 rounded-full bg-neutral-900" />
                 Introducing products
               </p>
@@ -736,8 +736,8 @@ export default async function HomePage() {
           <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {homeBenefits.items.map((item) => (
               <div key={item.title} className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
-                <p className="text-sm font-semibold text-neutral-900">{item.title}</p>
-                <p className="mt-2 text-sm leading-relaxed text-neutral-600">{item.desc}</p>
+                <p className="line-clamp-2 min-h-10 text-sm font-semibold leading-5 text-neutral-900">{item.title}</p>
+                <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-neutral-600">{item.desc}</p>
               </div>
             ))}
           </div>

@@ -67,11 +67,11 @@ export default function HomeReviewsSlider({ items }: { items: HomeReviewSlide[] 
                 <div className="leading-tight">
                   <p className="text-sm font-semibold text-neutral-900">{item.name}</p>
                   <div className="mt-1 inline-flex items-center gap-2">
-                    <span className="rounded-full border border-neutral-200 bg-neutral-50 px-2.5 py-1 text-[11px] text-neutral-700">
+                    <span className="rounded-full border border-neutral-200 bg-neutral-50 px-2.5 py-1 text-xs text-neutral-700">
                       {item.title}
                     </span>
                     <span className="hidden text-neutral-300 sm:inline">.</span>
-                    <span className="hidden text-[11px] text-neutral-500 sm:inline">
+                    <span className="hidden text-xs text-neutral-500 sm:inline">
                       Verified buyer
                     </span>
                   </div>

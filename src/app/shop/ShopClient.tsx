@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import ProductCard, { Product } from "@/components/ProductCard";
+import { withResponsiveTables } from "@/lib/richText";
 
 type FilterState = {
   q: string;
@@ -54,7 +55,7 @@ function Chip({
       className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs text-neutral-700 hover:bg-neutral-50"
     >
       <span>{label}</span>
-      <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-neutral-900 text-[10px] text-white">
+      <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-neutral-900 text-xs text-white">
         Ã—
       </span>
     </button>
@@ -143,6 +144,7 @@ export default function ShopClient({
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const hasMore = products.length < total;
+  const responsiveRichHtml = useMemo(() => withResponsiveTables(richHtml), [richHtml]);
 
   const mapApiProduct = (p: any): ShopProduct => {
     const imageItems = [...(p.images ?? [])]
@@ -502,7 +504,7 @@ export default function ShopClient({
               </div>
 
               {/* Grid */}
-              <div className="mt-6 grid gap-3 max-[420px]:grid-cols-1 min-[421px]:grid-cols-2 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="product-card-grid mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-3">
                 {products.map((p) => (
                   <ProductCard
                     key={p.id}
@@ -556,7 +558,7 @@ export default function ShopClient({
       <section className="border-t border-neutral-200 bg-neutral-50 py-14">
         <Container>
           <div className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8">
-            <div className="rt-content" dangerouslySetInnerHTML={{ __html: richHtml }} />
+            <div className="rt-content" dangerouslySetInnerHTML={{ __html: responsiveRichHtml }} />
           </div>
         </Container>
       </section>

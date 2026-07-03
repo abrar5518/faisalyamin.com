@@ -7,6 +7,7 @@ import { absoluteUrl, breadcrumbSchema, itemListSchema } from "@/components/seo/
 import { parseCatalogSettings } from "@/lib/catalogSettings";
 import { prisma } from "@/lib/prisma";
 import { normalizeSiteUrl } from "@/lib/siteUrl";
+import { withResponsiveTables } from "@/lib/richText";
 
 const baseUrl = normalizeSiteUrl();
 
@@ -215,7 +216,7 @@ export default async function CategoriesPage() {
           <Container>
             <div
               className="rt-content rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8"
-              dangerouslySetInnerHTML={{ __html: pageRow.contentHtml }}
+              dangerouslySetInnerHTML={{ __html: withResponsiveTables(pageRow.contentHtml) }}
             />
           </Container>
         </section>

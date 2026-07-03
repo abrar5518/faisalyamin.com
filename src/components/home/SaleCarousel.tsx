@@ -77,6 +77,10 @@ export default function SaleCarousel({
     if (!el) return;
     const compute = () => {
       const width = el.clientWidth;
+      if (width < 640) {
+        setCardWidth(Math.max(150, Math.floor((width - GAP_PX) / 2)));
+        return;
+      }
       const count = Math.max(1, Math.min(6, Number(visibleCount) || 1));
       const totalGap = GAP_PX * Math.max(0, count - 1);
       const next = Math.max(220, Math.floor((width - totalGap) / count));

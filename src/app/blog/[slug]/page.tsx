@@ -13,6 +13,7 @@ import SubscribeCard from "@/components/SubscribeCard";
 import { normalizeSiteUrl } from "@/lib/siteUrl";
 import FaqSection from "@/components/FaqSection";
 import { parseBlogTags } from "@/lib/blogContent";
+import { withResponsiveTables } from "@/lib/richText";
 
 type BlogPost = {
   slug: string;
@@ -136,7 +137,7 @@ function ProductInsert({ title, items }: { title: string; items: ProductCardItem
           Shop all
         </Link>
       </div>
-      <div className="mt-4 grid gap-3 max-[420px]:grid-cols-1 min-[421px]:grid-cols-2 sm:gap-4 sm:grid-cols-2">
+      <div className="product-card-grid mt-4 grid grid-cols-2 gap-3 sm:gap-4">
         {items.map((p) => (
           <ProductCard key={p.id} p={p} variant="compact" />
         ))}
@@ -484,7 +485,7 @@ export default async function BlogPostPage({ params }: PageProps) {
               <div className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8">
                 <div
                   className="rt-content"
-                  dangerouslySetInnerHTML={{ __html: htmlWithIds }}
+                  dangerouslySetInnerHTML={{ __html: withResponsiveTables(htmlWithIds) }}
                 />
               </div>
 

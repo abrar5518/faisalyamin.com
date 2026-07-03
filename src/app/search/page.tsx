@@ -123,7 +123,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             </div>
           </div>
 
-          <div className="mt-6 grid gap-3 max-[420px]:grid-cols-1 min-[421px]:grid-cols-2 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="product-card-grid mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
             {rows.map((p) => {
               const sortedImages = [...(p.images ?? [])].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
               const imageItems = sortedImages.filter((img: any) => (img.mediaType ?? "image") === "image");

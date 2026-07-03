@@ -1,3 +1,5 @@
+import { withResponsiveTables } from "@/lib/richText";
+
 type ManagedPageBodyProps = {
   page?: {
     contentHtml?: string | null;
@@ -20,7 +22,7 @@ export default function ManagedPageBody({ page }: ManagedPageBodyProps) {
       <Container>
         <div
           className="rt-content rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8"
-          dangerouslySetInnerHTML={{ __html: page.contentHtml }}
+          dangerouslySetInnerHTML={{ __html: withResponsiveTables(page.contentHtml) }}
         />
       </Container>
     </section>

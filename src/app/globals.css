@@ -3,7 +3,8 @@
 html, body {
   margin: 0;
   padding: 0;
-  height: 100%;
+  min-height: 100%;
+  overflow-x: hidden;
 }
 
 body {
@@ -177,6 +178,28 @@ h1, h2, h3 {
   color: #ffffff !important;
 }
 
+@media (max-width: 639px) {
+  body[data-mobile-card-layout="classic-1"] .product-card-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  body[data-mobile-card-layout="classic-1"] .product-card {
+    padding: 0.75rem !important;
+  }
+
+  body[data-mobile-card-layout="classic-1"] .product-card-image {
+    aspect-ratio: 4 / 3 !important;
+    border-radius: 1rem !important;
+  }
+
+  body[data-mobile-card-layout="classic-1"] .mobile-card-new-cta {
+    display: none !important;
+  }
+
+  body[data-mobile-card-layout="classic-1"] .mobile-card-old-cta {
+    display: inline-flex !important;
+  }
+}
 
 /* ======================================================================
    Sahoolat Rich Text Styles (TipTap / ProseMirror)
@@ -415,12 +438,17 @@ h1, h2, h3 {
 .rt-content table,
 .rt-editor .ProseMirror table {
   width: 100%;
+  min-width: 100%;
   border-collapse: separate;
   border-spacing: 0;
   border: 1px solid rgb(229 229 229);
   border-radius: 22px;
   overflow: hidden;
   background: white;
+}
+
+.rt-table-scroll {
+  position: relative;
 }
 .rt-content thead th,
 .rt-editor .ProseMirror thead th {
@@ -459,6 +487,70 @@ h1, h2, h3 {
 .rt-content tbody tr:nth-child(even) td,
 .rt-editor .ProseMirror tbody tr:nth-child(even) td {
   background: rgba(250, 250, 250, 0.6);
+}
+
+@media (max-width: 639px) {
+  .rt-content {
+    overflow-x: hidden;
+    font-size: 14px;
+  }
+
+  .rt-table-scroll {
+    margin-left: -1rem;
+    margin-right: -1rem;
+    overflow-x: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .rt-table-scroll::after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    bottom: 1.75rem;
+    right: 0;
+    top: 0;
+    width: 1.5rem;
+    background: linear-gradient(to left, #ffffff, transparent);
+  }
+
+  .rt-content > table {
+    display: block;
+    margin-left: -1rem;
+    margin-right: -1rem;
+    overflow-x: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .rt-table-hint {
+    margin: 0.4rem 0 0 !important;
+    font-size: 12px;
+    color: rgb(115 115 115);
+  }
+
+  .rt-content table {
+    width: max-content !important;
+    min-width: 480px !important;
+    max-width: none;
+    white-space: nowrap;
+    font-size: 13px;
+    box-shadow: inset -18px 0 18px -18px rgba(0, 0, 0, 0.25);
+  }
+
+  .rt-content th,
+  .rt-content td {
+    min-width: 150px;
+    padding: 0.5rem 0.75rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .rt-table-hint {
+    display: none;
+  }
 }
 
 /* -------- Task lists (if using TaskList extension) -------- */

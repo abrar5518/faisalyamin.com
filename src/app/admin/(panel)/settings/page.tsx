@@ -2339,6 +2339,27 @@ export default function AdminSettingsPage() {
                     }
                   >
                     <div className="space-y-8">
+                      <AdminSection title="Product card display">
+                        <AdminField
+                          label="Mobile product cards"
+                          description="Choose the mobile product grid/card style. Desktop layout is unchanged."
+                        >
+                          <select
+                            value={catalogSettings.mobileProductCardLayout}
+                            onChange={(e) =>
+                              updateCatalogSetting(
+                                "mobileProductCardLayout",
+                                e.target.value as CatalogTemplateSettings["mobileProductCardLayout"]
+                              )
+                            }
+                            className="w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none hover:bg-neutral-50 focus:border-neutral-900"
+                          >
+                            <option value="compact-2">Compact mobile cards - 2 per row</option>
+                            <option value="classic-1">Classic mobile cards - 1 per row</option>
+                          </select>
+                        </AdminField>
+                      </AdminSection>
+
                       <AdminSection title="Shop page fallbacks">
                         <div className="grid gap-4 sm:grid-cols-2">
                           <CopyInput

@@ -14,6 +14,7 @@ import {
 import { normalizeSiteUrl } from "@/lib/siteUrl";
 import FaqSection from "@/components/FaqSection";
 import { parseCatalogSettings } from "@/lib/catalogSettings";
+import { withResponsiveTables } from "@/lib/richText";
 
 function Container({ children }: { children: ReactNode }) {
   return (
@@ -309,7 +310,7 @@ export default async function SubcategoryPage({ params, searchParams }: PageProp
               </p>
             </div>
 
-            <div className="mt-4 grid gap-3 max-[420px]:grid-cols-1 min-[421px]:grid-cols-2 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="product-card-grid mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-3">
               {pageProducts.map((p) => (
                 <ProductCard key={p.id} p={p} variant="compact" />
               ))}
@@ -326,7 +327,7 @@ export default async function SubcategoryPage({ params, searchParams }: PageProp
           <section className="mt-12 rounded-3xl border border-neutral-200 bg-neutral-50 p-6 sm:p-8">
             <div
               className="rt-content"
-              dangerouslySetInnerHTML={{ __html: richHtml }}
+              dangerouslySetInnerHTML={{ __html: withResponsiveTables(richHtml) }}
             />
           </section>
 

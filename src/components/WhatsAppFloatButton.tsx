@@ -37,7 +37,7 @@ export default function WhatsAppFloatButton() {
         "fixed right-3 z-50 inline-flex h-12 w-12 items-center justify-center rounded-full",
         "bg-[#25D366] text-white shadow-lg shadow-black/20 transition-transform hover:scale-105",
         "focus:outline-none focus:ring-2 focus:ring-[#25D366] focus:ring-offset-2",
-        isProductPage ? "bottom-24 lg:bottom-5" : "bottom-4 lg:bottom-5",
+        isProductPage ? "bottom-28 lg:bottom-5" : "bottom-4 lg:bottom-5",
       ].join(" ")}
     >
       <svg viewBox="0 0 24 24" className="h-6 w-6 fill-current" aria-hidden="true">
