@@ -142,6 +142,7 @@ export default function AdminProductEditPage() {
           brand: "",
           name: "",
           slug: "",
+          sku: "",
           badge: "",
           price: "",
           compareAt: "",
@@ -164,6 +165,7 @@ export default function AdminProductEditPage() {
           status: "draft",
           stock: 0,
           isFeatured: false,
+          isPrintable: false,
           ratingAvg: 0,
           reviewsCount: 0,
         };
@@ -192,6 +194,7 @@ export default function AdminProductEditPage() {
           brand: api.brand ?? "",
           name: api.name ?? "",
           slug: api.slug ?? id,
+          sku: api.sku ?? "",
           badge: api.badge ?? "",
           price: api.price != null ? String(api.price) : "",
           compareAt: api.compareAt != null ? String(api.compareAt) : "",
@@ -216,6 +219,7 @@ export default function AdminProductEditPage() {
               : [],
           status: api.isActive ? "active" : "draft",
           isFeatured: Boolean(api.isFeatured),
+          isPrintable: Boolean(api.isPrintable),
           ratingAvg: api.rating ?? 0,
           reviewsCount: api.reviewsCount ?? 0,
           sizes: apiSizes,
@@ -296,6 +300,7 @@ export default function AdminProductEditPage() {
         name: p.name,
         slug: p.slug,
         brand: p.brand.trim(),
+        sku: p.sku?.trim() || null,
         price,
         compareAt: compareAt ?? undefined,
         badge: p.badge || undefined,
@@ -305,6 +310,7 @@ export default function AdminProductEditPage() {
         descriptionHtml: p.seoDescriptionHtml,
         isActive: p.status === "active",
         isFeatured: p.isFeatured,
+        isPrintable: p.isPrintable,
         metaTitle: p.metaTitle || undefined,
         metaDescription: p.metaDescription || undefined,
         metaKeywords: p.metaKeywords || undefined,
@@ -438,6 +444,15 @@ export default function AdminProductEditPage() {
                   <input
                     value={p.slug}
                     onChange={(e) => setP((x) => (x ? { ...x, slug: cleanSlug(e.target.value) } : x))}
+                    className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-900"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-neutral-700">SKU (admin only)</label>
+                  <input
+                    value={p.sku ?? ""}
+                    onChange={(e) => setP((x) => (x ? { ...x, sku: e.target.value } : x))}
                     className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-900"
                   />
                 </div>
@@ -622,6 +637,21 @@ export default function AdminProductEditPage() {
                   className="h-4 w-4"
                 />
                 <span className="text-neutral-700">Featured product</span>
+              </label>
+
+              <label className="mt-3 flex items-start gap-3 rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm">
+                <input
+                  type="checkbox"
+                  checked={p.isPrintable}
+                  onChange={(e) => setP((x) => (x ? { ...x, isPrintable: e.target.checked } : x))}
+                  className="mt-0.5 h-4 w-4"
+                />
+                <span className="text-neutral-700">
+                  <span className="block">Printable product</span>
+                  <span className="mt-1 block text-xs text-neutral-500">
+                    Show print text and logo/image upload fields on the product page.
+                  </span>
+                </span>
               </label>
 
               <div className="mt-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">

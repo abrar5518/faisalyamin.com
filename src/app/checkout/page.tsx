@@ -616,6 +616,26 @@ export default function CheckoutPage() {
                             {item.name}
                           </p>
                           <p className="mt-1 text-xs text-neutral-500">Quantity: {item.qty}</p>
+                          {item.printText || item.printFileUrl ? (
+                            <div className="mt-2 space-y-1 rounded-2xl bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
+                              {item.printText ? (
+                                <p>
+                                  <span className="font-medium text-neutral-900">Print:</span>{" "}
+                                  {item.printText}
+                                </p>
+                              ) : null}
+                              {item.printFileUrl ? (
+                                <a
+                                  href={item.printFileUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="font-medium text-neutral-900 hover:underline"
+                                >
+                                  {item.printFileName || "View print file"}
+                                </a>
+                              ) : null}
+                            </div>
+                          ) : null}
                         </div>
                         <p className="shrink-0 text-sm font-semibold">
                           {formatMoney(item.price * item.qty, item.currency)}

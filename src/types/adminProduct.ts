@@ -25,6 +25,7 @@ export type AdminProduct = {
   brand: string;
   name: string;
   slug: string;
+  sku?: string;
 
   badge?: string;
 
@@ -59,6 +60,7 @@ export type AdminProduct = {
   status: "active" | "draft" | "archived";
   stock: number;
   isFeatured: boolean;
+  isPrintable: boolean;
 
   // reviews (managed via backend, but show summary)
   ratingAvg?: number;

@@ -46,6 +46,9 @@ type OrderDetail = {
     isDropship: boolean;
     variantLabel?: string;
     sizeLabel?: string;
+    printText?: string;
+    printFileUrl?: string;
+    printFileName?: string;
   }>;
 
   status: "PENDING" | "PAID" | "CONFIRMED" | "PROCESSING" | "READY_TO_SHIP" | "SHIPPED" | "OUT_FOR_DELIVERY" | "DELIVERED" | "CANCELLED" | "REFUNDED";
@@ -200,6 +203,26 @@ export default function AdminOrderDetailPage() {
                             {it.variantLabel && it.sizeLabel ? " | " : null}
                             {it.sizeLabel ? `Size: ${it.sizeLabel}` : null}
                           </p>
+                        ) : null}
+                        {(it.printText || it.printFileUrl) ? (
+                          <div className="mt-2 space-y-1 rounded-2xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
+                            {it.printText ? (
+                              <p>
+                                <span className="font-medium text-neutral-900">Print:</span>{" "}
+                                {it.printText}
+                              </p>
+                            ) : null}
+                            {it.printFileUrl ? (
+                              <a
+                                href={it.printFileUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="font-medium text-neutral-900 hover:underline"
+                              >
+                                {it.printFileName || "View print file"}
+                              </a>
+                            ) : null}
+                          </div>
                         ) : null}
                       </div>
                     </div>

@@ -17,6 +17,9 @@ type OrderItem = {
   qty: number;
   price: number;
   href?: string;
+  printText?: string;
+  printFileUrl?: string;
+  printFileName?: string;
 };
 
 type Order = {
@@ -214,6 +217,9 @@ export default function OrderDetailsPage() {
                 qty: item.qty,
                 price: Number(item.price ?? 0),
                 href: item.slug ? `/product/${item.slug}` : undefined,
+                printText: item.printText ?? undefined,
+                printFileUrl: item.printFileUrl ?? undefined,
+                printFileName: item.printFileName ?? undefined,
               }))
             : [],
         };
@@ -475,6 +481,26 @@ export default function OrderDetailsPage() {
                     </Link>
                     {it.subtitle ? (
                       <p className="mt-1 text-sm text-neutral-600">{it.subtitle}</p>
+                    ) : null}
+                    {it.printText || it.printFileUrl ? (
+                      <div className="mt-2 space-y-1 rounded-2xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
+                        {it.printText ? (
+                          <p>
+                            <span className="font-medium text-neutral-900">Print:</span>{" "}
+                            {it.printText}
+                          </p>
+                        ) : null}
+                        {it.printFileUrl ? (
+                          <a
+                            href={it.printFileUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="font-medium text-neutral-900 hover:underline"
+                          >
+                            {it.printFileName || "View print file"}
+                          </a>
+                        ) : null}
+                      </div>
                     ) : null}
                     <p className="mt-2 text-xs text-neutral-500">
                       Qty: <span className="font-medium text-neutral-900">{it.qty}</span>

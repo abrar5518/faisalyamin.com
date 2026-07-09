@@ -95,6 +95,9 @@ export async function GET(
           isDropship: false,
           variantLabel: it.variantLabel ?? undefined,
           sizeLabel: it.sizeLabel ?? undefined,
+          printText: it.printText ?? undefined,
+          printFileUrl: it.printFileUrl ?? undefined,
+          printFileName: it.printFileName ?? undefined,
         };
       }),
     };

@@ -235,6 +235,7 @@ export default async function ProductPage({ params }: PageProps) {
         };
       }> & {
         brand?: string | null;
+        isPrintable?: boolean | null;
         sizes?: unknown;
         variants?: unknown;
       })
@@ -336,6 +337,7 @@ export default async function ProductPage({ params }: PageProps) {
     sizes: sizeList,
     variants: hasVariants ? apiVariants : fallbackVariants,
     hasVariants,
+    isPrintable: Boolean(typedProduct.isPrintable),
   };
 
   const relatedRows = await prisma.product.findMany({
@@ -399,7 +401,6 @@ export default async function ProductPage({ params }: PageProps) {
         data={productSchema({
           name: typedProduct.name,
           description: descriptionText || catalogSettings.productFallbackDescription,
-          sku: String(typedProduct.id),
           brand: typedProduct.brand || typedProduct.category?.name || catalogSettings.productBrandFallback,
           images: productImages.map((img) => absoluteUrl(img, baseUrlResolved)),
           url: pageUrl,
