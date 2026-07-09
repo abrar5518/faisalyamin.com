@@ -15,6 +15,9 @@ const ItemSchema = z.object({
   qty: z.number().int().min(1),
   variantLabel: z.string().optional(),
   sizeLabel: z.string().optional(),
+  printText: z.string().max(500).optional(),
+  printFileUrl: z.string().max(2000).optional(),
+  printFileName: z.string().max(255).optional(),
 });
 
 const CheckoutSchema = z.object({
@@ -79,6 +82,9 @@ export async function POST(req: NextRequest) {
         priceAtPurchase: it.price,
         variantLabel: it.variantLabel,
         sizeLabel: it.sizeLabel,
+        printText: it.printText?.trim() || undefined,
+        printFileUrl: it.printFileUrl?.trim() || undefined,
+        printFileName: it.printFileName?.trim() || undefined,
       };
     });
 
@@ -231,6 +237,9 @@ export async function POST(req: NextRequest) {
               priceAtPurchase: it.priceAtPurchase,
               variantLabel: it.variantLabel,
               sizeLabel: it.sizeLabel,
+              printText: it.printText,
+              printFileUrl: it.printFileUrl,
+              printFileName: it.printFileName,
             })),
           },
         },

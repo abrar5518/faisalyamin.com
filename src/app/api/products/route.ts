@@ -47,6 +47,7 @@ export async function GET(req: NextRequest) {
         productSubcategories,
         ...clean
       } = item;
+      delete (clean as { sku?: string | null }).sku;
       const categorySlugs = productCategories.length
         ? productCategories.map((link) => link.category.slug)
         : [category.slug];
@@ -157,6 +158,7 @@ export async function GET(req: NextRequest) {
         productSubcategories,
         ...clean
       } = item;
+      delete (clean as { sku?: string | null }).sku;
       const categorySlugs = productCategories.length
         ? productCategories.map((link) => link.category.slug)
         : [category.slug];

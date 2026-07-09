@@ -17,6 +17,7 @@ const CreateProductSchema = z.object({
   name: z.string().min(2),
   slug: z.string().min(2),
   brand: z.string().optional(),
+  sku: z.string().max(191).nullable().optional(),
   price: z.number().positive(),
   compareAt: z.number().positive().optional(),
   badge: z.string().optional(),
@@ -30,6 +31,7 @@ const CreateProductSchema = z.object({
   isActive: z.boolean().optional(),
   isFeatured: z.boolean().optional(),
   isSale: z.boolean().optional(),
+  isPrintable: z.boolean().optional(),
 
   metaKeywords: z.string().optional(),
   metaTitle: z.string().optional(),
@@ -80,6 +82,7 @@ const UpdateProductSchema = z.object({
   name: z.string().min(2).optional(),
   slug: z.string().min(2).optional(),
   brand: z.string().optional(),
+  sku: z.string().max(191).nullable().optional(),
   price: z.number().positive().optional(),
   compareAt: z.number().positive().optional(),
   badge: z.string().optional(),
@@ -93,6 +96,7 @@ const UpdateProductSchema = z.object({
   isActive: z.boolean().optional(),
   isFeatured: z.boolean().optional(),
   isSale: z.boolean().optional(),
+  isPrintable: z.boolean().optional(),
 
   metaKeywords: z.string().optional(),
   metaTitle: z.string().optional(),
@@ -366,6 +370,7 @@ export async function POST(req: NextRequest) {
         name: data.name,
         slug: data.slug,
         brand: data.brand,
+        sku: data.sku || null,
 
         price: data.price,
         compareAt: data.compareAt,
@@ -380,6 +385,7 @@ export async function POST(req: NextRequest) {
         isActive: data.isActive ?? true,
         isFeatured: data.isFeatured ?? false,
         isSale: data.isSale ?? false,
+        isPrintable: data.isPrintable ?? false,
 
         metaKeywords: data.metaKeywords,
         metaTitle: data.metaTitle,

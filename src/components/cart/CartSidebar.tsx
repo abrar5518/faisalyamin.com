@@ -249,6 +249,26 @@ export default function CartSidebar({
                                       .join(" - ")}
                                 </p>
                               ) : null}
+                              {item.printText || item.printFileUrl ? (
+                                <div className="mt-2 space-y-1 rounded-2xl bg-neutral-50 px-3 py-2 text-xs text-neutral-600">
+                                  {item.printText ? (
+                                    <p className="line-clamp-2">
+                                      <span className="font-medium text-neutral-900">Print:</span>{" "}
+                                      {item.printText}
+                                    </p>
+                                  ) : null}
+                                  {item.printFileUrl ? (
+                                    <a
+                                      href={item.printFileUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="inline-flex font-medium text-neutral-900 hover:underline"
+                                    >
+                                      {item.printFileName || "View print file"}
+                                    </a>
+                                  ) : null}
+                                </div>
+                              ) : null}
                             </div>
 
                             <button

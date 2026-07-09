@@ -99,6 +99,7 @@ export default function AdminProductCreatePage() {
     brand: "",
     name: "",
     slug: "",
+    sku: "",
     badge: "",
     price: "",
     compareAt: "",
@@ -122,6 +123,7 @@ export default function AdminProductCreatePage() {
     stock: 0,
     isFeatured: false,
     isSale: false,
+    isPrintable: false,
     ratingAvg: 0,
     reviewsCount: 0,
   });
@@ -164,6 +166,7 @@ export default function AdminProductCreatePage() {
         name: p.name,
         slug: p.slug,
         brand: p.brand.trim(),
+        sku: p.sku?.trim() || undefined,
         price,
         compareAt: compareAt ?? undefined,
         badge: p.badge || undefined,
@@ -174,6 +177,7 @@ export default function AdminProductCreatePage() {
         isActive: p.status === "active",
         isFeatured: p.isFeatured,
         isSale: p.isSale,
+        isPrintable: p.isPrintable,
         metaTitle: p.metaTitle || undefined,
         metaDescription: p.metaDescription || undefined,
         metaKeywords: p.metaKeywords || undefined,
@@ -283,6 +287,16 @@ export default function AdminProductCreatePage() {
                     onChange={(e) => setP((x) => ({ ...x, slug: cleanSlug(e.target.value) }))}
                     className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-900"
                     placeholder="premium-everyday-product"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-medium text-neutral-700">SKU (admin only)</label>
+                  <input
+                    value={p.sku ?? ""}
+                    onChange={(e) => setP((x) => ({ ...x, sku: e.target.value }))}
+                    className="mt-1 w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-neutral-900"
+                    placeholder="SKU-001"
                   />
                 </div>
 
@@ -477,6 +491,21 @@ export default function AdminProductCreatePage() {
                   className="h-4 w-4"
                 />
                 <span className="text-neutral-700">Sale product</span>
+              </label>
+
+              <label className="mt-3 flex items-start gap-3 rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm">
+                <input
+                  type="checkbox"
+                  checked={p.isPrintable}
+                  onChange={(e) => setP((x) => ({ ...x, isPrintable: e.target.checked }))}
+                  className="mt-0.5 h-4 w-4"
+                />
+                <span className="text-neutral-700">
+                  <span className="block">Printable product</span>
+                  <span className="mt-1 block text-xs text-neutral-500">
+                    Show print text and logo/image upload fields on the product page.
+                  </span>
+                </span>
               </label>
 
               <div className="mt-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">

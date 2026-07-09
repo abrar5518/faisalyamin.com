@@ -30,6 +30,9 @@ export type CartItem = {
   subtitle?: string;
   variantLabel?: string;
   sizeLabel?: string;
+  printText?: string;
+  printFileUrl?: string;
+  printFileName?: string;
   category?: string;
   currency?: string;
 };

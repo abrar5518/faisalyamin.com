@@ -351,6 +351,27 @@ export default function CartPage() {
                                     </p>
                                   ) : null}
 
+                                  {it.printText || it.printFileUrl ? (
+                                    <div className="mt-3 space-y-1 rounded-2xl border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-600">
+                                      {it.printText ? (
+                                        <p>
+                                          <span className="font-medium text-neutral-900">Print:</span>{" "}
+                                          {it.printText}
+                                        </p>
+                                      ) : null}
+                                      {it.printFileUrl ? (
+                                        <a
+                                          href={it.printFileUrl}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className="font-medium text-neutral-900 hover:underline"
+                                        >
+                                          {it.printFileName || "View print file"}
+                                        </a>
+                                      ) : null}
+                                    </div>
+                                  ) : null}
+
                                   <div className="mt-3 flex flex-wrap gap-2">
                                     {it.badge ? <Pill>{it.badge}</Pill> : null}
                                     <Pill>{globalCopy.cart.itemShippingBadge}</Pill>

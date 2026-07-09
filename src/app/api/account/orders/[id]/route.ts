@@ -60,6 +60,9 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
     qty: item.qty,
     price: Number(item.priceAtPurchase),
     slug: item.product.slug,
+    printText: item.printText ?? undefined,
+    printFileUrl: item.printFileUrl ?? undefined,
+    printFileName: item.printFileName ?? undefined,
   }));
 
   const data = {

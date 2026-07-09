@@ -3,9 +3,9 @@
 import { useMemo, useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import { withImageParams } from "@/lib/image";
-import type { ReactNode } from "react";
+import type { ChangeEvent, ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileCheck2, UploadCloud, X } from "lucide-react";
 import { useCart } from "@/components/cart/CartProvider";
 import { useGlobalCopy } from "@/components/GlobalCopyProvider";
 import type { CatalogTemplateSettings } from "@/lib/catalogSettings";
@@ -49,6 +49,7 @@ export type ProductData = {
   sizes: string[];
   variants: Variant[];
   hasVariants?: boolean;
+  isPrintable?: boolean;
 };
 
 export type ReviewItem = {
@@ -78,6 +79,17 @@ function parsePKR(value?: string) {
 }
 function formatPKR(n: number) {
   return `PKR ${n.toLocaleString("en-PK")}`;
+}
+
+function cartKeyPart(value: string) {
+  return (
+    value
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 48) || "none"
+  );
 }
 
 function StarIcon({ filled }: { filled: boolean }) {
@@ -223,6 +235,11 @@ export default function ProductClient({
   const [imageIndex, setImageIndex] = useState(0);
   const [size, setSize] = useState(product.sizes[0] || "");
   const [qty, setQty] = useState(1);
+  const [printText, setPrintText] = useState("");
+  const [printFileUrl, setPrintFileUrl] = useState("");
+  const [printFileName, setPrintFileName] = useState("");
+  const [printUploading, setPrintUploading] = useState(false);
+  const [printError, setPrintError] = useState<string | null>(null);
   const [tab, setTab] = useState<"description" | "reviews" | "shipping">("description");
   const [wishlisted, setWishlisted] = useState(false);
   const [wishlistBusy, setWishlistBusy] = useState(false);
@@ -451,10 +468,40 @@ export default function ProductClient({
   const decQty = () => setQty((q) => Math.max(1, q - 1));
   const incQty = () => setQty((q) => Math.min(99, q + 1));
 
+  const onSelectPrintFile = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || printUploading) return;
+
+    setPrintUploading(true);
+    setPrintError(null);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch("/api/customization-uploads", {
+        method: "POST",
+        body: form,
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok || !payload?.ok || !payload?.data?.url) {
+        throw new Error(payload?.error || "Unable to upload file.");
+      }
+
+      setPrintFileUrl(String(payload.data.url));
+      setPrintFileName(String(payload.data.filename || file.name));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to upload file.";
+      setPrintError(message);
+    } finally {
+      setPrintUploading(false);
+      event.target.value = "";
+    }
+  };
+
   const onAddToCart = (
     e?: React.MouseEvent | React.TouchEvent,
     options?: { showToast?: boolean; openCart?: boolean },
   ) => {
+    if (printUploading) return;
     if (e) {
       if ("preventDefault" in e) e.preventDefault();
       if ("stopPropagation" in e) e.stopPropagation();
@@ -462,8 +509,17 @@ export default function ProductClient({
     const price = parsePKR(variant.price) ?? 0;
     const compareAtValue = parsePKR(variant.compareAt);
     const sizeKey = size || "default";
+    const cleanPrintText = product.isPrintable ? printText.trim() : "";
+    const cleanPrintFileUrl = product.isPrintable ? printFileUrl.trim() : "";
+    const cleanPrintFileName = product.isPrintable ? printFileName.trim() : "";
+    const printKey =
+      product.isPrintable && (cleanPrintText || cleanPrintFileUrl)
+        ? `print-${cartKeyPart(cleanPrintText)}-${cartKeyPart(cleanPrintFileUrl)}`
+        : "standard";
     addItem({
-      id: `${product.slug}-${variant.id}-${sizeKey}`,
+      id: product.isPrintable
+        ? `${product.slug}-${variant.id}-${sizeKey}-${printKey}`
+        : `${product.slug}-${variant.id}-${sizeKey}`,
       productId: Number(product.id),
       slug: product.slug,
       name: product.name,
@@ -475,12 +531,16 @@ export default function ProductClient({
       subtitle: size ? `${variant.label} - ${size}` : variant.label,
       variantLabel: variant.label,
       sizeLabel: size || undefined,
+      printText: cleanPrintText || undefined,
+      printFileUrl: cleanPrintFileUrl || undefined,
+      printFileName: cleanPrintFileName || undefined,
       category: product.category,
       currency: "PKR",
     }, options);
   };
 
   const onBuyNow = () => {
+    if (printUploading) return;
     onAddToCart(undefined, { showToast: false, openCart: false });
     router.push("/checkout");
   };
@@ -852,6 +912,74 @@ export default function ProductClient({
                     </div>
                   ) : null}
 
+                  {product.isPrintable ? (
+                    <div className="mt-7 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+                      <div>
+                        <p className="text-sm font-semibold text-neutral-900">Print details</p>
+                        <p className="mt-1 text-xs leading-5 text-neutral-500">
+                          Add the name, text, logo, or image you want printed.
+                        </p>
+                      </div>
+
+                      <label className="mt-4 block">
+                        <span className="text-xs font-medium text-neutral-700">Text to print</span>
+                        <input
+                          value={printText}
+                          onChange={(event) => setPrintText(event.target.value)}
+                          maxLength={160}
+                          className="mt-1 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-neutral-400 focus:border-neutral-900"
+                          placeholder="Name, short message, or print instructions"
+                        />
+                      </label>
+
+                      <div className="mt-4">
+                        <p className="text-xs font-medium text-neutral-700">Upload logo or image</p>
+                        <label className="mt-1 flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-dashed border-neutral-300 bg-white px-4 py-4 text-sm font-medium text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-50">
+                          <UploadCloud className="h-4 w-4" aria-hidden="true" />
+                          <span>{printUploading ? "Uploading..." : "Choose image file"}</span>
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp,image/gif"
+                            onChange={onSelectPrintFile}
+                            disabled={printUploading}
+                            className="sr-only"
+                          />
+                        </label>
+
+                        {printFileUrl ? (
+                          <div className="mt-3 flex flex-wrap items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-900">
+                            <FileCheck2 className="h-4 w-4 shrink-0" aria-hidden="true" />
+                            <span className="min-w-0 flex-1 truncate">
+                              {printFileName || "Print file uploaded"}
+                            </span>
+                            <a
+                              href={printFileUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="font-semibold hover:underline"
+                            >
+                              View
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPrintFileUrl("");
+                                setPrintFileName("");
+                              }}
+                              className="font-semibold hover:underline"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        ) : null}
+
+                        {printError ? (
+                          <p className="mt-2 text-xs font-medium text-red-600">{printError}</p>
+                        ) : null}
+                      </div>
+                    </div>
+                  ) : null}
+
                   {/* QTY */}
                   <div className="mt-7">
                     <p className="text-sm font-medium">Quantity</p>
@@ -879,13 +1007,15 @@ export default function ProductClient({
                   <div ref={ctaBlockRef} className="mt-7 grid gap-3 sm:grid-cols-2">
                     <button
                       onClick={onBuyNow}
-                      className="cta-attention min-h-11 rounded-2xl cursor-pointer bg-neutral-900 px-6 py-4 text-sm font-medium text-white hover:bg-neutral-800"
+                      disabled={printUploading}
+                      className="cta-attention min-h-11 rounded-2xl cursor-pointer bg-neutral-900 px-6 py-4 text-sm font-medium text-white hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {globalCopy.product.buyNow}
                     </button>
                     <button
                       onClick={() => onAddToCart()}
-                      className="min-h-11 rounded-2xl cursor-pointer border border-neutral-200 px-6 py-4 text-sm font-medium hover:bg-neutral-50"
+                      disabled={printUploading}
+                      className="min-h-11 rounded-2xl cursor-pointer border border-neutral-200 px-6 py-4 text-sm font-medium hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {globalCopy.product.addToCart}
                     </button>
@@ -1305,13 +1435,15 @@ export default function ProductClient({
           </div>
           <button
             onClick={() => onAddToCart()}
-            className="min-h-11 flex-1 rounded-lg border border-neutral-200 px-3 py-3 text-sm font-medium hover:bg-neutral-50"
+            disabled={printUploading}
+            className="min-h-11 flex-1 rounded-lg border border-neutral-200 px-3 py-3 text-sm font-medium hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {globalCopy.product.mobileCartShort}
           </button>
           <button
             onClick={onBuyNow}
-            className="cta-attention min-h-11 flex-1 rounded-lg bg-neutral-900 px-3 py-3 text-sm font-medium text-white hover:bg-neutral-800"
+            disabled={printUploading}
+            className="cta-attention min-h-11 flex-1 rounded-lg bg-neutral-900 px-3 py-3 text-sm font-medium text-white hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {globalCopy.product.buyNow}
           </button>

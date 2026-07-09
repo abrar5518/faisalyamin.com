@@ -1,0 +1,6 @@
+ALTER TABLE `Product` ADD COLUMN `isPrintable` BOOLEAN NOT NULL DEFAULT false;
+
+ALTER TABLE `OrderItem`
+  ADD COLUMN `printText` TEXT NULL,
+  ADD COLUMN `printFileUrl` TEXT NULL,
+  ADD COLUMN `printFileName` TEXT NULL;
