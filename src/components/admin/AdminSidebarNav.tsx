@@ -16,6 +16,7 @@ import {
   MessageSquareText,
   Package,
   Plug,
+  Route,
   Settings,
   ShoppingBag,
   ShoppingCart,
@@ -81,6 +82,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Settings",
     items: [
       { href: "/admin/settings", label: "Settings", icon: Settings },
+      { href: "/admin/redirects", label: "Redirects", icon: Route },
       { href: "/admin/apis", label: "APIs", icon: Plug },
     ],
   },

@@ -1283,4 +1283,3 @@ When implementation starts, the first sprint should be:
 6. Document current tracking event locations before touching integrations.
 
 This gives immediate admin quality improvement and prepares the foundation for deeper dynamic content work.
-
