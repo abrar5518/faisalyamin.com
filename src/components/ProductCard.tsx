@@ -208,9 +208,9 @@ function CompactCard({ p }: { p: Product }) {
   const globalCopy = useGlobalCopy();
 
   return (
-    <div className="product-card product-card-compact theme-card group flex h-full flex-col rounded-2xl border border-neutral-200 bg-white p-2.5 shadow-sm transition-transform active:scale-[0.98] hover:-translate-y-0.5 hover:shadow-md sm:rounded-3xl sm:p-5">
+    <div className="product-card product-card-compact theme-card group flex h-full flex-col rounded-2xl border border-neutral-200 bg-white p-1.5 shadow-sm transition-transform active:scale-[0.98] hover:-translate-y-0.5 hover:shadow-md sm:p-2">
       <Link href={href} className="block">
-        <div className="product-card-image relative aspect-[1/1.05] w-full overflow-hidden rounded-xl bg-neutral-100 sm:h-64 sm:aspect-auto sm:rounded-2xl lg:h-72">
+        <div className="product-card-image relative aspect-[1/1.05] w-full overflow-hidden rounded-xl bg-neutral-100 sm:h-72 sm:aspect-auto">
           <ProductImageSwap
             p={p}
             params="auto=format&fit=crop&w=1200&q=85"
@@ -219,19 +219,19 @@ function CompactCard({ p }: { p: Product }) {
             className="h-full w-full object-cover object-center transition duration-500 group-hover:scale-105"
           />
           {p.badge ? (
-            <span className="theme-primary-action absolute left-2 top-2 rounded-full bg-neutral-900 px-2 py-0.5 text-xs text-white sm:left-3 sm:top-3 sm:px-3 sm:py-1">
+            <span className="theme-primary-action absolute left-2 top-2 rounded-full bg-neutral-900 px-2 py-0.5 text-xs text-white sm:px-3 sm:py-1">
               {p.badge}
             </span>
           ) : null}
         </div>
       </Link>
-      <div className="mt-2.5 min-w-0 sm:mt-4">
+      <div className="mt-2 min-w-0 px-0.5 sm:px-1">
         <Link href={href} className="block min-h-10">
           <p className="line-clamp-2 text-sm font-semibold leading-5 text-neutral-900">{p.name}</p>
         </Link>
       </div>
 
-      <div className="mt-1.5 flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+      <div className="mt-1 flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5 px-0.5 sm:px-1">
         <span className="text-base font-semibold leading-5 text-neutral-900">{p.price}</span>
         {p.compareAt ? (
           <span className="text-xs text-neutral-400 line-through">{p.compareAt}</span>
@@ -240,14 +240,14 @@ function CompactCard({ p }: { p: Product }) {
         )}
       </div>
 
-      <div className="mt-1.5 flex min-w-0 items-center justify-between gap-2">
+      <div className="mt-1 flex min-w-0 items-center justify-between gap-2 px-0.5 sm:px-1">
         <div className="min-w-0">
           <Stars value={p.rating} />
         </div>
         <p className="hidden text-xs text-neutral-500 min-[390px]:block">{p.reviews} reviews</p>
       </div>
 
-      <div className="mt-auto pt-2.5 sm:pt-4">
+      <div className="mt-auto px-0.5 pt-2 sm:px-1 sm:pt-3">
         <Link href={href} className="mobile-card-new-cta theme-primary-action inline-flex min-h-10 w-full items-center justify-center rounded-xl bg-neutral-900 px-3 py-2 text-center text-xs font-medium text-white transition hover:bg-neutral-800 sm:hidden">
           {globalCopy.product.buyNow}
         </Link>
