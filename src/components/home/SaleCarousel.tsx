@@ -17,10 +17,18 @@ export default function SaleCarousel({
   items,
   visibleCount = 4.5,
   autoMs = DEFAULT_AUTO_MS,
+  title = "Latest Deals",
+  subtitle = "Discover current offers, trending products, and limited-time savings.",
+  viewAllLabel = "View all deals",
+  viewAllHref = "/deals",
 }: {
   items: Product[];
   visibleCount?: number;
   autoMs?: number;
+  title?: string;
+  subtitle?: string;
+  viewAllLabel?: string;
+  viewAllHref?: string;
 }) {
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
@@ -98,15 +106,13 @@ export default function SaleCarousel({
     <>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Latest Deals</h2>
-          <p className="mt-2 text-sm text-neutral-600">
-            Discover current offers, trending products, and limited-time savings.
-          </p>
+          <h2 className="text-2xl font-semibold tracking-tight">{title}</h2>
+          <p className="mt-2 text-sm text-neutral-600">{subtitle}</p>
         </div>
 
         <div className="flex items-center gap-2">
-          <Link href="/deals" className="text-sm font-medium text-neutral-900 hover:underline">
-            View all deals
+          <Link href={viewAllHref} className="text-sm font-medium text-neutral-900 hover:underline">
+            {viewAllLabel}
           </Link>
           <div className="flex items-center gap-2">
             <button

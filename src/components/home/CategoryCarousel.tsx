@@ -8,8 +8,16 @@ const GAP = 16; // gap-4 = 16px
 
 export default function CategoryCarousel({
   items,
+  title = "Shop by category",
+  subtitle = "Browse curated collections made for premium tastes.",
+  viewAllLabel = "View all",
+  viewAllHref = "/categories",
 }: {
   items: Category[];
+  title?: string;
+  subtitle?: string;
+  viewAllLabel?: string;
+  viewAllHref?: string;
 }) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [canPrev, setCanPrev] = useState(false);
@@ -77,19 +85,19 @@ export default function CategoryCarousel({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="text-2xl font-semibold tracking-tight">
-            Shop by category
+            {title}
           </h2>
           <p className="mt-2 text-sm text-neutral-600">
-            Browse curated collections made for premium tastes.
+            {subtitle}
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <Link
-            href="/categories"
+            href={viewAllHref}
             className="text-sm font-medium text-neutral-900 hover:underline"
           >
-            View all
+            {viewAllLabel}
           </Link>
 
           <button

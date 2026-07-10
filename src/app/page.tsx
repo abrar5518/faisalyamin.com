@@ -14,6 +14,7 @@ import { absoluteUrl, itemListSchema, organizationSchema, websiteSchema } from "
 import CategoryCarousel from "@/components/home/CategoryCarousel";
 import { normalizeSiteUrl } from "@/lib/siteUrl";
 import FaqSection from "@/components/FaqSection";
+import { parseHomeSections } from "@/lib/homeContent";
 
 type Testimonial = {
   name: string;
@@ -24,8 +25,6 @@ type Testimonial = {
 };
 
 const baseUrl = normalizeSiteUrl();
-const SHOW_HOME_REVIEWS = true;
-
 export async function generateMetadata(): Promise<Metadata> {
   const [page, settings] = await Promise.all([
     prisma.page.findUnique({ where: { slug: "home" } }),
@@ -327,6 +326,7 @@ export default async function HomePage() {
     saleRows.length > 0
       ? saleRows.map((p) => toProduct(p, IMAGES.p2))
       : saleProductsFallback;
+  const homeSections = parseHomeSections(pageRow?.sectionsJson);
   const hero = {
     badge: pageRow?.heroBadge || "Pakistan-based online shopping store",
     title: pageRow?.heroTitle || "Premium products, curated for people who care about details.",
@@ -489,10 +489,10 @@ export default async function HomePage() {
           phone: contact?.phone || undefined,
           email: contact?.email || undefined,
           address: orgAddress,
-          aggregateRating: SHOW_HOME_REVIEWS && orgReviewCount
+          aggregateRating: homeSections.reviewsEnabled && orgReviewCount
             ? { ratingValue: orgAverageRating, reviewCount: orgReviewCount }
             : undefined,
-          reviews: SHOW_HOME_REVIEWS && orgReviewCount ? orgReviews : undefined,
+          reviews: homeSections.reviewsEnabled && orgReviewCount ? orgReviews : undefined,
         })}
       />
       <Schema
@@ -583,7 +583,15 @@ export default async function HomePage() {
       {/* ? Sale & Deals (moved right after Hero) */}
       <section className="border-t border-neutral-200 bg-white py-14">
         <Container>
-          <SaleCarousel items={saleItems} visibleCount={saleVisibleCount} autoMs={saleAutoMs} />
+          <SaleCarousel
+            items={saleItems}
+            visibleCount={saleVisibleCount}
+            autoMs={saleAutoMs}
+            title={homeSections.saleTitle}
+            subtitle={homeSections.saleSubtitle}
+            viewAllLabel={homeSections.saleViewAllLabel}
+            viewAllHref={homeSections.saleViewAllHref}
+          />
         </Container>
       </section>
 
@@ -592,10 +600,10 @@ export default async function HomePage() {
         <Container>
           <CategoryCarousel
             items={categoryList}
-            // title="Shop by category"
-            // subtitle="Browse curated collections made for premium tastes. test"
-            // viewAllHref="/categories"
-            // viewAllLabel="View all Test"
+            title={homeSections.categoryTitle}
+            subtitle={homeSections.categorySubtitle}
+            viewAllHref={homeSections.categoryViewAllHref}
+            viewAllLabel={homeSections.categoryViewAllLabel}
           />
 
         </Container>
@@ -606,13 +614,13 @@ export default async function HomePage() {
         <Container>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight">Featured Products</h2>
+              <h2 className="text-2xl font-semibold tracking-tight">{homeSections.featuredTitle}</h2>
               <p className="mt-2 text-sm text-neutral-600">
-                Shop popular products selected for this store. Update this section from the admin panel.
+                {homeSections.featuredSubtitle}
               </p>
             </div>
             <div className="hidden sm:flex items-center gap-2">
-              {["All", "Popular", "New Arrivals", "Best Value"].map((t) => (
+              {homeSections.featuredTabs.map((t) => (
                 <button
                   key={t}
                   className="rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm hover:bg-neutral-100"
@@ -632,25 +640,23 @@ export default async function HomePage() {
       </section>
 
       {/* Social proof strip */}
-      <section className="border-t border-neutral-200 bg-white py-10">
-        <Container>
-          <div className="grid gap-4 rounded-3xl border border-neutral-200 bg-neutral-50 p-6 sm:grid-cols-3">
-            {[
-              { t: "Quality Checked", d: "Products are checked before shipping." },
-              { t: "Secure Payments", d: "Multiple gateways with fraud protection." },
-              { t: "Priority Support", d: "Fast WhatsApp + email support." },
-            ].map((x) => (
-              <div key={x.t} className="rounded-2xl bg-white p-5">
-                <p className="text-sm font-semibold">{x.t}</p>
-                <p className="mt-2 text-sm text-neutral-600">{x.d}</p>
-              </div>
-            ))}
-          </div>
-        </Container>
-      </section>
+      {homeSections.socialProofEnabled ? (
+        <section className="border-t border-neutral-200 bg-white py-10">
+          <Container>
+            <div className="grid gap-4 rounded-3xl border border-neutral-200 bg-neutral-50 p-6 sm:grid-cols-3">
+              {homeSections.socialProofItems.map((x) => (
+                <div key={x.title} className="rounded-2xl bg-white p-5">
+                  <p className="text-sm font-semibold">{x.title}</p>
+                  <p className="mt-2 text-sm text-neutral-600">{x.desc}</p>
+                </div>
+              ))}
+            </div>
+          </Container>
+        </section>
+      ) : null}
 
       {/* Testimonials: set SHOW_HOME_REVIEWS to true to restore the full reviews section. */}
-      {SHOW_HOME_REVIEWS ? (
+      {homeSections.reviewsEnabled ? (
       <section className="border-t border-neutral-200 bg-white py-14">
         <Container>
           {/* Section shell (adds premium separation without changing page layout) */}
@@ -659,22 +665,22 @@ export default async function HomePage() {
               <div>
                 <p className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-xs font-medium text-neutral-700">
                   <span className="h-1.5 w-1.5 rounded-full bg-neutral-900" />
-                  Trusted by buyers
+                  {homeSections.reviewsBadge}
                 </p>
 
                 <h2 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl">
-                  Customers reviews and stories
+                  {homeSections.reviewsTitle}
                 </h2>
                 <p className="mt-2 text-sm text-neutral-600">
-                  Real feedback from customers who bought from Sahoolat.pk
+                  {homeSections.reviewsSubtitle}
                 </p>
               </div>
 
               <Link
-                href="/reviews"
+                href={homeSections.reviewsLinkHref}
                 className="inline-flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-50"
               >
-                Read more
+                {homeSections.reviewsLinkLabel}
                 <span className="text-neutral-400">→</span>
               </Link>
             </div>
@@ -709,7 +715,7 @@ export default async function HomePage() {
             <div className="lg:col-span-4">
               <p className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-xs font-medium text-neutral-700">
                 <span className="h-1.5 w-1.5 rounded-full bg-neutral-900" />
-                Introducing products
+                {homeSections.introBadge}
               </p>
               <h2 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl">
                 {homeIntro.title}
@@ -753,8 +759,8 @@ export default async function HomePage() {
             items={homeFaq.items}
             title={homeFaq.title}
             intro={homeFaq.intro}
-            linkHref="/faq"
-            linkLabel="View all FAQs"
+            linkHref={homeSections.faqLinkHref}
+            linkLabel={homeSections.faqLinkLabel}
             includeSchema
             variant="default"
           />

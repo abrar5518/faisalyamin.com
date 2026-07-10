@@ -10,6 +10,7 @@ import {
   ClipboardCheck,
   FileText,
   Gift,
+  Home,
   Layers3,
   LayoutGrid,
   Mail,
@@ -47,6 +48,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: "Content",
     items: [
+      { href: "/admin/home", label: "Home", icon: Home },
       { href: "/admin/pages", label: "Pages", icon: FileText },
       { href: "/admin/blog", label: "Blog", icon: BookOpenText },
       { href: "/admin/reusable-blocks", label: "Reusable Blocks", icon: Layers3 },
