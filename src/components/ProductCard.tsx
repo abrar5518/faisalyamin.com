@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { Star } from "lucide-react";
 import { withImageParams } from "@/lib/image";
 import AddToCartButton from "@/components/cart/AddToCartButton";
 import { useGlobalCopy } from "@/components/GlobalCopyProvider";
@@ -29,27 +30,25 @@ export type Product = {
 export type ProductCardVariant = "default" | "featured" | "compact" | "sale";
 
 function Stars({ value }: { value: number }) {
-  const full = Math.floor(value);
-  const half = value - full >= 0.5;
+  const safeValue = Number.isFinite(value) ? Math.max(0, Math.min(5, value)) : 0;
   const total = 5;
 
   return (
-    <div className="flex items-center gap-0.5 sm:gap-1" aria-label={`Rating ${value} out of 5`}>
+    <div className="flex items-center gap-0.5 sm:gap-1" aria-label={`Rating ${safeValue.toFixed(1)} out of 5`}>
       {Array.from({ length: total }).map((_, i) => {
-        const idx = i + 1;
-        const filled = idx <= full;
-        const halfFill = !filled && half && idx === full + 1;
+        const filled = i < Math.round(safeValue);
         return (
-          <span
+          <Star
             key={i}
-            className={[
-              "inline-block h-3 w-3 rounded-sm sm:h-4 sm:w-4",
-              filled ? "theme-primary-action bg-neutral-900" : halfFill ? "bg-neutral-400" : "bg-neutral-200",
-            ].join(" ")}
+            className={
+              filled
+                ? "h-3.5 w-3.5 fill-amber-400 text-amber-400 sm:h-4 sm:w-4"
+                : "h-3.5 w-3.5 fill-neutral-200 text-neutral-200 sm:h-4 sm:w-4"
+            }
           />
         );
       })}
-      <span className="ml-2 text-xs text-neutral-600">{value.toFixed(1)}</span>
+      <span className="ml-2 text-xs text-neutral-600">{safeValue.toFixed(1)}</span>
     </div>
   );
 }
@@ -230,9 +229,6 @@ function CompactCard({ p }: { p: Product }) {
         <Link href={href} className="block min-h-10">
           <p className="line-clamp-2 text-sm font-semibold leading-5 text-neutral-900">{p.name}</p>
         </Link>
-        <p className="mt-1 hidden line-clamp-2 min-h-8 text-xs leading-4 text-neutral-500 sm:block">
-          {p.shortDesc || "Verified • Box & Papers • Fast Shipping"}
-        </p>
       </div>
 
       <div className="mt-1.5 flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
