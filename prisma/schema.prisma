@@ -42,9 +42,9 @@ enum CouponType {
 
 model Category {
   id            Int           @id @default(autoincrement())
-  name          String
+  name          String        @db.Text
   slug          String        @unique
-  description   String?
+  description   String?       @db.Text
   descriptionHtml String?     @db.LongText
   image         String?
   imageAlt      String?       @db.Text
@@ -63,9 +63,9 @@ model Category {
 model Subcategory {
   id          Int       @id @default(autoincrement())
   categoryId  Int
-  name        String
+  name        String    @db.Text
   slug        String    @unique
-  description String?
+  description String?   @db.Text
   descriptionHtml String? @db.LongText
   image       String?
   imageAlt    String?   @db.Text
@@ -89,7 +89,7 @@ model Product {
   categoryId      Int
   subcategoryId   Int?
 
-  name            String
+  name            String        @db.Text
   slug            String        @unique
   brand           String?
   sku             String?
@@ -101,7 +101,7 @@ model Product {
   rating          Float         @default(0)
   reviewsCount    Int           @default(0)
 
-  shortDesc       String?
+  shortDesc       String?       @db.Text
   descriptionHtml String        @db.LongText
   sizes           Json?
   variants        Json?
@@ -261,9 +261,9 @@ model ProductImage {
 
 model Blog {
   id          Int       @id @default(autoincrement())
-  title       String
+  title       String    @db.Text
   slug        String    @unique
-  excerpt     String?
+  excerpt     String?   @db.Text
   coverImage  String?
   coverAlt    String?   @db.Text
   contentHtml String    @db.LongText
