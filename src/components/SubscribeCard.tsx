@@ -46,7 +46,7 @@ export default function SubscribeCard({
   }
 
   return (
-    <div className={["rounded-3xl border border-neutral-200 bg-neutral-900 p-6 text-white", className].join(" ")}>
+    <div className={["theme-primary-action rounded-3xl border border-neutral-200 bg-neutral-900 p-6 text-white", className].join(" ")}>
       <p className="text-sm font-semibold">{title}</p>
       <p className="mt-2 text-sm text-white/70">{subtitle}</p>
       <form onSubmit={handleSubmit} className="mt-4 flex gap-2">

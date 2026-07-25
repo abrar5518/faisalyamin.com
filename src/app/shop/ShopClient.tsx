@@ -544,7 +544,7 @@ export default function ShopClient({
                   <button
                     onClick={loadMore}
                     disabled={!hasMore || loadingMore || loading}
-                    className="rounded-xl bg-neutral-900 px-4 py-2 text-white hover:bg-neutral-800 disabled:opacity-60"
+                    className="theme-primary-action rounded-xl bg-neutral-900 px-4 py-2 text-white hover:bg-neutral-800 disabled:opacity-60"
                   >
                     {loadingMore ? "Loading..." : "Next"}
                   </button>

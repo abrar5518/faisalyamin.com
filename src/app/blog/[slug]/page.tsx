@@ -500,7 +500,7 @@ export default async function BlogPostPage({ params }: PageProps) {
                 <div className="mt-5 flex flex-wrap gap-2">
                   <Link
                     href={whatsappHref}
-                    className="rounded-2xl bg-neutral-900 px-5 py-3 text-sm font-medium text-white hover:bg-neutral-800"
+                    className="theme-primary-action rounded-2xl bg-neutral-900 px-5 py-3 text-sm font-medium text-white hover:bg-neutral-800"
                   >
                     WhatsApp Support
                   </Link>
@@ -564,7 +564,7 @@ export default async function BlogPostPage({ params }: PageProps) {
                 <div className="mt-4 grid gap-2">
                   <Link
                       href="/shop"
-                      className="rounded-2xl bg-neutral-900 px-5 py-3 text-center text-sm font-medium text-white hover:bg-neutral-800"
+                      className="theme-primary-action rounded-2xl bg-neutral-900 px-5 py-3 text-center text-sm font-medium text-white hover:bg-neutral-800"
                     >
                       Browse Store
                     </Link>

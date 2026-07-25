@@ -289,7 +289,7 @@ export default function SiteHeader() {
                 <button
                   type="button"
                   onClick={openCart}
-                  className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-neutral-900 px-3 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+                  className="theme-primary-action inline-flex min-h-10 items-center gap-2 rounded-xl bg-neutral-900 px-3 py-2 text-sm font-medium text-white hover:bg-neutral-800"
                   aria-label={`Open cart with ${totalItems} ${
                     totalItems === 1 ? "item" : "items"
                   }`}

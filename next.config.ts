@@ -1,5 +1,13 @@
 import type { NextConfig } from "next";
 
+const siteHostname = (() => {
+  try {
+    return new URL(process.env.SITE_URL || "").hostname;
+  } catch {
+    return "";
+  }
+})();
+
 const nextConfig: NextConfig = {
   experimental: {
     proxyClientMaxBodySize: "60mb",
@@ -14,6 +22,11 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "sahoolat.pk" },
       { protocol: "https", hostname: "www.sahoolat.pk" },
+      ...(siteHostname
+        ? [
+            { protocol: "https" as const, hostname: siteHostname },
+          ]
+        : []),
       { protocol: "http", hostname: "localhost" },
       {protocol: "https", hostname: "images.unsplash.com"}
     ],

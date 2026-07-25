@@ -194,7 +194,7 @@ export default async function CategoriesPage() {
                 <div className="mt-3 flex gap-2">
                   <Link
                     href="/shop"
-                    className="flex-1 rounded-2xl bg-neutral-900 px-4 py-3 text-center text-sm font-medium text-white hover:bg-neutral-800"
+                    className="theme-primary-action flex-1 rounded-2xl bg-neutral-900 px-4 py-3 text-center text-sm font-medium text-white hover:bg-neutral-800"
                   >
                     Shop All
                   </Link>
@@ -264,7 +264,7 @@ export default async function CategoriesPage() {
             <div className="flex gap-2 lg:col-span-4">
               <Link
                 href={whatsappHref}
-                className="flex-1 rounded-2xl bg-neutral-900 px-5 py-3 text-center text-sm font-medium text-white hover:bg-neutral-800"
+                className="theme-primary-action flex-1 rounded-2xl bg-neutral-900 px-5 py-3 text-center text-sm font-medium text-white hover:bg-neutral-800"
               >
                 {catalogSettings.categoryHelpPrimaryLabel}
               </Link>

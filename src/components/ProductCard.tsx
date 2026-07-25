@@ -262,7 +262,7 @@ function CompactCard({ p }: { p: Product }) {
           badge={p.badge}
           className="mobile-card-old-cta hidden min-h-10 w-full items-center justify-center rounded-xl border border-neutral-200 px-3 py-2 text-xs font-medium text-neutral-900 cursor-pointer transition hover:bg-neutral-50 sm:hidden"
         />
-        <Link href={href} className="hidden min-h-10 w-full items-center justify-center rounded-xl bg-neutral-900 px-4 py-2.5 text-center text-xs font-medium text-white transition hover:bg-neutral-800 sm:inline-flex sm:py-3 sm:text-sm">
+        <Link href={href} className="theme-primary-action hidden min-h-10 w-full items-center justify-center rounded-xl bg-neutral-900 px-4 py-2.5 text-center text-xs font-medium text-white transition hover:bg-neutral-800 sm:inline-flex sm:py-3 sm:text-sm">
           View details
         </Link>
       </div>

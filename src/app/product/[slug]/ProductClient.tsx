@@ -827,7 +827,7 @@ export default function ProductClient({
                       </div>
 
                       {discountPct ? (
-                        <span className="shrink-0 rounded-full bg-neutral-900 px-2.5 py-1 text-xs font-semibold text-white sm:rounded-2xl sm:px-3">
+                        <span className="theme-primary-action shrink-0 rounded-full bg-neutral-900 px-2.5 py-1 text-xs font-semibold text-white sm:rounded-2xl sm:px-3">
                           Save {discountPct}%
                         </span>
                       ) : null}
@@ -858,7 +858,7 @@ export default function ProductClient({
                                 "group inline-flex min-h-10 items-center gap-2 rounded-2xl border px-3 py-2 text-sm transition",
                                 "focus:outline-none focus:ring-2 focus:ring-neutral-900/20",
                                 active
-                                  ? "border-neutral-900 bg-neutral-900 text-white"
+                                  ? "theme-primary-action border-neutral-900 bg-neutral-900 text-white"
                                   : "border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50",
                               ].join(" ")}
                               aria-label={`Select ${v.label}`}
@@ -897,7 +897,7 @@ export default function ProductClient({
                                 "min-h-10 rounded-2xl px-4 py-2 text-sm transition",
                                 "focus:outline-none focus:ring-2 focus:ring-neutral-900/20",
                                 active
-                                  ? "bg-neutral-900 text-white"
+                                  ? "theme-primary-action bg-neutral-900 text-white"
                                   : "border border-neutral-200 hover:bg-neutral-50",
                               ].join(" ")}
                             >
@@ -1008,7 +1008,7 @@ export default function ProductClient({
                     <button
                       onClick={onBuyNow}
                       disabled={printUploading}
-                      className="cta-attention min-h-11 rounded-2xl cursor-pointer bg-neutral-900 px-6 py-4 text-sm font-medium text-white hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="cta-attention theme-primary-action min-h-11 rounded-2xl cursor-pointer bg-neutral-900 px-6 py-4 text-sm font-medium text-white hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {globalCopy.product.buyNow}
                     </button>
@@ -1063,7 +1063,7 @@ export default function ProductClient({
                       className={[
                         "rounded-full px-4 py-2 transition",
                         active
-                          ? "bg-neutral-900 text-white"
+                          ? "theme-primary-action bg-neutral-900 text-white"
                           : "border border-neutral-200 text-neutral-700 hover:bg-neutral-50",
                       ].join(" ")}
                     >
@@ -1160,7 +1160,7 @@ export default function ProductClient({
                           <div className="mt-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-600">
                             Please sign in to leave a review.
                             <button
-                              className="mt-3 w-full rounded-2xl bg-neutral-900 px-4 py-3 text-sm font-medium text-white hover:bg-neutral-800"
+                              className="theme-primary-action mt-3 w-full rounded-2xl bg-neutral-900 px-4 py-3 text-sm font-medium text-white hover:bg-neutral-800"
                               onClick={() => router.push("/login")}
                             >
                               Sign in to review
@@ -1181,7 +1181,7 @@ export default function ProductClient({
                                     className={[
                                       "flex h-10 w-10 items-center justify-center rounded-xl border text-sm font-semibold",
                                       reviewForm.rating >= n
-                                        ? "border-neutral-900 bg-neutral-900 text-white"
+                                        ? "theme-primary-action border-neutral-900 bg-neutral-900 text-white"
                                         : "border-neutral-200 text-neutral-700 hover:bg-neutral-50",
                                     ].join(" ")}
                                   >
@@ -1269,7 +1269,7 @@ export default function ProductClient({
                               type="button"
                               onClick={submitReview}
                               disabled={reviewBusy || reviewUploading || reviewForm.body.trim().length < 10}
-                              className="w-full rounded-2xl bg-neutral-900 px-4 py-3 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-60"
+                              className="theme-primary-action w-full rounded-2xl bg-neutral-900 px-4 py-3 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-60"
                             >
                               {reviewBusy ? "Submitting..." : "Submit review"}
                             </button>
@@ -1443,7 +1443,7 @@ export default function ProductClient({
           <button
             onClick={onBuyNow}
             disabled={printUploading}
-            className="cta-attention min-h-11 flex-1 rounded-lg bg-neutral-900 px-3 py-3 text-sm font-medium text-white hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
+            className="cta-attention theme-primary-action min-h-11 flex-1 rounded-lg bg-neutral-900 px-3 py-3 text-sm font-medium text-white hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {globalCopy.product.buyNow}
           </button>

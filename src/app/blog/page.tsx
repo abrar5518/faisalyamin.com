@@ -231,7 +231,7 @@ export default async function BlogPage({ searchParams }: PageProps) {
                   Browse by category or tag to find relevant guides faster.
                 </p>
                 <div className="mt-3 grid gap-2">
-                  <Link href="/blog" className="rounded-2xl bg-neutral-900 px-4 py-3 text-center text-sm font-medium text-white hover:bg-neutral-800">
+                  <Link href="/blog" className="theme-primary-action rounded-2xl bg-neutral-900 px-4 py-3 text-center text-sm font-medium text-white hover:bg-neutral-800">
                     All posts
                   </Link>
                 </div>
