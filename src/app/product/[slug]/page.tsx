@@ -337,6 +337,29 @@ export default async function ProductPage({ params }: PageProps) {
           ).toFixed(1)
         )
       : 0;
+  const storedRating = Number(typedProduct.rating);
+  const storedReviewCount = Number(typedProduct.reviewsCount);
+  const fallbackRating =
+    Number.isFinite(storedRating) && storedRating > 0
+      ? Math.min(5, Math.max(1, Number(storedRating.toFixed(1))))
+      : 0;
+  const fallbackReviewCount =
+    Number.isFinite(storedReviewCount) && storedReviewCount > 0
+      ? Math.floor(storedReviewCount)
+      : 0;
+  // Approved review rows are the source of truth. The product summary fields are
+  // retained as a fallback for feeds/APIs that only return aggregate review data.
+  const hasFallbackAggregate = fallbackRating > 0 && fallbackReviewCount > 0;
+  const displayRating = approvedReviewCount
+    ? approvedRating
+    : hasFallbackAggregate
+      ? fallbackRating
+      : 0;
+  const displayReviewCount = approvedReviewCount
+    ? approvedReviewCount
+    : hasFallbackAggregate
+      ? fallbackReviewCount
+      : 0;
 
   const productData: ProductData = {
     id: String(typedProduct.id),
@@ -344,8 +367,8 @@ export default async function ProductPage({ params }: PageProps) {
     brand: typedProduct.brand || typedProduct.category?.name || catalogSettings.productBrandFallback,
     category: typedProduct.category?.name ?? "Products",
     name: typedProduct.name,
-    rating: approvedRating,
-    reviews: approvedReviewCount,
+    rating: displayRating,
+    reviews: displayReviewCount,
     reviewItems,
     shortDescription:
       typedProduct.shortDesc ??
@@ -417,6 +440,10 @@ export default async function ProductPage({ params }: PageProps) {
   const schemaReturnDays = storeSettings?.returnsDays ?? 7;
   const schemaSellerName =
     storeSettings?.storeName?.trim() || siteSettings?.siteName?.trim() || "Sahoolat";
+  const schemaColor = apiVariants.length
+    ? apiVariants.map((variant) => variant.label.trim()).filter(Boolean).join(", ")
+    : undefined;
+  const schemaSize = sizeList.length ? sizeList.join(", ") : undefined;
 
   return (
     <div className="bg-white text-neutral-900">
@@ -431,15 +458,29 @@ export default async function ProductPage({ params }: PageProps) {
         data={productSchema({
           name: schemaProductName(typedProduct.name),
           description: descriptionText || catalogSettings.productFallbackDescription,
-          mpn: `SAH-${typedProduct.id}`,
+          id: `${pageUrl}#product`,
+          sku: typedProduct.sku?.trim() || `SAH-${typedProduct.id}`,
+          mpn: typedProduct.sku?.trim() || `SAH-${typedProduct.id}`,
           brand: schemaBrand,
           images: productImages.map((img) => absoluteUrl(img, baseUrlResolved)),
           url: pageUrl,
+          color: schemaColor,
+          size: schemaSize,
+          additionalProperties: [
+            ...(hasVariants
+              ? [{ name: "Available variants", value: String(apiVariants.length) }]
+              : []),
+            ...(typedProduct.isPrintable
+              ? [{ name: "Printable", value: "Yes" }]
+              : []),
+          ],
           price: priceValue,
           currency: "PKR",
           availability: typedProduct.isActive ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
           category: typedProduct.category?.name ?? undefined,
           sellerName: schemaSellerName,
+          sellerUrl: baseUrlResolved,
+          sellerId: `${baseUrlResolved}/#organization`,
           shipping: {
             country: "PK",
             price: schemaShippingPrice,
@@ -455,8 +496,8 @@ export default async function ProductPage({ params }: PageProps) {
             fees: "https://schema.org/ReturnShippingFees",
             method: "https://schema.org/ReturnByMail",
           },
-          aggregateRating: approvedReviewCount
-            ? { ratingValue: approvedRating, reviewCount: approvedReviewCount }
+          aggregateRating: displayReviewCount && displayRating
+            ? { ratingValue: displayRating, reviewCount: displayReviewCount }
             : undefined,
           reviews: schemaReviews.length ? schemaReviews : undefined,
         })}

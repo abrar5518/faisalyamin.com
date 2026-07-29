@@ -12,6 +12,7 @@ export type CustomScriptWarnings = {
 const MAX_CUSTOM_SCRIPT_HTML_LENGTH = 20000;
 const META_PIXEL_PATTERN = /^\d{5,30}$/;
 const GTM_PATTERN = /^GTM-[A-Z0-9]+$/i;
+const GA4_PATTERN = /^G-[A-Z0-9]+$/i;
 const CLARITY_PATTERN = /^[a-z0-9_-]{5,80}$/i;
 const DISALLOWED_CUSTOM_TAG_PATTERN =
   /<\/?(?:base|embed|form|frame|frameset|input|object|textarea)[^>]*>/gi;
@@ -54,12 +55,17 @@ export function sanitizeMetaPixelIds(value?: string | null) {
 
 export function isValidGoogleTagManagerId(value?: string | null) {
   const token = value?.trim();
-  return Boolean(token && GTM_PATTERN.test(token));
+  return Boolean(token && (GTM_PATTERN.test(token) || GA4_PATTERN.test(token)));
 }
 
 export function sanitizeGoogleTagManagerId(value?: string | null) {
   const token = value?.trim();
   return token && isValidGoogleTagManagerId(token) ? token.toUpperCase() : "";
+}
+
+export function isGoogleAnalyticsMeasurementId(value?: string | null) {
+  const token = value?.trim();
+  return Boolean(token && GA4_PATTERN.test(token));
 }
 
 export function isValidMicrosoftClarityId(value?: string | null) {

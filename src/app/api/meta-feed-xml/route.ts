@@ -39,6 +39,23 @@ function formatFeedPrice(price: number) {
   return `${Math.round(price)} PKR`;
 }
 
+function collectVariantImages(value: unknown) {
+  if (!Array.isArray(value)) return [];
+
+  return value.flatMap((variant) => {
+    if (!variant || typeof variant !== "object" || !Array.isArray(variant.images)) return [];
+    return variant.images
+      .map((image: unknown) =>
+        typeof image === "string"
+          ? image
+          : image && typeof image === "object" && "url" in image
+            ? String(image.url ?? "")
+            : "",
+      )
+      .filter(Boolean);
+  });
+}
+
 export async function GET() {
   try {
     const products = await prisma.product.findMany({
@@ -59,17 +76,29 @@ export async function GET() {
         price: true,
         shortDesc: true,
         descriptionHtml: true,
+        variants: true,
         images: {
           orderBy: { sortOrder: "asc" },
-          take: 1,
-          select: { url: true },
+          select: { url: true, mediaType: true },
         },
       },
     });
 
     const items = products
       .map((product) => {
-        const image = product.images[0]?.url?.trim();
+        const imageUrls = Array.from(
+          new Set(
+            [
+              ...product.images
+                .filter((image) => (image.mediaType || "image") === "image")
+                .map((image) => image.url),
+              ...collectVariantImages(product.variants),
+            ]
+              .map((image) => image.trim())
+              .filter(Boolean),
+          ),
+        );
+        const image = imageUrls[0];
         const price = Number(product.price);
 
         if (!image || !Number.isFinite(price) || price <= 0) {
@@ -91,6 +120,12 @@ export async function GET() {
           `      <g:price>${escapeXml(formatFeedPrice(price))}</g:price>`,
           `      <g:link>${escapeXml(`${SITE_URL}/product/${product.slug}`)}</g:link>`,
           `      <g:image_link>${escapeXml(absoluteUrl(image))}</g:image_link>`,
+          ...imageUrls
+            .slice(1)
+            .map(
+              (additionalImage) =>
+                `      <g:additional_image_link>${escapeXml(absoluteUrl(additionalImage))}</g:additional_image_link>`,
+            ),
           `      <g:brand>${escapeXml(BRAND)}</g:brand>`,
           `      <g:google_product_category>${escapeXml(GOOGLE_PRODUCT_CATEGORY)}</g:google_product_category>`,
           "      <g:shipping>",

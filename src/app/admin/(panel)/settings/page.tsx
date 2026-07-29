@@ -561,10 +561,10 @@ export default function AdminSettingsPage() {
           : "",
       },
       {
-        label: "Google Tag Manager",
+        label: "Google Analytics / GTM",
         enabled: googleTagManagerEnabled,
         configured: Boolean(googleTagManagerId.trim()),
-        problem: googleTagManagerValid ? "" : "Invalid GTM ID",
+        problem: googleTagManagerValid ? "" : "Invalid Google ID",
       },
       {
         label: "Microsoft Clarity",
@@ -927,7 +927,7 @@ export default function AdminSettingsPage() {
           return;
         }
         if (!googleTagManagerValid) {
-          setSiteMsg("Google Tag Manager ID must look like GTM-XXXXXXX.");
+          setSiteMsg("Google ID must look like G-XXXXXXXXXX or GTM-XXXXXXX.");
           return;
         }
         if (!microsoftClarityValid) {
@@ -3075,12 +3075,12 @@ export default function AdminSettingsPage() {
 
                       <div className="space-y-4 rounded-2xl border border-neutral-200 p-4">
                         <Toggle
-                          label="Enable Google Tag Manager"
-                          description="Loads GTM container once on every public page."
+                          label="Enable Google Analytics / Tag Manager"
+                          description="Loads a GA4 measurement tag or GTM container once on every public page."
                           checked={googleTagManagerEnabled}
                           onChange={setGoogleTagManagerEnabled}
                         />
-                        <AdminField label="Google Tag Manager ID">
+                        <AdminField label="Google Measurement or GTM ID">
                           <input
                             value={googleTagManagerId}
                             onChange={(e) => setGoogleTagManagerId(e.target.value)}
@@ -3088,11 +3088,13 @@ export default function AdminSettingsPage() {
                               "w-full rounded-2xl border px-4 py-3 text-sm outline-none focus:border-neutral-900",
                               googleTagManagerValid ? "border-neutral-200" : "border-amber-300 bg-amber-50",
                             ].join(" ")}
-                            placeholder="GTM-XXXXXXX"
+                            placeholder="G-XXXXXXXXXX or GTM-XXXXXXX"
                           />
                         </AdminField>
                         {!googleTagManagerValid ? (
-                          <p className="text-xs text-amber-700">Use a valid GTM container ID like GTM-ABC123.</p>
+                          <p className="text-xs text-amber-700">
+                            Use a GA4 Measurement ID like G-ABC123XYZ or a GTM container ID like GTM-ABC123.
+                          </p>
                         ) : null}
                       </div>
 

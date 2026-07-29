@@ -2,8 +2,9 @@
 
 declare global {
   interface Window {
-    gtag?: (...args: any[]) => void;
-    dataLayer?: any[];
+    gtag?: (...args: unknown[]) => void;
+    dataLayer?: unknown[];
+    __googleTrackingMode?: "ga4" | "gtm";
   }
 }
 
@@ -63,7 +64,7 @@ function getGtag() {
 
   window.dataLayer = window.dataLayer || [];
   if (typeof window.gtag !== "function") {
-    window.gtag = (...args: any[]) => {
+    window.gtag = (...args: unknown[]) => {
       window.dataLayer?.push(args);
     };
   }
@@ -125,6 +126,15 @@ function shouldSkipDuplicate(key: string) {
 
 function sendGoogleEvent(eventName: string, params: Record<string, unknown>, dedupeKey: string) {
   if (!hasWindow() || shouldSkipDuplicate(dedupeKey)) return false;
+
+  if (window.__googleTrackingMode === "gtm") {
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: eventName,
+      ecommerce: params,
+    });
+    return true;
+  }
 
   const gtag = getGtag();
   if (!gtag) return false;

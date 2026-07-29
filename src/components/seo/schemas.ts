@@ -178,17 +178,25 @@ export const collectionPageSchema = ({
 export const productSchema = ({
   name,
   description,
+  id,
   sku,
   mpn,
+  gtin13,
   brand,
   images,
   url,
+  color,
+  size,
+  material,
+  additionalProperties,
   price,
   currency = "PKR",
   availability = "https://schema.org/InStock",
   condition = "https://schema.org/NewCondition",
   category,
   sellerName,
+  sellerUrl,
+  sellerId,
   shipping,
   returnPolicy,
   aggregateRating,
@@ -196,17 +204,25 @@ export const productSchema = ({
 }: {
   name: string;
   description: string;
+  id?: string;
   sku?: string;
   mpn?: string;
+  gtin13?: string;
   brand: string;
   images: string[];
   url: string;
+  color?: string;
+  size?: string;
+  material?: string;
+  additionalProperties?: Array<{ name: string; value: string }>;
   price: number;
   currency?: string;
   availability?: string;
   condition?: string;
   category?: string;
   sellerName?: string;
+  sellerUrl?: string;
+  sellerId?: string;
   shipping?: {
     country: string;
     price: number;
@@ -233,15 +249,31 @@ export const productSchema = ({
 }) => ({
   "@context": "https://schema.org",
   "@type": "Product",
+  "@id": id || `${url}#product`,
+  url,
   name,
   description,
   image: images,
   ...(sku ? { sku } : {}),
   ...(mpn ? { mpn } : {}),
+  ...(gtin13 ? { gtin13 } : {}),
   brand: { "@type": "Brand", name: brand },
   ...(category ? { category } : {}),
+  ...(color ? { color } : {}),
+  ...(size ? { size } : {}),
+  ...(material ? { material } : {}),
+  ...(additionalProperties?.length
+    ? {
+        additionalProperty: additionalProperties.map((property) => ({
+          "@type": "PropertyValue",
+          name: property.name,
+          value: property.value,
+        })),
+      }
+    : {}),
   offers: {
     "@type": "Offer",
+    "@id": `${url}#offer`,
     url,
     priceCurrency: currency,
     price: String(price),
@@ -251,7 +283,9 @@ export const productSchema = ({
       ? {
           seller: {
             "@type": "Organization",
+            ...(sellerId ? { "@id": sellerId } : {}),
             name: sellerName,
+            ...(sellerUrl ? { url: sellerUrl } : {}),
           },
         }
       : {}),

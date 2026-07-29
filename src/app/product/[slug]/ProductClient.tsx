@@ -1149,7 +1149,9 @@ export default function ProductClient({
                           ))
                         ) : (
                           <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-5 text-sm text-neutral-600">
-                            No reviews yet. Be the first to share your experience.
+                            {product.reviews > 0
+                              ? "Review summary is available, but detailed customer reviews could not be loaded."
+                              : "No reviews yet. Be the first to share your experience."}
                           </div>
                         )}
                       </div>
