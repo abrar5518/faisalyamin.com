@@ -65,7 +65,7 @@ export type ReviewItem = {
 
 function Container({ children }: { children: ReactNode }) {
   return (
-    <div className="box-border mx-auto w-full max-w-[1360px] px-4 sm:px-8 lg:px-12">
+    <div className="box-border mx-auto min-w-0 w-full max-w-[1360px] px-4 sm:px-8 lg:px-12">
       {children}
     </div>
   );
@@ -652,14 +652,14 @@ export default function ProductClient({
   };
 
   return (
-    <main className="overflow-x-hidden pb-24 pt-6 sm:pb-0 sm:pt-10 lg:pb-16">
+    <main className="min-w-0 max-w-full overflow-x-clip pb-24 pt-6 sm:pb-0 sm:pt-10 lg:pb-16">
       <Container>
         {/* TOP SECTION */}
-          <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
+          <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-12 lg:gap-12">
             {/* LEFT: Gallery */}
-            <div className="lg:col-span-7">
-              <div className="relative overflow-hidden rounded-3xl border border-neutral-200 bg-neutral-100">
-                <div className="aspect-square w-full">
+            <div className="min-w-0 max-w-full lg:col-span-7">
+              <div className="relative w-full max-w-full overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100 sm:rounded-3xl">
+                <div className="aspect-square min-w-0 w-full max-w-full">
                   {activeMedia.type === "video" ? (
                     <ProductVideoPlayer
                       item={activeMedia}
@@ -678,7 +678,7 @@ export default function ProductClient({
                       onTouchEnd={(event) => {
                         handleMainImageTouchEnd(event.changedTouches[0]?.clientX ?? 0);
                       }}
-                      className="block h-full w-full cursor-zoom-in touch-pan-y"
+                      className="block h-full min-w-0 w-full max-w-full cursor-zoom-in touch-pan-y"
                       aria-label="Open product image preview"
                     >
                       <Image
@@ -686,7 +686,7 @@ export default function ProductClient({
                         alt={activeMedia.alt || imageAlts[imageIndex] || product.name}
                         width={1600}
                         height={1600}
-                        className="h-full w-full object-contain"
+                        className="h-full max-h-full w-full max-w-full object-contain"
                         priority
                         sizes="(min-width: 1024px) 58vw, 100vw"
                       />
@@ -695,7 +695,7 @@ export default function ProductClient({
                 </div>
 
                 {/* top-left badge area */}
-                <div className="pointer-events-none absolute left-4 top-4 flex flex-wrap gap-2">
+                <div className="pointer-events-none absolute inset-x-3 top-3 flex min-w-0 flex-wrap gap-1.5 sm:inset-x-4 sm:top-4 sm:gap-2">
                   {catalogSettings.productGalleryBadges.map((badge) => (
                     <Pill key={badge}>{badge}</Pill>
                   ))}
@@ -716,7 +716,7 @@ export default function ProductClient({
               </div>
 
               {/* Thumbnails */}
-              <div className="no-scrollbar mt-3 flex snap-x snap-mandatory gap-2 overflow-x-auto pb-1 sm:mt-4 sm:grid sm:grid-cols-4 sm:gap-3 sm:overflow-visible sm:pb-0">
+              <div className="no-scrollbar mt-3 flex min-w-0 max-w-full snap-x snap-mandatory gap-2 overflow-x-auto pb-1 sm:mt-4 sm:grid sm:grid-cols-4 sm:gap-3 sm:overflow-visible sm:pb-0">
                 {galleryMedia.map((item, idx) => {
                   const active = activeMedia.url === item.url && activeMedia.type === item.type;
                   const thumb = item.type === "video" ? item.thumbnailUrl || product.images[0] : item.url;
@@ -770,19 +770,19 @@ export default function ProductClient({
             </div>
 
             {/* RIGHT: Sticky Buy Box */}
-            <div className="lg:col-span-5">
-              <div className="lg:sticky lg:top-6">
-                <div className="rounded-3xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6">
+            <div className="min-w-0 max-w-full lg:col-span-5">
+              <div className="min-w-0 max-w-full lg:sticky lg:top-6">
+                <div className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-6">
                   {/* Brand + title */}
-                  <p className="text-xs font-medium uppercase tracking-wider text-neutral-500">
+                  <p className="break-words text-xs font-medium uppercase tracking-wider text-neutral-500 [overflow-wrap:anywhere]">
                     {product.brand}
                   </p>
 
-                  <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+                  <h1 className="mt-2 max-w-full break-words text-[1.65rem] font-semibold leading-tight tracking-tight [overflow-wrap:anywhere] sm:text-3xl">
                     {product.name}
                   </h1>
 
-                  <div className="mt-3 flex flex-wrap items-center gap-3 sm:flex-nowrap sm:justify-between">
+                  <div className="mt-3 flex min-w-0 max-w-full flex-wrap items-center gap-3 sm:flex-nowrap sm:justify-between">
                     <Stars
                       rating={product.rating}
                       reviews={product.reviews}
@@ -834,7 +834,7 @@ export default function ProductClient({
                     </div>
 
                     {/* Short description right under price (best conversion placement) */}
-                    <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-neutral-700 sm:mt-4 sm:line-clamp-none">
+                    <p className="mt-3 max-w-full break-words text-sm leading-relaxed text-neutral-700 [overflow-wrap:anywhere] sm:mt-4">
                       {product.shortDescription}
                     </p>
                   </div>
@@ -871,7 +871,7 @@ export default function ProductClient({
                                 ].join(" ")}
                                 style={{ backgroundColor: v.colorCode }}
                               />
-                              <span className="whitespace-nowrap">{v.label}</span>
+                              <span className="max-w-full break-words [overflow-wrap:anywhere]">{v.label}</span>
                               <span className={active ? "text-white/70" : "text-neutral-500"}>
                                 {/* - {v.price} */}
                               </span>
@@ -1047,8 +1047,8 @@ export default function ProductClient({
           </div>
 
           {/* TABS */}
-          <div className="mt-14 lg:mt-16">
-            <div className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8">
+          <div className="mt-10 min-w-0 max-w-full lg:mt-16">
+            <div className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-neutral-200 bg-white p-4 sm:rounded-3xl sm:p-8">
               <div className="flex flex-wrap gap-2 border-b border-neutral-200 pb-3 text-sm">
                 {[
                   { id: "description", label: catalogSettings.productDescriptionTabLabel },
@@ -1073,7 +1073,7 @@ export default function ProductClient({
                 })}
               </div>
 
-              <div className={`mt-8 w-full ${tab === "reviews" ? "max-w-none" : "max-w-4xl"}`}>
+              <div className={`mt-6 min-w-0 w-full max-w-full sm:mt-8 ${tab === "reviews" ? "" : "sm:max-w-4xl"}`}>
                 {tab === "description" && (
                   <div
                     className="rt-content"

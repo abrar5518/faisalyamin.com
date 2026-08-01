@@ -218,6 +218,27 @@ h1, h2, h3 {
   text-rendering: geometricPrecision;
 }
 
+/* User-authored product/page content must never widen the mobile viewport. */
+.rt-content {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.rt-content iframe,
+.rt-content video,
+.rt-content svg {
+  display: block;
+  max-width: 100%;
+}
+
+.rt-content iframe,
+.rt-content video {
+  height: auto;
+  aspect-ratio: 16 / 9;
+}
+
 /* Optional sizes */
 .rt-content--sm { font-size: 14px; }
 .rt-content--lg { font-size: 16px; }
