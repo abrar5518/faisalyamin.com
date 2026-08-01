@@ -94,7 +94,17 @@ export async function generateMetadata(): Promise<Metadata> {
     title: siteName,
     description:
       "Pakistan-based online shopping store with secure checkout, clear returns, and delivery across Pakistan.",
-    robots: { index: true, follow: true },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+        "max-video-preview": -1,
+      },
+    },
     other: {
       ...(settings?.facebookDomainVerification?.trim()
         ? { "facebook-domain-verification": settings.facebookDomainVerification.trim() }

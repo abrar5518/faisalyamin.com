@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: PageProps) {
     metaDescription: string | null;
     metaKeywords: string | null;
     shortDesc?: string | null;
-    images?: Array<{ url: string; sortOrder?: number | null }>;
+    images?: Array<{ url: string; alt?: string | null; sortOrder?: number | null; mediaType?: string | null }>;
   } | null;
 
   if (!product) {
@@ -41,12 +41,15 @@ export async function generateMetadata({ params }: PageProps) {
   const sortedImages = [...(product.images ?? [])].sort(
     (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)
   );
-  const rawImage = sortedImages.find((img: any) => (img.mediaType ?? "image") === "image")?.url;
-  const ogImage = rawImage
-    ? rawImage.startsWith("http")
-      ? rawImage
-      : `${baseUrlResolved}${rawImage.startsWith("/") ? "" : "/"}${rawImage}`
-    : undefined;
+  const seoImages = sortedImages
+    .filter((img) => (img.mediaType ?? "image") === "image")
+    .slice(0, 6)
+    .map((img) => ({
+      url: img.url.startsWith("http")
+        ? img.url
+        : `${baseUrlResolved}${img.url.startsWith("/") ? "" : "/"}${img.url}`,
+      alt: img.alt || product.name,
+    }));
   const title = product.metaTitle || product.name;
   const description = product.metaDescription || product.shortDesc || undefined;
 
@@ -60,13 +63,13 @@ export async function generateMetadata({ params }: PageProps) {
       title,
       description,
       url: `${baseUrlResolved}/product/${slug}`,
-      images: ogImage ? [{ url: ogImage }] : undefined,
+      images: seoImages.length ? seoImages : undefined,
     },
     twitter: {
-      card: ogImage ? "summary_large_image" : "summary",
+      card: seoImages.length ? "summary_large_image" : "summary",
       title,
       description,
-      images: ogImage ? [ogImage] : undefined,
+      images: seoImages.length ? seoImages.map((image) => image.url) : undefined,
     },
   };
 }
