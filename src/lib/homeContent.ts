@@ -17,6 +17,8 @@ export type HomeSections = {
   categorySubtitle: string;
   categoryViewAllLabel: string;
   categoryViewAllHref: string;
+  categorySource: "featured" | "manual";
+  categoryIds: number[];
   featuredTitle: string;
   featuredSubtitle: string;
   featuredTabs: string[];
@@ -48,10 +50,12 @@ export const DEFAULT_HOME_SECTIONS: HomeSections = {
   saleSubtitle: "Discover current offers, trending products, and limited-time savings.",
   saleViewAllLabel: "View all deals",
   saleViewAllHref: "/deals",
-  categoryTitle: "Shop by category",
-  categorySubtitle: "Browse curated collections made for premium tastes.",
-  categoryViewAllLabel: "View all",
+  categoryTitle: "Shop your world",
+  categorySubtitle: "Distinct collections, one considered point of view.",
+  categoryViewAllLabel: "Explore all",
   categoryViewAllHref: "/categories",
+  categorySource: "featured",
+  categoryIds: [],
   featuredTitle: "Trending now",
   featuredSubtitle: "Fresh silhouettes selected by our fashion editors.",
   featuredTabs: ["New arrivals", "Bestsellers", "The essentials"],
@@ -121,6 +125,10 @@ export function parseHomeSections(value?: string | null): HomeSections {
       categorySubtitle: cleanString(raw.categorySubtitle, DEFAULT_HOME_SECTIONS.categorySubtitle),
       categoryViewAllLabel: cleanString(raw.categoryViewAllLabel, DEFAULT_HOME_SECTIONS.categoryViewAllLabel),
       categoryViewAllHref: cleanString(raw.categoryViewAllHref, DEFAULT_HOME_SECTIONS.categoryViewAllHref),
+      categorySource: raw.categorySource === "manual" ? "manual" : "featured",
+      categoryIds: Array.isArray(raw.categoryIds)
+        ? raw.categoryIds.map(Number).filter((id: number) => Number.isInteger(id) && id > 0)
+        : DEFAULT_HOME_SECTIONS.categoryIds,
       featuredTitle: cleanString(raw.featuredTitle, DEFAULT_HOME_SECTIONS.featuredTitle),
       featuredSubtitle: cleanString(raw.featuredSubtitle, DEFAULT_HOME_SECTIONS.featuredSubtitle),
       featuredTabs: cleanStringArray(raw.featuredTabs, DEFAULT_HOME_SECTIONS.featuredTabs),

@@ -9,7 +9,7 @@ import { prisma } from "@/lib/prisma";
 import type { Metadata } from "next";
 import Schema from "@/components/seo/Schema";
 import { absoluteUrl, itemListSchema, organizationSchema, websiteSchema } from "@/components/seo/schemas";
-import CategoryCarousel from "@/components/home/CategoryCarousel";
+import MaisonCategoryCollection from "@/components/home/MaisonCategoryCollection";
 import { normalizeSiteUrl } from "@/lib/siteUrl";
 import FaqSection from "@/components/FaqSection";
 import { parseHomeSections } from "@/lib/homeContent";
@@ -242,10 +242,9 @@ function normalizeRating(value: unknown, fallback = 5) {
 export default async function HomePage() {
   const [categoryRows, featuredRows, saleRows, pageRow, siteSettings, contact] = await Promise.all([
     prisma.category.findMany({
-      where: { isFeatured: true },
       orderBy: { createdAt: "desc" },
       take: 12,
-      select: { name: true, slug: true, description: true, image: true, imageAlt: true },
+      select: { id: true, name: true, slug: true, description: true, image: true, imageAlt: true, isFeatured: true },
     }),
     prisma.product.findMany({
       where: { isActive: true },
@@ -275,18 +274,24 @@ export default async function HomePage() {
     prisma.contact.findFirst({ orderBy: { id: "asc" } }),
   ]);
 
-  const categoryList: Category[] =
-    categoryRows.length > 0
-      ? categoryRows.map((c) => ({
+  const homeSections = parseHomeSections(pageRow?.sectionsJson);
+  const categoryCandidates = homeSections.categorySource === "manual"
+    ? homeSections.categoryIds.map((id) => categoryRows.find((category) => category.id === id)).filter((category): category is NonNullable<typeof category> => Boolean(category))
+    : categoryRows.filter((category) => category.isFeatured);
+  const categoryList: Category[] = categoryCandidates.length
+      ? categoryCandidates.slice(0, 3).map((c) => ({
         name: c.name ?? "Category",
         description: c.description ?? "",
         href: `/categories/${c.slug ?? ""}`,
         image: c.image || IMAGES.catWatches,
         imageAlt: c.imageAlt || c.name || "Category",
       }))
-      : [];
+      : [
+        { name: "Women", description: "The latest edit for her", href: "/categories", image: "https://images.unsplash.com/photo-1525507119028-ed4c629a60a3", imageAlt: "Women's fashion collection" },
+        { name: "Men", description: "Modern menswear", href: "/categories", image: "https://images.unsplash.com/photo-1617137968427-85924c800a22", imageAlt: "Men's fashion collection" },
+        { name: "Kids", description: "Everyday style for kids", href: "/categories", image: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9", imageAlt: "Kids fashion collection" },
+      ];
 
-  const homeSections = parseHomeSections(pageRow?.sectionsJson);
   const featuredCandidates = homeSections.featuredSource === "manual"
     ? homeSections.featuredProductIds
       .map((id) => featuredRows.find((product) => product.id === id))
@@ -539,17 +544,14 @@ export default async function HomePage() {
         </Container>
       </section>
 
-      {/* ? Categories (now after Sale) */}
-      <section className="border-t border-neutral-200 bg-white py-14">
+      {/* Maison Aster category collection */}
+      <section className="ma-category-section">
         <Container>
-          <CategoryCarousel
-            items={categoryList}
-            title={homeSections.categoryTitle}
-            subtitle={homeSections.categorySubtitle}
-            viewAllHref={homeSections.categoryViewAllHref}
-            viewAllLabel={homeSections.categoryViewAllLabel}
-          />
-
+          <div className="ma-section-heading">
+            <div><h2>{homeSections.categoryTitle}</h2><p>{homeSections.categorySubtitle}</p></div>
+            <Link href={homeSections.categoryViewAllHref}>{homeSections.categoryViewAllLabel}</Link>
+          </div>
+          <MaisonCategoryCollection items={categoryList} />
         </Container>
       </section>
 

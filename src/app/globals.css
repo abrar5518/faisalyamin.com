@@ -110,6 +110,15 @@ h1, h2, h3 {
 }
 
 /* Maison Aster product card */
+.ma-category-section { padding: 90px 0; background: #fbfaf7; }
+.ma-category-grid { display: grid; grid-template-columns: 1.25fr 1fr 1fr; gap: 14px; }
+.ma-category-card { position: relative; height: 350px; overflow: hidden; background: #e9e5de; }
+.ma-category-card img { transition: transform .55s ease; }
+.ma-category-card:hover img { transform: scale(1.035); }
+.ma-category-shade { position: absolute; inset: 0; background: linear-gradient(0deg, rgba(0,0,0,.52), transparent 52%); }
+.ma-category-copy { position: absolute; bottom: 20px; left: 22px; z-index: 2; display: flex; flex-direction: column; color: #fff; }
+.ma-category-copy strong { font: 400 28px Georgia, "Times New Roman", serif; }
+.ma-category-copy small { margin-top: 5px; font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; }
 .ma-product-section {
   padding: 90px 0;
   background: #fbfaf7;
@@ -262,6 +271,10 @@ h1, h2, h3 {
   box-shadow: 0 0 0 1px #aaa;
 }
 @media (max-width: 700px) {
+  .ma-category-section { padding: 65px 0; overflow: hidden; }
+  .ma-category-grid { display: flex; gap: 10px; margin-right: -1rem; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .ma-category-grid::-webkit-scrollbar { display: none; }
+  .ma-category-card { min-width: 78%; height: 330px; scroll-snap-align: start; }
   .ma-product-section { padding: 65px 0; }
   .ma-section-heading { align-items: flex-start; margin-bottom: 25px; }
   .ma-section-heading h2 { font-size: 31px; }

@@ -6,6 +6,7 @@ import ImageUploader from "@/components/admin/common/ImageUploader";
 import { Fetch } from "@/lib/fetch";
 import { DEFAULT_HOME_SECTIONS, type HomeSections } from "@/lib/homeContent";
 import HomeProductPicker from "@/components/admin/home/HomeProductPicker";
+import HomeCategoryPicker from "@/components/admin/home/HomeCategoryPicker";
 
 type Pair = { title: string; desc: string };
 type Faq = { question: string; answer: string };
@@ -432,6 +433,14 @@ export default function AdminHomePage() {
               <Field label="Category subtitle" value={form.sections.categorySubtitle} onChange={(v) => setSection("categorySubtitle", v)} multiline />
               <Field label="Category view label" value={form.sections.categoryViewAllLabel} onChange={(v) => setSection("categoryViewAllLabel", v)} />
               <Field label="Category view link" value={form.sections.categoryViewAllHref} onChange={(v) => setSection("categoryViewAllHref", v)} />
+              <label className="block">
+                <span className="text-xs font-medium text-neutral-700">Category source</span>
+                <select value={form.sections.categorySource} onChange={(e) => setSection("categorySource", e.target.value as HomeSections["categorySource"])} className="mt-1 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none focus:border-neutral-900">
+                  <option value="featured">Featured categories</option>
+                  <option value="manual">Manually selected categories</option>
+                </select>
+              </label>
+              {form.sections.categorySource === "manual" ? <HomeCategoryPicker value={form.sections.categoryIds} onChange={(ids) => setSection("categoryIds", ids)} /> : null}
               <Field label="Featured title" value={form.sections.featuredTitle} onChange={(v) => setSection("featuredTitle", v)} />
               <Field label="Featured subtitle" value={form.sections.featuredSubtitle} onChange={(v) => setSection("featuredSubtitle", v)} multiline />
               <Field label="Filter labels (comma separated)" value={form.sections.featuredTabs.join(", ")} onChange={(v) => setSection("featuredTabs", v.split(",").map((x) => x.trim()).filter(Boolean))} />

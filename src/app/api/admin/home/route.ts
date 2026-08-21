@@ -102,6 +102,8 @@ const HomeSchema = z.object({
       categorySubtitle: z.string().min(1),
       categoryViewAllLabel: z.string().min(1),
       categoryViewAllHref: z.string().min(1),
+      categorySource: z.enum(["featured", "manual"]),
+      categoryIds: z.array(z.number().int().positive()),
       featuredTitle: z.string().min(1),
       featuredSubtitle: z.string().min(1),
       featuredTabs: z.array(z.string().min(1)),

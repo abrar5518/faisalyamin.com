@@ -195,6 +195,8 @@ Existing product fields cover the design. Improve labels/help text only if edito
 
 ## Milestone 4 — Category Collection Section
 
+**Status:** Completed on 2026-08-22. Added the supplied asymmetric three-card editorial collection layout, desktop 1.25/1/1 proportions, mobile horizontal scroll-snap, image overlays and typography, real category links, three-card design-reference fallback, and admin featured/manual category selection with ordering. Validation: TypeScript check, production build, admin settings response, public HTTPS 200, and three rendered category cards.
+
 - Asymmetric three-card editorial category layout
 - Uses real categories, images, names, and links
 - Admin selects/reorders featured categories and edits section heading/link
