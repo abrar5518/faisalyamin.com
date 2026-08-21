@@ -3,7 +3,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Star } from "lucide-react";
+import { Heart, Star } from "lucide-react";
+import { useState } from "react";
 import { withImageParams } from "@/lib/image";
 import AddToCartButton from "@/components/cart/AddToCartButton";
 import { useGlobalCopy } from "@/components/GlobalCopyProvider";
@@ -25,9 +26,13 @@ export type Product = {
   // optional subtitle (sale card me kaam aayega)
   subtitle?: string;
   shortDesc?: string;
+  productId?: number;
+  categoryLabel?: string;
+  colorSwatches?: Array<{ label: string; colorCode: string }>;
+  hasOptions?: boolean;
 };
 
-export type ProductCardVariant = "default" | "featured" | "compact" | "sale";
+export type ProductCardVariant = "default" | "featured" | "compact" | "sale" | "maison";
 
 function Stars({ value }: { value: number }) {
   const safeValue = Number.isFinite(value) ? Math.max(0, Math.min(5, value)) : 0;
@@ -362,6 +367,111 @@ function SaleCard({ p }: { p: Product }) {
   );
 }
 
+function MaisonWishlistButton({ productId, href }: { productId?: number; href: string }) {
+  const [active, setActive] = useState(false);
+  const [pending, setPending] = useState(false);
+
+  async function toggle() {
+    if (!productId || pending) return;
+    const previous = active;
+    setActive(!previous);
+    setPending(true);
+    try {
+      const response = await fetch("/api/account/wishlist", {
+        method: previous ? "DELETE" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId }),
+      });
+      if (response.status === 401) {
+        setActive(previous);
+        window.location.href = `/login?next=${encodeURIComponent(href)}`;
+        return;
+      }
+      if (!response.ok) setActive(previous);
+    } catch {
+      setActive(previous);
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      className={`ma-product-wish${active ? " is-active" : ""}`}
+      onClick={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        void toggle();
+      }}
+      aria-label={active ? "Remove from wishlist" : "Add to wishlist"}
+      aria-pressed={active}
+      disabled={!productId || pending}
+    >
+      <Heart aria-hidden="true" />
+    </button>
+  );
+}
+
+function MaisonCard({ p }: { p: Product }) {
+  const href = p.href ?? `/product/${p.id}`;
+  const subtitle = p.categoryLabel || p.subtitle || p.shortDesc;
+  const swatches = p.colorSwatches?.filter((item) => item.colorCode).slice(0, 5) ?? [];
+
+  return (
+    <article className="ma-product-card group">
+      <div className="ma-product-image">
+        <Link href={href} className="ma-product-image-link" aria-label={`View ${p.name}`}>
+          <ProductImageSwap
+            p={p}
+            params="auto=format&fit=crop&w=1000&q=88"
+            width={1000}
+            height={1250}
+            className="h-full w-full object-cover object-center transition duration-500 group-hover:scale-[1.025]"
+          />
+        </Link>
+        {p.badge ? <span className="ma-product-badge">{p.badge}</span> : null}
+        <MaisonWishlistButton productId={p.productId} href={href} />
+        {p.hasOptions ? (
+          <Link href={href} className="ma-product-quick-add">Choose options</Link>
+        ) : (
+          <AddToCartButton
+            id={p.id}
+            productId={p.productId}
+            slug={p.id}
+            name={p.name}
+            priceLabel={p.price}
+            compareAtLabel={p.compareAt}
+            image={p.image}
+            href={href}
+            badge={p.badge}
+            subtitle={subtitle}
+            className="ma-product-quick-add"
+          />
+        )}
+      </div>
+
+      <div className="ma-product-meta">
+        <div className="ma-product-mainline">
+          <Link href={href}>{p.name}</Link>
+          <span>{p.price}</span>
+        </div>
+        <div className="ma-product-subline">
+          <span>{subtitle || `${p.rating.toFixed(1)} · ${p.reviews} reviews`}</span>
+          {p.compareAt ? <span className="ma-product-compare">{p.compareAt}</span> : null}
+        </div>
+        {swatches.length ? (
+          <div className="ma-product-swatches" aria-label="Available colours">
+            {swatches.map((swatch) => (
+              <span key={`${swatch.label}-${swatch.colorCode}`} title={swatch.label} style={{ backgroundColor: swatch.colorCode }} />
+            ))}
+          </div>
+        ) : null}
+      </div>
+    </article>
+  );
+}
+
 
 export default function ProductCard({
   p,
@@ -373,5 +483,6 @@ export default function ProductCard({
   if (variant === "featured") return <FeaturedCard p={p} />;
   if (variant === "compact") return <CompactCard p={p} />;
   if (variant === "sale") return <SaleCard p={p} />;
+  if (variant === "maison") return <MaisonCard p={p} />;
   return <DefaultCard p={p} />;
 }

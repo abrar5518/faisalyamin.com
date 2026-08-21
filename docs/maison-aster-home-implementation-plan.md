@@ -138,6 +138,8 @@ Create a focused client component such as `HomeHeroSlider` and pass server-loade
 
 ## Milestone 2 — Shared Product Card Redesign
 
+**Status:** Completed on 2026-08-22. Added the reusable `maison` card variant, shared server/API product-card mapper, ordered primary/hover images, badges, wishlist action, safe quick-add/choose-options behavior, category/short-copy support, compare-at pricing, and variant color swatches. No database migration was required because the existing product, image, variant, cart, and wishlist structures cover the supplied card design. Validation: TypeScript check, production build, semantic interactive-element review, and public product API backward-compatible additive card payload.
+
 ### Visual target
 
 - Tall editorial image ratio

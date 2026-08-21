@@ -14,6 +14,7 @@ import { normalizeSiteUrl } from "@/lib/siteUrl";
 import FaqSection from "@/components/FaqSection";
 import { parseHomeSections } from "@/lib/homeContent";
 import HomeHeroSlider, { type HomeHeroSlideData } from "@/components/home/HomeHeroSlider";
+import { toProductCardData } from "@/lib/productCardData";
 
 type Testimonial = {
   name: string;
@@ -222,12 +223,6 @@ function Container({ children }: { children: ReactNode }) {
 }
 
 
-function formatPrice(value: unknown) {
-  const num = typeof value === "number" ? value : Number(value);
-  if (Number.isFinite(num)) return `PKR ${num.toLocaleString("en-PK")}`;
-  return "PKR 0";
-}
-
 function clampInt(value: unknown, fallback: number, min: number, max: number) {
   if (value === null || value === undefined || value === "") return fallback;
   const num = typeof value === "number" ? value : Number(value);
@@ -246,31 +241,6 @@ function normalizeRating(value: unknown, fallback = 5) {
   return Number(clampFloat(value, fallback, 1, 5).toFixed(1));
 }
 
-function pickProductImages(images: Array<{ url?: string; alt?: string | null; sortOrder?: number; mediaType?: string | null }> = []) {
-  const sorted = [...images].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-  return sorted.filter((image) => (image.mediaType ?? "image") === "image");
-}
-function toProduct(p: any, fallbackImage: string): Product {
-  const productImages = pickProductImages(p.images || []);
-  const img = productImages[0]?.url || fallbackImage;
-  const slug = p.slug ?? String(p.id ?? "");
-  return {
-    id: slug,
-    name: p.name ?? "Untitled product",
-    price: formatPrice(p.price),
-    compareAt: p.compareAt != null ? formatPrice(p.compareAt) : undefined,
-    badge: p.badge ?? undefined,
-    rating: typeof p.rating === "number" ? p.rating : 0,
-    reviews: typeof p.reviewsCount === "number" ? p.reviewsCount : 0,
-    image: img,
-    imageAlt: productImages[0]?.alt || p.name,
-    hoverImage: productImages[1]?.url,
-    hoverImageAlt: productImages[1]?.alt || p.name,
-    href: `/product/${slug}`,
-    subtitle: p.shortDesc ?? undefined,
-  };
-}
-
 export default async function HomePage() {
   const [categoryRows, featuredRows, saleRows, pageRow, siteSettings, contact] = await Promise.all([
     prisma.category.findMany({
@@ -282,7 +252,7 @@ export default async function HomePage() {
     prisma.product.findMany({
       where: { isFeatured: true, isActive: true },
       orderBy: { createdAt: "desc" },
-      include: { images: true },
+      include: { images: true, category: { select: { name: true } } },
     }),
     prisma.product.findMany({
       where: {
@@ -291,7 +261,7 @@ export default async function HomePage() {
       },
       orderBy: { createdAt: "desc" },
       take: 8,
-      include: { images: true },
+      include: { images: true, category: { select: { name: true } } },
     }),
     prisma.page.findUnique({
       where: { slug: "home" },
@@ -319,12 +289,12 @@ export default async function HomePage() {
 
   const featuredList: Product[] =
     featuredRows.length > 0
-      ? featuredRows.map((p) => toProduct(p, IMAGES.p1))
+      ? featuredRows.map((p) => toProductCardData(p, IMAGES.p1))
       : featuredProductsFallback;
 
   const saleList: Product[] =
     saleRows.length > 0
-      ? saleRows.map((p) => toProduct(p, IMAGES.p2))
+      ? saleRows.map((p) => toProductCardData(p, IMAGES.p2))
       : saleProductsFallback;
   const homeSections = parseHomeSections(pageRow?.sectionsJson);
   const hero = {

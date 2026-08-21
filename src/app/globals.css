@@ -109,6 +109,131 @@ h1, h2, h3 {
   }
 }
 
+/* Maison Aster product card */
+.ma-product-card {
+  min-width: 0;
+  color: #171713;
+}
+.ma-product-image {
+  position: relative;
+  height: 385px;
+  overflow: hidden;
+  background: #eee9e2;
+}
+.ma-product-image-link {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+.ma-product-image-link img { transition: opacity .35s ease, transform .5s ease; }
+.ma-product-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 3;
+  padding: 7px 9px;
+  background: rgba(255,255,255,.94);
+  color: #171713;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.ma-product-wish {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 4;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255,255,255,.94);
+  color: #171713;
+  cursor: pointer;
+}
+.ma-product-wish svg { width: 16px; height: 16px; stroke-width: 1.5; }
+.ma-product-wish.is-active svg { fill: #1d372e; color: #1d372e; }
+.ma-product-wish:disabled { cursor: default; opacity: .55; }
+.ma-product-quick-add {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  left: 10px;
+  z-index: 4;
+  display: flex;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: rgba(21,22,20,.94);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transform: translateY(55px);
+  transition: transform .25s ease, background .2s ease;
+}
+.ma-product-card:hover .ma-product-quick-add,
+.ma-product-card:focus-within .ma-product-quick-add { transform: translateY(0); }
+.ma-product-quick-add:hover { background: #1d372e; }
+.ma-product-meta { padding: 13px 2px 2px; }
+.ma-product-mainline,
+.ma-product-subline {
+  display: flex;
+  min-width: 0;
+  justify-content: space-between;
+  gap: 12px;
+}
+.ma-product-mainline { font-size: 13px; line-height: 1.4; }
+.ma-product-mainline a {
+  overflow: hidden;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ma-product-mainline > span { flex: none; }
+.ma-product-subline {
+  margin-top: 5px;
+  color: #77746e;
+  font-size: 10px;
+  line-height: 1.4;
+}
+.ma-product-subline > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ma-product-compare { flex: none; text-decoration: line-through; }
+.ma-product-swatches {
+  display: flex;
+  gap: 6px;
+  margin-top: 9px;
+  padding-left: 1px;
+}
+.ma-product-swatches span {
+  width: 12px;
+  height: 12px;
+  border: 1px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px #aaa;
+}
+@media (max-width: 700px) {
+  .ma-product-image { height: 285px; }
+  .ma-product-mainline { align-items: flex-start; gap: 6px; font-size: 11px; }
+  .ma-product-mainline a { white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+  .ma-product-quick-add { height: 36px; font-size: 8px; transform: none; }
+  .ma-product-wish { width: 32px; height: 32px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ma-product-image-link img,
+  .ma-product-quick-add { transition: none; }
+}
+
 /* ---------- Buttons (Global) FIX (no custom utilities) ---------- */
 .btn-primary {
   @apply inline-flex items-center justify-center

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
+import { toProductCardData } from "@/lib/productCardData";
+
+const PRODUCT_FALLBACK_IMAGE = "/images/shopping.jpg";
 
 export async function GET(req: NextRequest) {
   try {
@@ -20,7 +23,7 @@ export async function GET(req: NextRequest) {
       const item = await prisma.product.findUnique({
         where: { slug },
         include: {
-          category: { select: { slug: true } },
+          category: { select: { slug: true, name: true } },
           subcategory: { select: { slug: true } },
           productCategories: {
             include: { category: { select: { slug: true } } },
@@ -61,6 +64,7 @@ export async function GET(req: NextRequest) {
         ok: true,
         data: {
           ...clean,
+          card: toProductCardData({ ...item, category: { name: category.name } }, PRODUCT_FALLBACK_IMAGE),
           categorySlug: category.slug,
           subcategorySlug: subcategory?.slug ?? null,
           categorySlugs,
@@ -132,7 +136,7 @@ export async function GET(req: NextRequest) {
         skip: (safePage - 1) * safePageSize,
         take: safePageSize,
         include: {
-          category: { select: { slug: true } },
+          category: { select: { slug: true, name: true } },
           subcategory: { select: { slug: true } },
           productCategories: {
             include: { category: { select: { slug: true } } },
@@ -170,6 +174,7 @@ export async function GET(req: NextRequest) {
 
       return {
         ...clean,
+        card: toProductCardData({ ...item, category: { name: category.name } }, PRODUCT_FALLBACK_IMAGE),
         categorySlug: category.slug,
         subcategorySlug: subcategory?.slug ?? null,
         categorySlugs,
