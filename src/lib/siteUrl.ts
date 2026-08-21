@@ -1,6 +1,6 @@
-const DEFAULT_SITE_URL = "https://www.sahoolat.pk";
-const CANONICAL_HOST = "www.sahoolat.pk";
-const ROOT_HOST = "sahoolat.pk";
+const DEFAULT_SITE_URL = "https://www.faisalyamin.com";
+const CANONICAL_HOST = "www.faisalyamin.com";
+const ROOT_HOST = "faisalyamin.com";
 
 export function normalizeSiteUrl(value?: string | null) {
   const fallback = process.env.SITE_URL || DEFAULT_SITE_URL;

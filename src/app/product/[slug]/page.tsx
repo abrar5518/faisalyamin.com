@@ -438,11 +438,11 @@ export default async function ProductPage({ params }: PageProps) {
     datePublished: r.createdAt,
   }));
   const schemaBrand =
-    typedProduct.brand?.trim() || catalogSettings.productBrandFallback || "Sahoolat";
+    typedProduct.brand?.trim() || catalogSettings.productBrandFallback || "Faisal Yamin";
   const schemaShippingPrice = parsePKRAmount(storeSettings?.defaultShippingFee) ?? 250;
   const schemaReturnDays = storeSettings?.returnsDays ?? 7;
   const schemaSellerName =
-    storeSettings?.storeName?.trim() || siteSettings?.siteName?.trim() || "Sahoolat";
+    storeSettings?.storeName?.trim() || siteSettings?.siteName?.trim() || "Faisal Yamin";
   const schemaColor = apiVariants.length
     ? apiVariants.map((variant) => variant.label.trim()).filter(Boolean).join(", ")
     : undefined;

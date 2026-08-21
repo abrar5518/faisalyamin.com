@@ -147,7 +147,7 @@ export default async function PrivacyPage() {
           <div className="mt-8 rounded-3xl border border-neutral-200 bg-neutral-50 p-6 sm:p-8">
             <p className="text-sm font-semibold">Pakistan-only services</p>
             <p className="mt-2 text-sm leading-relaxed text-neutral-600">
-              Sahoolat currently serves customers in Pakistan only. If our service
+              Faisal Yamin currently serves customers in Pakistan only. If our service
               area changes, this policy may be updated. We may update this Privacy
               Policy from time to time, and the latest version will remain available
               on this page.

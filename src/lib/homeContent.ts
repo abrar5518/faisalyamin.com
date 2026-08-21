@@ -49,7 +49,7 @@ export const DEFAULT_HOME_SECTIONS: HomeSections = {
   reviewsEnabled: true,
   reviewsBadge: "Trusted by buyers",
   reviewsTitle: "Customers reviews and stories",
-  reviewsSubtitle: "Real feedback from customers who bought from Sahoolat.pk",
+  reviewsSubtitle: "Real feedback from customers who bought from FaisalYamin.com",
   reviewsLinkLabel: "Read more",
   reviewsLinkHref: "/reviews",
   introBadge: "Introducing products",

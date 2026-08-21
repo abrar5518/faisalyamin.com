@@ -11,7 +11,7 @@ export const metadata = {
 
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
   const siteSettings = await prisma.siteSettings.findFirst({ orderBy: { id: "asc" } });
-  const siteName = siteSettings?.siteName || "Sahoolat";
+  const siteName = siteSettings?.siteName || "Faisal Yamin";
   const logoUrl = siteSettings?.logoUrl || null;
   const logoAlt = siteSettings?.logoAlt || siteName;
 

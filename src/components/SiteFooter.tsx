@@ -131,7 +131,7 @@ export default function SiteFooter() {
 
   if (hideFooter) return null;
 
-  const brandName = settings?.siteName?.trim() || "Sahoolat";
+  const brandName = settings?.siteName?.trim() || "Faisal Yamin";
   const footerText =
     settings?.siteFooterText?.trim() ||
     "Shop quality products with secure checkout, clear support, and reliable delivery across Pakistan.";

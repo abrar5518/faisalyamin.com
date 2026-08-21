@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { canonicalUrl, normalizeCanonicalUrl } from "@/lib/siteUrl";
 
 const SITE_URL = canonicalUrl();
-const BRAND = "Sahoolat";
+const BRAND = "Faisal Yamin";
 const GOOGLE_PRODUCT_CATEGORY =
   "Home & Garden > Kitchen & Dining > Food & Beverage Carriers > Water Bottles";
 

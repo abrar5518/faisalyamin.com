@@ -144,7 +144,7 @@ export default function SignupPage() {
             LX
           </span>
           <div className="leading-tight">
-            <p className="text-sm font-semibold">Sahoolat</p>
+            <p className="text-sm font-semibold">Faisal Yamin</p>
             <p className="text-xs text-neutral-500">Premium eCommerce</p>
           </div>
         </Link>

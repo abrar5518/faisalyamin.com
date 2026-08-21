@@ -135,7 +135,7 @@ export default function SiteHeader() {
 
   if (hideHeader) return null;
 
-  const brandName = settings?.siteName?.trim() || "Sahoolat";
+  const brandName = settings?.siteName?.trim() || "Faisal Yamin";
   const brandInitials =
     brandName
       .split(" ")

@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const CANONICAL_HOST = "www.sahoolat.pk";
-const ROOT_HOST = "sahoolat.pk";
+const CANONICAL_HOST = "www.faisalyamin.com";
+const ROOT_HOST = "faisalyamin.com";
 const PRIVATE_PREFIXES = [
   "/admin",
   "/api",
@@ -37,6 +37,7 @@ export function middleware(req: NextRequest) {
     const url = req.nextUrl.clone();
     url.protocol = "https";
     url.hostname = CANONICAL_HOST;
+    url.port = "";
     return NextResponse.redirect(url, 301);
   }
 

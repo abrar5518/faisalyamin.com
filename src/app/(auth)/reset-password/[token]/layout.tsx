@@ -10,7 +10,7 @@ export async function generateMetadata({ params }: LayoutProps) {
   const baseUrl = normalizeSiteUrl();
   return {
     title: "Reset Password",
-    description: "Set a new password for your Sahoolat account.",
+    description: "Set a new password for your Faisal Yamin account.",
     alternates: { canonical: `${baseUrl}/reset-password/${token}` },
   };
 }

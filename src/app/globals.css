@@ -202,7 +202,7 @@ h1, h2, h3 {
 }
 
 /* ======================================================================
-   Sahoolat Rich Text Styles (TipTap / ProseMirror)
+   Faisal Yamin Rich Text Styles (TipTap / ProseMirror)
    Usage:
    - Viewer: <div className="rt-content" dangerouslySetInnerHTML={{__html}} />
    - Editor: <EditorContent className="rt-editor" editor={editor} />

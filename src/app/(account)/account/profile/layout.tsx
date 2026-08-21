@@ -4,7 +4,7 @@ const baseUrl = normalizeSiteUrl();
 
 export const metadata = {
   title: "Profile",
-  description: "Manage your Sahoolat profile details.",
+  description: "Manage your Faisal Yamin profile details.",
   alternates: { canonical: `${baseUrl}/account/profile` },
 };
 

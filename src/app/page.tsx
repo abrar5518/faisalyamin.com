@@ -436,7 +436,7 @@ export default async function HomePage() {
   const testimonialsList: Testimonial[] =
     testimonialsFromCms.length > 0 ? testimonialsFromCms : testimonialsFallback;
   const baseUrlResolved = normalizeSiteUrl(siteSettings?.siteUrl || baseUrl);
-  const brandName = siteSettings?.siteName?.trim() || "Sahoolat";
+  const brandName = siteSettings?.siteName?.trim() || "Faisal Yamin";
   const logoUrl = siteSettings?.logoUrl || siteSettings?.siteIconUrl || "/favicon.ico";
   const orgAddress = contact
     ? {
@@ -701,7 +701,7 @@ export default async function HomePage() {
                 Customer reviews coming soon
               </h2>
               <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-neutral-600">
-                We are preparing verified customer feedback for Sahoolat.pk shoppers.
+                We are preparing verified customer feedback for FaisalYamin.com shoppers.
               </p>
             </div>
           </Container>

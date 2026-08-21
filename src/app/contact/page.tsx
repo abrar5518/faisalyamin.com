@@ -47,7 +47,7 @@ export default async function ContactPage() {
     .filter(Boolean)
     .join(", ");
   const baseUrlResolved = normalizeSiteUrl(siteSettings?.siteUrl || baseUrl);
-  const brandName = siteSettings?.siteName?.trim() || "Sahoolat";
+  const brandName = siteSettings?.siteName?.trim() || "Faisal Yamin";
   const logoUrl = siteSettings?.logoUrl || siteSettings?.siteIconUrl || "/favicon.ico";
   const orgAddress = {
     streetAddress: [contact?.addressLine1, contact?.addressLine2].filter(Boolean).join(", ") || undefined,

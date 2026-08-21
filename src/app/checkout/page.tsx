@@ -378,7 +378,7 @@ export default function CheckoutPage() {
     }
   };
 
-  const brandName = branding?.siteName?.trim() || "Sahoolat";
+  const brandName = branding?.siteName?.trim() || "Faisal Yamin";
   const checkoutLogoUrl = branding?.logoUrl?.trim() || branding?.siteIconUrl?.trim() || "";
   const brandInitials =
     brandName

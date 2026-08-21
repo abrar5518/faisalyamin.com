@@ -26,10 +26,10 @@ export async function generateMetadata(): Promise<Metadata> {
     : undefined;
   const canonical = baseUrlResolved ? `${baseUrlResolved}/deals` : undefined;
   return {
-    title: page?.metaTitle || "Best Deals on Water Bottles in Pakistan | Sahoolat",
+    title: page?.metaTitle || "Best Deals on Water Bottles in Pakistan | Faisal Yamin",
     description:
       page?.metaDescription ||
-      "Grab the latest discounts and deals on premium water bottles in Pakistan. Limited-time offers at Sahoolat.",
+      "Grab the latest discounts and deals on premium water bottles in Pakistan. Limited-time offers at Faisal Yamin.",
     keywords: page?.metaKeywords || undefined,
     alternates: canonical ? { canonical } : undefined,
     openGraph: {

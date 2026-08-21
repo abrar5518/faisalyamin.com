@@ -22,6 +22,8 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "sahoolat.pk" },
       { protocol: "https", hostname: "www.sahoolat.pk" },
+      { protocol: "https", hostname: "faisalyamin.com" },
+      { protocol: "https", hostname: "www.faisalyamin.com" },
       ...(siteHostname
         ? [
             { protocol: "https" as const, hostname: siteHostname },

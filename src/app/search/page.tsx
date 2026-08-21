@@ -20,7 +20,7 @@ export async function generateMetadata({ searchParams }: SearchPageProps) {
   const shopUrl = canonicalUrl("/shop");
   const title = query ? `Search: ${query}` : "Search products, categories, or deals";
   const description = query
-    ? `Search results for "${query}" on Sahoolat.`
+    ? `Search results for "${query}" on Faisal Yamin.`
     : "Search and find products online in Pakistan. Discover top products and current offers.";
 
   return {

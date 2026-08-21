@@ -70,7 +70,7 @@ async function getSiteSettings() {
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
-  const siteName = settings?.siteName?.trim() || "Sahoolat";
+  const siteName = settings?.siteName?.trim() || "Faisal Yamin";
   const baseUrlResolved = normalizeSiteUrl(settings?.siteUrl);
   const metadataBase = (() => {
     if (!baseUrlResolved) return undefined;

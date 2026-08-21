@@ -115,7 +115,7 @@ export default async function ReturnsPage() {
               <p className="text-sm font-semibold">Return shipping fee</p>
               <p className="mt-2 text-sm leading-relaxed text-neutral-600">
                 If the item is damaged, defective or incorrect due to our mistake,
-                Sahoolat will guide you on the return shipping process. For buyer
+                Faisal Yamin will guide you on the return shipping process. For buyer
                 remorse, wrong item ordered, change of mind or exchange requests,
                 the customer may be responsible for return shipping charges.
               </p>

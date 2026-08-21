@@ -350,7 +350,7 @@ export default async function BlogPostPage({ params }: PageProps) {
   const htmlWithIds = injectHeadingIds(post.html, headings);
   const baseUrlResolved = normalizeSiteUrl(siteSettings?.siteUrl);
   const pageUrl = `${baseUrlResolved}/blog/${post.slug}`;
-  const publisherName = siteSettings?.siteName?.trim() || "Sahoolat";
+  const publisherName = siteSettings?.siteName?.trim() || "Faisal Yamin";
   const publisherLogo = siteSettings?.logoUrl || siteSettings?.siteIconUrl || "/favicon.ico";
   const descriptionText = post.excerpt || excerptFromHtml(post.html);
   const contactWhatsapp = contact?.whatsapp || "";

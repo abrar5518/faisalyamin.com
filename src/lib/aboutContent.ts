@@ -307,7 +307,7 @@ export const defaultAboutContent: AboutContent = {
     items: [
       {
         q: "Do you sell original products only?",
-        a: "Yes. We aim to keep Sahoolat a trust-based platform with careful checks, clear listing details, and reliable support.",
+        a: "Yes. We aim to keep Faisal Yamin a trust-based platform with careful checks, clear listing details, and reliable support.",
       },
       {
         q: "Do you have both in-stock and dropship items?",
@@ -334,7 +334,7 @@ export const defaultAboutContent: AboutContent = {
       "Use <a href=\"/contact\" class=\"text-neutral-900 hover:underline\">Contact</a> for direct support. For policies, check <a href=\"/shipping\" class=\"text-neutral-900 hover:underline\">Shipping</a>, <a href=\"/returns\" class=\"text-neutral-900 hover:underline\">Returns</a>, and <a href=\"/privacy\" class=\"text-neutral-900 hover:underline\">Privacy Policy</a>.",
   },
   finalCta: {
-    title: "Ready to explore Sahoolat?",
+    title: "Ready to explore Faisal Yamin?",
     desc: "Browse categories, compare products, and checkout securely. For help, reach us from the Contact page.",
     primaryLabel: "Browse categories",
     primaryHref: "/categories",

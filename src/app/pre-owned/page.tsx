@@ -7,9 +7,9 @@ import { normalizeSiteUrl } from "@/lib/siteUrl";
 const baseUrl = normalizeSiteUrl();
 
 export const metadata: Metadata = {
-  title: "Water Bottle Deals | Sahoolat",
-  description: "Browse Sahoolat water bottle deals and affordable bottle offers in Pakistan.",
-  keywords: "water bottle deals Pakistan, bottle offers, Sahoolat deals",
+  title: "Water Bottle Deals | Faisal Yamin",
+  description: "Browse Faisal Yamin water bottle deals and affordable bottle offers in Pakistan.",
+  keywords: "water bottle deals Pakistan, bottle offers, Faisal Yamin deals",
   alternates: { canonical: `${baseUrl}/pre-owned` },
   robots: { index: false, follow: true },
 };
