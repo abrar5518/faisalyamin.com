@@ -5,6 +5,7 @@ import AdminTopbar from "@/components/admin/AdminTopbar";
 import ImageUploader from "@/components/admin/common/ImageUploader";
 import { Fetch } from "@/lib/fetch";
 import { DEFAULT_HOME_SECTIONS, type HomeSections } from "@/lib/homeContent";
+import HomeProductPicker from "@/components/admin/home/HomeProductPicker";
 
 type Pair = { title: string; desc: string };
 type Faq = { question: string; answer: string };
@@ -434,6 +435,21 @@ export default function AdminHomePage() {
               <Field label="Featured title" value={form.sections.featuredTitle} onChange={(v) => setSection("featuredTitle", v)} />
               <Field label="Featured subtitle" value={form.sections.featuredSubtitle} onChange={(v) => setSection("featuredSubtitle", v)} multiline />
               <Field label="Filter labels (comma separated)" value={form.sections.featuredTabs.join(", ")} onChange={(v) => setSection("featuredTabs", v.split(",").map((x) => x.trim()).filter(Boolean))} />
+              <label className="block">
+                <span className="text-xs font-medium text-neutral-700">Product source</span>
+                <select value={form.sections.featuredSource} onChange={(e) => setSection("featuredSource", e.target.value as HomeSections["featuredSource"])} className="mt-1 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none focus:border-neutral-900">
+                  <option value="featured">Featured products</option>
+                  <option value="sale">Sale products</option>
+                  <option value="new">Newest products</option>
+                  <option value="manual">Manually selected products</option>
+                </select>
+              </label>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Product limit" type="number" value={form.sections.featuredLimit} onChange={(v) => setSection("featuredLimit", Number(v))} />
+                <Field label="View all label" value={form.sections.featuredViewAllLabel} onChange={(v) => setSection("featuredViewAllLabel", v)} />
+              </div>
+              <Field label="View all link" value={form.sections.featuredViewAllHref} onChange={(v) => setSection("featuredViewAllHref", v)} />
+              {form.sections.featuredSource === "manual" ? <HomeProductPicker value={form.sections.featuredProductIds} onChange={(ids) => setSection("featuredProductIds", ids)} /> : null}
             </Panel>
 
             <Panel title="Social proof">

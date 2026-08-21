@@ -74,10 +74,10 @@ const IMAGES = {
   catBest: "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3",
   catPreowned: "https://images.unsplash.com/photo-1523275335684-37898b6baf30",
 
-  p1: "https://images.unsplash.com/photo-1524592094714-0f0654e20314",
-  p2: "https://images.unsplash.com/photo-1547996160-81dfa63595aa",
-  p3: "https://images.unsplash.com/photo-1519741497674-611481863552",
-  p4: "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3",
+  p1: "https://images.unsplash.com/photo-1539533018447-63fcce2678e3",
+  p2: "https://images.unsplash.com/photo-1551028719-00167b16eac5",
+  p3: "https://images.unsplash.com/photo-1539109136881-3be0616acf4b",
+  p4: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea",
   p5: "https://images.unsplash.com/photo-1511379938547-c1f69419868d",
   p6: "https://images.unsplash.com/photo-1523275335684-37898b6baf30",
 
@@ -87,12 +87,10 @@ const IMAGES = {
 };
 
 const featuredProductsFallback: Product[] = [
-  { id: "1", name: "Featured Everyday Product", price: "PKR 2,450", compareAt: "PKR 2,950", badge: "Hot", rating: 4.8, reviews: 214, image: IMAGES.p1 },
-  { id: "2", name: "Customer Favorite Item", price: "PKR 850", badge: "Popular", rating: 4.9, reviews: 98, image: IMAGES.p2 },
-  { id: "3", name: "New Arrival Product", price: "PKR 1,650", badge: "New", rating: 5.0, reviews: 41, image: IMAGES.p3 },
-  { id: "4", name: "Practical Daily Essential", price: "PKR 1,150", rating: 4.7, reviews: 392, image: IMAGES.p4 },
-  { id: "5", name: "Affordable Best Seller", price: "PKR 650", rating: 4.6, reviews: 167, image: IMAGES.p5 },
-  { id: "6", name: "Premium Value Product", price: "PKR 1,950", rating: 4.8, reviews: 120, image: IMAGES.p6 },
+  { id: "reference-coat", name: "Structure Wool Coat", price: "PKR 22,900", badge: "New season", rating: 4.9, reviews: 128, image: IMAGES.p1, href: "/shop", subtitle: "Relaxed fit", hasOptions: true, colorSwatches: [{ label: "Sand", colorCode: "#d4c3ae" }, { label: "Forest", colorCode: "#29443b" }, { label: "Black", colorCode: "#171717" }] },
+  { id: "reference-jacket", name: "Leather Studio Jacket", price: "PKR 28,900", badge: "Bestseller", rating: 4.8, reviews: 94, image: IMAGES.p2, href: "/shop", subtitle: "Limited edition", hasOptions: true, colorSwatches: [{ label: "Tan", colorCode: "#9c7251" }, { label: "Black", colorCode: "#171717" }] },
+  { id: "reference-dress", name: "Sculpted Midi Dress", price: "PKR 14,900", badge: "Online exclusive", rating: 4.7, reviews: 61, image: IMAGES.p3, href: "/shop", subtitle: "3 colours", hasOptions: true, colorSwatches: [{ label: "Stone", colorCode: "#c8b8a5" }, { label: "Rose", colorCode: "#b57a78" }, { label: "Ink", colorCode: "#30343b" }] },
+  { id: "reference-overshirt", name: "Utility Overshirt", price: "PKR 11,900", badge: "Trending", rating: 4.9, reviews: 77, image: IMAGES.p4, href: "/shop", subtitle: "4 colours", hasOptions: true, colorSwatches: [{ label: "Olive", colorCode: "#70745b" }, { label: "Navy", colorCode: "#293747" }] },
 ];
 
 const saleProductsFallback: Product[] = [
@@ -250,8 +248,9 @@ export default async function HomePage() {
       select: { name: true, slug: true, description: true, image: true, imageAlt: true },
     }),
     prisma.product.findMany({
-      where: { isFeatured: true, isActive: true },
+      where: { isActive: true },
       orderBy: { createdAt: "desc" },
+      take: 24,
       include: { images: true, category: { select: { name: true } } },
     }),
     prisma.product.findMany({
@@ -287,16 +286,23 @@ export default async function HomePage() {
       }))
       : [];
 
-  const featuredList: Product[] =
-    featuredRows.length > 0
-      ? featuredRows.map((p) => toProductCardData(p, IMAGES.p1))
-      : featuredProductsFallback;
-
+  const homeSections = parseHomeSections(pageRow?.sectionsJson);
+  const featuredCandidates = homeSections.featuredSource === "manual"
+    ? homeSections.featuredProductIds
+      .map((id) => featuredRows.find((product) => product.id === id))
+      .filter((product): product is NonNullable<typeof product> => Boolean(product))
+    : homeSections.featuredSource === "sale"
+      ? featuredRows.filter((product) => product.isSale || product.compareAt != null)
+      : homeSections.featuredSource === "new"
+        ? featuredRows
+        : featuredRows.filter((product) => product.isFeatured);
+  const featuredList: Product[] = featuredCandidates.length
+    ? featuredCandidates.slice(0, homeSections.featuredLimit).map((product) => toProductCardData(product, IMAGES.p1))
+    : featuredProductsFallback.slice(0, homeSections.featuredLimit);
   const saleList: Product[] =
     saleRows.length > 0
       ? saleRows.map((p) => toProductCardData(p, IMAGES.p2))
       : saleProductsFallback;
-  const homeSections = parseHomeSections(pageRow?.sectionsJson);
   const hero = {
     badge: pageRow?.heroBadge || "Pakistan-based online shopping store",
     title: pageRow?.heroTitle || "Premium products, curated for people who care about details.",
@@ -547,31 +553,22 @@ export default async function HomePage() {
         </Container>
       </section>
 
-      {/* ? Featured Products (now after Categories) */}
-      <section className="border-t border-neutral-200 bg-neutral-50 py-14">
+      {/* Maison Aster first product edit */}
+      <section className="ma-product-section">
         <Container>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="ma-section-heading">
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight">{homeSections.featuredTitle}</h2>
-              <p className="mt-2 text-sm text-neutral-600">
-                {homeSections.featuredSubtitle}
-              </p>
+              <h2>{homeSections.featuredTitle}</h2>
+              <p>{homeSections.featuredSubtitle}</p>
             </div>
-            <div className="hidden sm:flex items-center gap-2">
-              {homeSections.featuredTabs.map((t) => (
-                <button
-                  key={t}
-                  className="rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm hover:bg-neutral-100"
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
+            <Link href={homeSections.featuredViewAllHref}>{homeSections.featuredViewAllLabel}</Link>
           </div>
-
-          <div className="product-card-grid mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+          <div className="ma-product-tabs" aria-label="Product collections">
+            {homeSections.featuredTabs.map((tab, index) => <span key={tab} className={index === 0 ? "is-active" : ""}>{tab}</span>)}
+          </div>
+          <div className="ma-product-grid">
             {featuredList.map((p) => (
-              <ProductCard key={p.id} p={p} variant="sale" />
+              <ProductCard key={p.id} p={p} variant="maison" />
             ))}
           </div>
         </Container>

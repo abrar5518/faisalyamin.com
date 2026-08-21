@@ -20,6 +20,11 @@ export type HomeSections = {
   featuredTitle: string;
   featuredSubtitle: string;
   featuredTabs: string[];
+  featuredSource: "featured" | "sale" | "new" | "manual";
+  featuredLimit: number;
+  featuredViewAllLabel: string;
+  featuredViewAllHref: string;
+  featuredProductIds: number[];
   socialProofEnabled: boolean;
   socialProofItems: HomeSocialProofItem[];
   reviewsEnabled: boolean;
@@ -47,9 +52,14 @@ export const DEFAULT_HOME_SECTIONS: HomeSections = {
   categorySubtitle: "Browse curated collections made for premium tastes.",
   categoryViewAllLabel: "View all",
   categoryViewAllHref: "/categories",
-  featuredTitle: "Featured Products",
-  featuredSubtitle: "Shop popular products selected for this store.",
-  featuredTabs: ["All", "Popular", "New Arrivals", "Best Value"],
+  featuredTitle: "Trending now",
+  featuredSubtitle: "Fresh silhouettes selected by our fashion editors.",
+  featuredTabs: ["New arrivals", "Bestsellers", "The essentials"],
+  featuredSource: "featured",
+  featuredLimit: 8,
+  featuredViewAllLabel: "View all products",
+  featuredViewAllHref: "/shop",
+  featuredProductIds: [],
   socialProofEnabled: true,
   socialProofItems: [
     { title: "Quality Checked", desc: "Products are checked before shipping." },
@@ -114,6 +124,15 @@ export function parseHomeSections(value?: string | null): HomeSections {
       featuredTitle: cleanString(raw.featuredTitle, DEFAULT_HOME_SECTIONS.featuredTitle),
       featuredSubtitle: cleanString(raw.featuredSubtitle, DEFAULT_HOME_SECTIONS.featuredSubtitle),
       featuredTabs: cleanStringArray(raw.featuredTabs, DEFAULT_HOME_SECTIONS.featuredTabs),
+      featuredSource: ["featured", "sale", "new", "manual"].includes(raw.featuredSource)
+        ? raw.featuredSource
+        : DEFAULT_HOME_SECTIONS.featuredSource,
+      featuredLimit: Math.min(24, Math.max(1, Number(raw.featuredLimit) || DEFAULT_HOME_SECTIONS.featuredLimit)),
+      featuredViewAllLabel: cleanString(raw.featuredViewAllLabel, DEFAULT_HOME_SECTIONS.featuredViewAllLabel),
+      featuredViewAllHref: cleanString(raw.featuredViewAllHref, DEFAULT_HOME_SECTIONS.featuredViewAllHref),
+      featuredProductIds: Array.isArray(raw.featuredProductIds)
+        ? raw.featuredProductIds.map(Number).filter((id: number) => Number.isInteger(id) && id > 0)
+        : DEFAULT_HOME_SECTIONS.featuredProductIds,
       socialProofEnabled: cleanBoolean(raw.socialProofEnabled, DEFAULT_HOME_SECTIONS.socialProofEnabled),
       socialProofItems: cleanSocialItems(raw.socialProofItems, DEFAULT_HOME_SECTIONS.socialProofItems),
       reviewsEnabled: cleanBoolean(raw.reviewsEnabled, DEFAULT_HOME_SECTIONS.reviewsEnabled),

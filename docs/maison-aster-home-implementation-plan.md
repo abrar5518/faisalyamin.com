@@ -185,6 +185,8 @@ Existing product fields cover the design. Improve labels/help text only if edito
 
 ## Milestone 3 — First Product Section
 
+**Status:** Completed on 2026-08-22. The supplied `Trending now` composition now uses the shared Maison cards, four-column desktop/two-column mobile layout, editorial heading/tabs/view-all styling, and admin-managed title, subtitle, tabs, source, limit, link, and manually ordered product selection. Empty stores use four design-reference cards; real active products replace them according to the configured source. Validation: TypeScript check, production build, authenticated admin GET/PUT round-trip, four-card public render, HTTPS 200, and PM2 online check.
+
 - Supplied section heading, subtitle, view-all action, spacing, and four-column desktop grid
 - Uses new shared product cards
 - Admin controls heading/subtitle/link, enabled state, source (`featured`, `sale`, `new`, or manually selected), limit, and ordering
