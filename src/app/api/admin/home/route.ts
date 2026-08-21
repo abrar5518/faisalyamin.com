@@ -29,6 +29,24 @@ const SocialProofSchema = z.object({
   desc: z.string().min(1),
 });
 
+const HeroSlideSchema = z.object({
+  id: z.number().int().positive().optional(),
+  eyebrow: z.string().optional(),
+  title: z.string().min(1),
+  description: z.string().optional(),
+  primaryLabel: z.string().optional(),
+  primaryHref: z.string().optional(),
+  secondaryLabel: z.string().optional(),
+  secondaryHref: z.string().optional(),
+  desktopImage: z.string().min(1),
+  mobileImage: z.string().optional(),
+  imageAlt: z.string().optional(),
+  backgroundColor: z.string().optional(),
+  accentColor: z.string().optional(),
+  badgeText: z.string().optional(),
+  isEnabled: z.boolean().optional(),
+});
+
 const HomeSchema = z.object({
   title: z.string().min(2),
   metaTitle: z.string().optional(),
@@ -68,8 +86,14 @@ const HomeSchema = z.object({
   homeSaleVisibleCount: z.number().min(1).max(6).optional(),
   homeSaleAutoMs: z.number().int().min(1000).max(20000).optional(),
   homeTestimonials: z.array(TestimonialSchema).optional(),
+  heroSlides: z.array(HeroSlideSchema).optional(),
   sections: z
     .object({
+      heroSliderEnabled: z.boolean(),
+      heroSliderAutoPlay: z.boolean(),
+      heroSliderIntervalMs: z.number().int().min(2000).max(20000),
+      heroSliderShowArrows: z.boolean(),
+      heroSliderShowDots: z.boolean(),
       saleTitle: z.string().min(1),
       saleSubtitle: z.string().min(1),
       saleViewAllLabel: z.string().min(1),
@@ -146,6 +170,7 @@ function serialize(page: any) {
     homeBenefitsItems: page?.homeBenefits ?? [],
     homeFaqItems: page?.homeFaqItems ?? [],
     homeTestimonials: page?.homeTestimonials ?? [],
+    heroSlides: page?.homeHeroSlides ?? [],
   };
 }
 
@@ -171,6 +196,7 @@ export async function GET(req: NextRequest) {
         homeBenefits: { orderBy: { sortOrder: "asc" } },
         homeFaqItems: { orderBy: { sortOrder: "asc" } },
         homeTestimonials: { orderBy: { sortOrder: "asc" } },
+        homeHeroSlides: { orderBy: { sortOrder: "asc" } },
       },
     });
 
@@ -185,6 +211,7 @@ export async function GET(req: NextRequest) {
           homeBenefits: { orderBy: { sortOrder: "asc" } },
           homeFaqItems: { orderBy: { sortOrder: "asc" } },
           homeTestimonials: { orderBy: { sortOrder: "asc" } },
+          homeHeroSlides: { orderBy: { sortOrder: "asc" } },
         },
       });
     }
@@ -259,6 +286,23 @@ export async function PUT(req: NextRequest) {
         rating: item.rating ?? 5,
         sortOrder: idx,
       })),
+      homeHeroSlides: relationData(data.heroSlides, (item, idx) => ({
+        eyebrow: item.eyebrow,
+        title: item.title,
+        description: item.description,
+        primaryLabel: item.primaryLabel,
+        primaryHref: item.primaryHref,
+        secondaryLabel: item.secondaryLabel,
+        secondaryHref: item.secondaryHref,
+        desktopImage: item.desktopImage,
+        mobileImage: item.mobileImage,
+        imageAlt: item.imageAlt,
+        backgroundColor: item.backgroundColor || "#f5efe6",
+        accentColor: item.accentColor || "#b36f49",
+        badgeText: item.badgeText,
+        isEnabled: item.isEnabled ?? true,
+        sortOrder: idx,
+      })),
     };
 
     const page = existing
@@ -269,6 +313,7 @@ export async function PUT(req: NextRequest) {
             homeBenefits: { orderBy: { sortOrder: "asc" } },
             homeFaqItems: { orderBy: { sortOrder: "asc" } },
             homeTestimonials: { orderBy: { sortOrder: "asc" } },
+            homeHeroSlides: { orderBy: { sortOrder: "asc" } },
           },
         })
       : await prisma.page.create({
@@ -277,6 +322,7 @@ export async function PUT(req: NextRequest) {
             homeBenefits: { orderBy: { sortOrder: "asc" } },
             homeFaqItems: { orderBy: { sortOrder: "asc" } },
             homeTestimonials: { orderBy: { sortOrder: "asc" } },
+            homeHeroSlides: { orderBy: { sortOrder: "asc" } },
           },
         });
 

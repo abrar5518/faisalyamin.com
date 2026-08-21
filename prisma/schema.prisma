@@ -353,9 +353,38 @@ model Page {
   homeBenefits HomeBenefitItem[]
   homeFaqItems HomeFaqItem[]
   homeTestimonials HomeTestimonial[]
+  homeHeroSlides HomeHeroSlide[]
 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+}
+
+
+model HomeHeroSlide {
+  id              Int      @id @default(autoincrement())
+  pageId          Int
+  eyebrow         String?
+  title           String   @db.Text
+  description     String?  @db.Text
+  primaryLabel    String?
+  primaryHref     String?
+  secondaryLabel  String?
+  secondaryHref   String?
+  desktopImage    String   @db.LongText
+  mobileImage     String?  @db.LongText
+  imageAlt        String?  @db.Text
+  backgroundColor String?  @default("#f5efe6")
+  accentColor     String?  @default("#b36f49")
+  badgeText       String?
+  isEnabled       Boolean  @default(true)
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  page Page @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@index([pageId, sortOrder])
+  @@index([pageId, isEnabled])
 }
 
 model ReusableBlock {

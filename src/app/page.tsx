@@ -1,7 +1,5 @@
 // src/app/page.tsx
 import Link from "next/link";
-import Image from "next/image";
-import { withImageParams } from "@/lib/image";
 import CategoryCard, { Category } from "@/components/CategoryCard";
 import ProductCard, { Product } from "@/components/ProductCard";
 import SaleCarousel from "@/components/home/SaleCarousel";
@@ -15,6 +13,7 @@ import CategoryCarousel from "@/components/home/CategoryCarousel";
 import { normalizeSiteUrl } from "@/lib/siteUrl";
 import FaqSection from "@/components/FaqSection";
 import { parseHomeSections } from "@/lib/homeContent";
+import HomeHeroSlider, { type HomeHeroSlideData } from "@/components/home/HomeHeroSlider";
 
 type Testimonial = {
   name: string;
@@ -300,6 +299,7 @@ export default async function HomePage() {
         homeBenefits: { orderBy: { sortOrder: "asc" } },
         homeFaqItems: { orderBy: { sortOrder: "asc" } },
         homeTestimonials: { orderBy: { sortOrder: "asc" } },
+        homeHeroSlides: { orderBy: { sortOrder: "asc" } },
       },
     }),
     prisma.siteSettings.findFirst({ orderBy: { id: "asc" } }),
@@ -359,6 +359,39 @@ export default async function HomePage() {
       },
     ],
   };
+  const heroSlides: HomeHeroSlideData[] = pageRow?.homeHeroSlides?.length
+    ? pageRow.homeHeroSlides
+      .filter((slide) => slide.isEnabled)
+      .map((slide) => ({
+        id: slide.id,
+        eyebrow: slide.eyebrow,
+        title: slide.title,
+        description: slide.description,
+        primaryLabel: slide.primaryLabel,
+        primaryHref: slide.primaryHref,
+        secondaryLabel: slide.secondaryLabel,
+        secondaryHref: slide.secondaryHref,
+        desktopImage: slide.desktopImage,
+        mobileImage: slide.mobileImage,
+        imageAlt: slide.imageAlt,
+        backgroundColor: slide.backgroundColor,
+        accentColor: slide.accentColor,
+        badgeText: slide.badgeText,
+      }))
+    : [{
+      title: hero.title,
+      eyebrow: hero.badge,
+      description: hero.subtitle,
+      primaryLabel: hero.primaryLabel,
+      primaryHref: hero.primaryHref,
+      secondaryLabel: hero.secondaryLabel,
+      secondaryHref: hero.secondaryHref,
+      desktopImage: hero.image,
+      imageAlt: pageRow?.heroImageAlt || "Featured collection",
+      backgroundColor: "#f5efe6",
+      accentColor: "#b36f49",
+      badgeText: "New Drop",
+    }];
   const homeIntro = {
     title: pageRow?.homeIntroTitle || "Introducing our featured products",
     body:
@@ -505,80 +538,15 @@ export default async function HomePage() {
       {baseUrlResolved && productListItems.length > 0 ? (
         <Schema data={itemListSchema({ url: `${baseUrlResolved}/`, items: productListItems })} />
       ) : null}
-      {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,#f5f5f5,transparent_45%),radial-gradient(circle_at_80%_30%,#eaeaea,transparent_45%)]" />
-        <Container>
-          <div className="relative grid items-center gap-10 py-14 lg:grid-cols-2 lg:py-20">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs text-neutral-700 shadow-sm">
-                <span className="h-2 w-2 rounded-full bg-neutral-900" />
-                {hero.badge}
-              </div>
-
-              <h1 className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl lg:text-5xl">
-                {hero.title}
-              </h1>
-
-              <p className="mt-4 text-neutral-600 sm:text-lg">
-                {hero.subtitle}
-              </p>
-
-              <div className="mt-7 flex flex-wrap items-center gap-3">
-                <Link href={hero.primaryHref} className="btn-primary px-5 py-3 text-sm">
-                  {hero.primaryLabel}
-                </Link>
-                <Link href={hero.secondaryHref} className="btn-secondary px-5 py-3 text-sm">
-                  {hero.secondaryLabel}
-                </Link>
-              </div>
-
-              <div className="mt-10 hidden sm:grid gap-3 sm:grid-cols-3 sm:gap-4 ">
-                {hero.highlights.map((x) => (
-                  <div key={x.k} className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-                    <p className="text-sm font-semibold">{x.k}</p>
-                    <p className="mt-1 text-xs text-neutral-600">{x.v}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="relative hidden md:block">
-              <div className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm">
-                <Image
-                  src={withImageParams(hero.image, "auto=format&fit=crop&w=1400&q=80")}
-                  alt="Featured products"
-                  width={1400}
-                  height={900}
-                  className="h-64 w-full object-cover sm:h-80 lg:h-[440px]"
-                  loading="lazy"
-                />
-              </div>
-
-              <div className="relative mt-4 w-full max-w-lg rounded-2xl border border-white/30 bg-white/90 p-4 backdrop-blur sm:absolute sm:bottom-6 sm:left-6 sm:mt-0 sm:w-auto sm:max-w-none">
-                <p className="text-sm font-semibold">{hero.cardTitle}</p>
-                <p className="mt-1 text-xs text-neutral-600">
-                  {hero.cardSubtitle}
-                </p>
-                <div className="mt-3 flex items-center gap-2">
-                  <Link href={hero.cardPrimaryHref} className="btn-primary text-xs px-3 py-2">
-                    {hero.cardPrimaryLabel}
-                  </Link>
-                  <Link
-                    href={hero.cardSecondaryHref}
-                    className="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs hover:bg-neutral-50"
-                  >
-                    {hero.cardSecondaryLabel}
-                  </Link>
-                </div>
-              </div>
-
-              <div className="pointer-events-none absolute -bottom-8 -left-8 h-40 w-40 rounded-full bg-neutral-100 blur-2xl" />
-              <div className="pointer-events-none absolute -top-10 -right-10 h-44 w-44 rounded-full bg-neutral-200 blur-2xl" />
-            </div>
-          </div>
-        </Container>
-      </section>
+      {homeSections.heroSliderEnabled ? (
+        <HomeHeroSlider
+          slides={heroSlides}
+          autoPlay={homeSections.heroSliderAutoPlay}
+          intervalMs={homeSections.heroSliderIntervalMs}
+          showArrows={homeSections.heroSliderShowArrows}
+          showDots={homeSections.heroSliderShowDots}
+        />
+      ) : null}
 
       {/* ? Sale & Deals (moved right after Hero) */}
       <section className="border-t border-neutral-200 bg-white py-14">

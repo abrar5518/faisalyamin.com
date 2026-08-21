@@ -9,6 +9,23 @@ import { DEFAULT_HOME_SECTIONS, type HomeSections } from "@/lib/homeContent";
 type Pair = { title: string; desc: string };
 type Faq = { question: string; answer: string };
 type Review = { name: string; title?: string; quote?: string; avatarUrl?: string; rating?: number };
+type HeroSlide = {
+  id?: number;
+  eyebrow: string;
+  title: string;
+  description: string;
+  primaryLabel: string;
+  primaryHref: string;
+  secondaryLabel: string;
+  secondaryHref: string;
+  desktopImage: string;
+  mobileImage: string;
+  imageAlt: string;
+  backgroundColor: string;
+  accentColor: string;
+  badgeText: string;
+  isEnabled: boolean;
+};
 
 type HomeForm = {
   title: string;
@@ -49,6 +66,7 @@ type HomeForm = {
   homeSaleVisibleCount: number;
   homeSaleAutoMs: number;
   homeTestimonials: Review[];
+  heroSlides: HeroSlide[];
   sections: HomeSections;
 };
 
@@ -98,6 +116,24 @@ const DEFAULT_FORM: HomeForm = {
   homeSaleVisibleCount: 4.5,
   homeSaleAutoMs: 4500,
   homeTestimonials: [],
+  heroSlides: [
+    {
+      eyebrow: "The New Edit",
+      title: "Quiet Luxury, Made for Every Day",
+      description: "Modern wardrobe pieces with considered shape, texture, and detail.",
+      primaryLabel: "Shop Women",
+      primaryHref: "/shop",
+      secondaryLabel: "Discover New In",
+      secondaryHref: "/shop",
+      desktopImage: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1600&q=92",
+      mobileImage: "",
+      imageAlt: "New season fashion collection",
+      backgroundColor: "#f5efe6",
+      accentColor: "#b36f49",
+      badgeText: "New Drop",
+      isEnabled: true,
+    },
+  ],
   sections: DEFAULT_HOME_SECTIONS,
 };
 
@@ -207,6 +243,38 @@ export default function AdminHomePage() {
     setForm((x) => ({ ...x, [key]: ((x[key] as any[]) ?? []).filter((_, i) => i !== idx) as any }));
   }
 
+  function moveHeroSlide(index: number, direction: -1 | 1) {
+    setForm((current) => {
+      const target = index + direction;
+      if (target < 0 || target >= current.heroSlides.length) return current;
+      const heroSlides = [...current.heroSlides];
+      [heroSlides[index], heroSlides[target]] = [heroSlides[target], heroSlides[index]];
+      return { ...current, heroSlides };
+    });
+  }
+
+  function addHeroSlide() {
+    set("heroSlides", [
+      ...form.heroSlides,
+      {
+        eyebrow: "New Collection",
+        title: "Add your slide headline",
+        description: "Add supporting copy for this campaign.",
+        primaryLabel: "Shop Now",
+        primaryHref: "/shop",
+        secondaryLabel: "View Collection",
+        secondaryHref: "/categories",
+        desktopImage: "",
+        mobileImage: "",
+        imageAlt: "",
+        backgroundColor: "#f5efe6",
+        accentColor: "#b36f49",
+        badgeText: "New Drop",
+        isEnabled: true,
+      },
+    ]);
+  }
+
   async function onSave() {
     setSaving(true);
     setMsg(null);
@@ -249,43 +317,81 @@ export default function AdminHomePage() {
               <Field label="Meta keywords" value={form.metaKeywords} onChange={(v) => set("metaKeywords", v)} />
             </Panel>
 
-            <Panel title="Hero">
-              <Field label="Badge" value={form.heroBadge} onChange={(v) => set("heroBadge", v)} />
-              <Field label="Headline" value={form.heroTitle} onChange={(v) => set("heroTitle", v)} multiline />
-              <Field label="Subtitle" value={form.heroSubtitle} onChange={(v) => set("heroSubtitle", v)} multiline />
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Primary button label" value={form.heroPrimaryLabel} onChange={(v) => set("heroPrimaryLabel", v)} />
-                <Field label="Primary button link" value={form.heroPrimaryHref} onChange={(v) => set("heroPrimaryHref", v)} />
-                <Field label="Secondary button label" value={form.heroSecondaryLabel} onChange={(v) => set("heroSecondaryLabel", v)} />
-                <Field label="Secondary button link" value={form.heroSecondaryHref} onChange={(v) => set("heroSecondaryHref", v)} />
+            <Panel title="Hero slider">
+              <div className="grid gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-4 sm:grid-cols-2">
+                <label className="flex items-center gap-3 text-sm">
+                  <input type="checkbox" checked={form.sections.heroSliderEnabled} onChange={(e) => setSection("heroSliderEnabled", e.target.checked)} />
+                  Show hero slider
+                </label>
+                <label className="flex items-center gap-3 text-sm">
+                  <input type="checkbox" checked={form.sections.heroSliderAutoPlay} onChange={(e) => setSection("heroSliderAutoPlay", e.target.checked)} />
+                  Auto play
+                </label>
+                <label className="flex items-center gap-3 text-sm">
+                  <input type="checkbox" checked={form.sections.heroSliderShowArrows} onChange={(e) => setSection("heroSliderShowArrows", e.target.checked)} />
+                  Show arrows
+                </label>
+                <label className="flex items-center gap-3 text-sm">
+                  <input type="checkbox" checked={form.sections.heroSliderShowDots} onChange={(e) => setSection("heroSliderShowDots", e.target.checked)} />
+                  Show slide indicators
+                </label>
+                <Field label="Auto slide interval (ms)" type="number" value={form.sections.heroSliderIntervalMs} onChange={(v) => setSection("heroSliderIntervalMs", Number(v))} />
               </div>
-              <ImageUploader
-                title="Hero image"
-                value={form.heroImage ? [{ url: form.heroImage, alt: form.heroImageAlt }] : []}
-                onChange={(imgs) => {
-                  set("heroImage", imgs[0]?.url || "");
-                  set("heroImageAlt", imgs[0]?.alt || "");
-                }}
-                max={1}
-                kind="product"
-              />
-            </Panel>
 
-            <Panel title="Hero card and highlights">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Card title" value={form.heroCardTitle} onChange={(v) => set("heroCardTitle", v)} />
-                <Field label="Card subtitle" value={form.heroCardSubtitle} onChange={(v) => set("heroCardSubtitle", v)} />
-                <Field label="Card primary label" value={form.heroCardPrimaryLabel} onChange={(v) => set("heroCardPrimaryLabel", v)} />
-                <Field label="Card primary link" value={form.heroCardPrimaryHref} onChange={(v) => set("heroCardPrimaryHref", v)} />
-                <Field label="Card secondary label" value={form.heroCardSecondaryLabel} onChange={(v) => set("heroCardSecondaryLabel", v)} />
-                <Field label="Card secondary link" value={form.heroCardSecondaryHref} onChange={(v) => set("heroCardSecondaryHref", v)} />
-              </div>
-              {[1, 2, 3].map((n) => (
-                <div key={n} className="grid gap-4 rounded-2xl border border-neutral-200 p-4 sm:grid-cols-2">
-                  <Field label={`Highlight ${n} title`} value={(form as any)[`heroHighlight${n}Title`]} onChange={(v) => set(`heroHighlight${n}Title` as any, v)} />
-                  <Field label={`Highlight ${n} text`} value={(form as any)[`heroHighlight${n}Desc`]} onChange={(v) => set(`heroHighlight${n}Desc` as any, v)} />
+              {form.heroSlides.map((slide, idx) => (
+                <div key={slide.id ?? `new-${idx}`} className="rounded-3xl border border-neutral-200 p-5">
+                  <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold">Slide {idx + 1}</p>
+                      <label className="mt-2 flex items-center gap-2 text-xs text-neutral-600">
+                        <input type="checkbox" checked={slide.isEnabled} onChange={(e) => updateArray<HeroSlide>("heroSlides", idx, { isEnabled: e.target.checked })} />
+                        Enabled
+                      </label>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <button type="button" disabled={idx === 0} onClick={() => moveHeroSlide(idx, -1)} className="rounded-xl border border-neutral-200 px-3 py-2 text-xs disabled:opacity-40">Move up</button>
+                      <button type="button" disabled={idx === form.heroSlides.length - 1} onClick={() => moveHeroSlide(idx, 1)} className="rounded-xl border border-neutral-200 px-3 py-2 text-xs disabled:opacity-40">Move down</button>
+                      <button type="button" onClick={() => removeArray("heroSlides", idx)} className="rounded-xl border border-red-200 px-3 py-2 text-xs text-red-600">Remove</button>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <Field label="Eyebrow" value={slide.eyebrow} onChange={(v) => updateArray<HeroSlide>("heroSlides", idx, { eyebrow: v })} />
+                      <Field label="Badge text" value={slide.badgeText} onChange={(v) => updateArray<HeroSlide>("heroSlides", idx, { badgeText: v })} />
+                    </div>
+                    <Field label="Headline" value={slide.title} onChange={(v) => updateArray<HeroSlide>("heroSlides", idx, { title: v })} multiline />
+                    <Field label="Description" value={slide.description} onChange={(v) => updateArray<HeroSlide>("heroSlides", idx, { description: v })} multiline />
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <Field label="Primary button label" value={slide.primaryLabel} onChange={(v) => updateArray<HeroSlide>("heroSlides", idx, { primaryLabel: v })} />
+                      <Field label="Primary button link" value={slide.primaryHref} onChange={(v) => updateArray<HeroSlide>("heroSlides", idx, { primaryHref: v })} />
+                      <Field label="Secondary button label" value={slide.secondaryLabel} onChange={(v) => updateArray<HeroSlide>("heroSlides", idx, { secondaryLabel: v })} />
+                      <Field label="Secondary button link" value={slide.secondaryHref} onChange={(v) => updateArray<HeroSlide>("heroSlides", idx, { secondaryHref: v })} />
+                      <Field label="Background color" type="color" value={slide.backgroundColor} onChange={(v) => updateArray<HeroSlide>("heroSlides", idx, { backgroundColor: v })} />
+                      <Field label="Accent color" type="color" value={slide.accentColor} onChange={(v) => updateArray<HeroSlide>("heroSlides", idx, { accentColor: v })} />
+                    </div>
+                    <ImageUploader
+                      title="Desktop hero image"
+                      value={slide.desktopImage ? [{ url: slide.desktopImage, alt: slide.imageAlt }] : []}
+                      onChange={(images) => updateArray<HeroSlide>("heroSlides", idx, { desktopImage: images[0]?.url || "", imageAlt: images[0]?.alt || slide.imageAlt })}
+                      max={1}
+                      kind="product"
+                    />
+                    <ImageUploader
+                      title="Mobile hero image (optional)"
+                      value={slide.mobileImage ? [{ url: slide.mobileImage, alt: slide.imageAlt }] : []}
+                      onChange={(images) => updateArray<HeroSlide>("heroSlides", idx, { mobileImage: images[0]?.url || "" })}
+                      max={1}
+                      kind="product"
+                    />
+                    <Field label="Image alt text" value={slide.imageAlt} onChange={(v) => updateArray<HeroSlide>("heroSlides", idx, { imageAlt: v })} />
+                  </div>
                 </div>
               ))}
+
+              <button type="button" onClick={addHeroSlide} className="rounded-2xl border border-neutral-900 px-4 py-3 text-sm font-medium">
+                Add another slide
+              </button>
             </Panel>
 
             <Panel title="Intro and benefits">

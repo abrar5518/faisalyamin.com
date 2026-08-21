@@ -4,6 +4,11 @@ export type HomeSocialProofItem = {
 };
 
 export type HomeSections = {
+  heroSliderEnabled: boolean;
+  heroSliderAutoPlay: boolean;
+  heroSliderIntervalMs: number;
+  heroSliderShowArrows: boolean;
+  heroSliderShowDots: boolean;
   saleTitle: string;
   saleSubtitle: string;
   saleViewAllLabel: string;
@@ -29,6 +34,11 @@ export type HomeSections = {
 };
 
 export const DEFAULT_HOME_SECTIONS: HomeSections = {
+  heroSliderEnabled: true,
+  heroSliderAutoPlay: true,
+  heroSliderIntervalMs: 5000,
+  heroSliderShowArrows: true,
+  heroSliderShowDots: true,
   saleTitle: "Latest Deals",
   saleSubtitle: "Discover current offers, trending products, and limited-time savings.",
   saleViewAllLabel: "View all deals",
@@ -88,6 +98,11 @@ export function parseHomeSections(value?: string | null): HomeSections {
   try {
     const raw = JSON.parse(value);
     return {
+      heroSliderEnabled: cleanBoolean(raw.heroSliderEnabled, DEFAULT_HOME_SECTIONS.heroSliderEnabled),
+      heroSliderAutoPlay: cleanBoolean(raw.heroSliderAutoPlay, DEFAULT_HOME_SECTIONS.heroSliderAutoPlay),
+      heroSliderIntervalMs: Math.min(20000, Math.max(2000, Number(raw.heroSliderIntervalMs) || DEFAULT_HOME_SECTIONS.heroSliderIntervalMs)),
+      heroSliderShowArrows: cleanBoolean(raw.heroSliderShowArrows, DEFAULT_HOME_SECTIONS.heroSliderShowArrows),
+      heroSliderShowDots: cleanBoolean(raw.heroSliderShowDots, DEFAULT_HOME_SECTIONS.heroSliderShowDots),
       saleTitle: cleanString(raw.saleTitle, DEFAULT_HOME_SECTIONS.saleTitle),
       saleSubtitle: cleanString(raw.saleSubtitle, DEFAULT_HOME_SECTIONS.saleSubtitle),
       saleViewAllLabel: cleanString(raw.saleViewAllLabel, DEFAULT_HOME_SECTIONS.saleViewAllLabel),
