@@ -448,6 +448,18 @@ export default function AdminHomePage() {
               {form.sections.featuredSource === "manual" ? <HomeProductPicker value={form.sections.featuredProductIds} onChange={(ids) => setSection("featuredProductIds", ids)} /> : null}
             </Panel>
 
+            <Panel title="Trending products section">
+              <Field label="Title" value={form.sections.featuredTitle} onChange={(v) => setSection("featuredTitle", v)} />
+              <Field label="Subtitle" value={form.sections.featuredSubtitle} onChange={(v) => setSection("featuredSubtitle", v)} multiline />
+              <Field label="Tabs (comma separated)" value={form.sections.featuredTabs.join(", ")} onChange={(v) => setSection("featuredTabs", v.split(",").map((x) => x.trim()).filter(Boolean))} />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Product limit" type="number" value={form.sections.featuredLimit} onChange={(v) => setSection("featuredLimit", Number(v))} />
+                <Field label="View all label" value={form.sections.featuredViewAllLabel} onChange={(v) => setSection("featuredViewAllLabel", v)} />
+              </div>
+              <Field label="View all link" value={form.sections.featuredViewAllHref} onChange={(v) => setSection("featuredViewAllHref", v)} />
+              <p className="text-xs leading-relaxed text-neutral-500">Products and their order use the product source selected in the Curated product showcase panel above.</p>
+            </Panel>
+
             <Panel title="Editorial story">
               <label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={form.sections.editorialEnabled} onChange={(e) => setSection("editorialEnabled", e.target.checked)} />Show section</label>
               <Field label="Eyebrow" value={form.sections.editorialEyebrow} onChange={(v) => setSection("editorialEyebrow", v)} />

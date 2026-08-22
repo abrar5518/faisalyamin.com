@@ -1,7 +1,7 @@
 // src/app/page.tsx
 import Link from "next/link";
 import CategoryCard, { Category } from "@/components/CategoryCard";
-import type { Product } from "@/components/ProductCard";
+import ProductCard, { type Product } from "@/components/ProductCard";
 import HomeReviewsSlider from "@/components/home/HomeReviewsSlider";
 import type { ReactNode } from "react";
 import { prisma } from "@/lib/prisma";
@@ -296,9 +296,9 @@ export default async function HomePage() {
         ? featuredRows
         : featuredRows.filter((product) => product.isFeatured);
   const featuredList: Product[] = featuredCandidates.length
-    ? featuredCandidates.slice(0, 5).map((product) => toProductCardData(product, IMAGES.p1))
-    : featuredProductsFallback.slice(0, 5);
-  const showcaseItems = featuredList.map((product) => ({
+    ? featuredCandidates.slice(0, homeSections.featuredLimit).map((product) => toProductCardData(product, IMAGES.p1))
+    : featuredProductsFallback.slice(0, homeSections.featuredLimit);
+  const showcaseItems = featuredList.slice(0, 5).map((product) => ({
     id: String(product.id),
     name: product.name,
     price: product.price,
@@ -535,6 +535,28 @@ export default async function HomePage() {
             <Link href={homeSections.categoryViewAllHref}>{homeSections.categoryViewAllLabel}</Link>
           </div>
           <MaisonCategoryCollection items={categoryList} />
+        </Container>
+      </section>
+
+      <section className="ma-product-section">
+        <Container>
+          <div className="ma-section-heading">
+            <div>
+              <h2>{homeSections.featuredTitle}</h2>
+              <p>{homeSections.featuredSubtitle}</p>
+            </div>
+            <Link href={homeSections.featuredViewAllHref}>{homeSections.featuredViewAllLabel}</Link>
+          </div>
+          <div className="ma-product-tabs" aria-label="Product collections">
+            {homeSections.featuredTabs.map((tab, index) => (
+              <span key={tab} className={index === 0 ? "is-active" : ""}>{tab}</span>
+            ))}
+          </div>
+          <div className="ma-product-grid">
+            {featuredList.slice(0, homeSections.featuredLimit).map((product) => (
+              <ProductCard key={product.id} p={product} variant="maison" />
+            ))}
+          </div>
         </Container>
       </section>
 
