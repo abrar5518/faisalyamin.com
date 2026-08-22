@@ -21,7 +21,7 @@ import {
 
 function Container({ children }: { children: ReactNode }) {
   return (
-    <div className="mx-auto w-full max-w-[1360px] px-5 sm:px-8 lg:px-12">
+    <div className="w-full px-[2.75vw] max-[700px]:px-[14px]">
       {children}
     </div>
   );
@@ -191,7 +191,7 @@ export default function SiteFooter() {
   }
 
   return (
-    <footer className="mt-16">
+    <footer className="ma-site-footer mt-16">
       {showNewsletter ? (
         <section className="theme-border theme-footer-cta border-t border-neutral-200 bg-neutral-950 text-white">
           <Container>
@@ -268,7 +268,7 @@ export default function SiteFooter() {
         </section>
       ) : null}
 
-      <section className="bg-white py-12">
+      <section className="ma-footer-main py-16">
         <Container>
           <div className="grid gap-10 lg:grid-cols-12">
             <div className="lg:col-span-4">

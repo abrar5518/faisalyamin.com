@@ -14,7 +14,7 @@ import {
 
 function Container({ children }: { children: ReactNode }) {
   return (
-    <div className="mx-auto w-full max-w-[1360px] px-4 sm:px-8 lg:px-12">
+    <div className="w-full px-[2.75vw] max-[700px]:px-[14px]">
       {children}
     </div>
   );
@@ -160,9 +160,9 @@ export default function SiteHeader() {
   return (
     <>
       {showAnnouncement || showSupportLinks ? (
-        <div className="border-b border-neutral-200 bg-neutral-50">
+        <div className="ma-announcement-bar">
           <Container>
-            <div className="flex h-9 items-center justify-between gap-4 text-xs text-neutral-600">
+            <div className="ma-announcement-inner">
               {showAnnouncement ? (
                 announcementHref ? (
                   <Link className="truncate hover:text-neutral-900" href={announcementHref}>
@@ -191,9 +191,9 @@ export default function SiteHeader() {
         </div>
       ) : null}
 
-      <header className="theme-header sticky top-0 z-30 border-b border-neutral-200 bg-white/80 backdrop-blur">
+      <header className="ma-site-header theme-header sticky top-0 z-30 border-b border-neutral-200 bg-white/95 backdrop-blur">
         <Container>
-          <div className="flex h-16 items-center gap-3">
+          <div className="ma-site-header-row flex items-center gap-3">
             <button
               type="button"
               onClick={() => setMobileOpen((s) => !s)}
@@ -204,7 +204,7 @@ export default function SiteHeader() {
               <IconMenu open={mobileOpen} />
             </button>
 
-            <Link href="/" className="flex shrink-0 items-center">
+            <Link href="/" className="ma-header-brand flex shrink-0 items-center">
               {settings?.logoUrl ? (
                 <Image
                   src={toOptimizableImageSrc(settings.logoUrl)}
@@ -221,7 +221,7 @@ export default function SiteHeader() {
               )}
             </Link>
 
-            <nav className="ml-6 hidden items-center gap-1 md:flex">
+            <nav className="ma-header-nav hidden items-center md:flex">
               {navItems.map((item) => {
                 const active = isActive(pathname, item.href);
                 return (
@@ -229,7 +229,7 @@ export default function SiteHeader() {
                     key={`${item.label}-${item.href}`}
                     href={item.href}
                     className={[
-                      "relative rounded-xl px-3 py-2 text-sm font-medium transition",
+                      "relative px-3 py-2 text-sm font-medium transition",
                       active
                         ? "text-neutral-900"
                         : "text-neutral-600 hover:text-neutral-900",
@@ -245,31 +245,18 @@ export default function SiteHeader() {
             </nav>
 
             {showSearch ? (
-              <div className="hidden flex-1 justify-center px-6 lg:flex">
-                <form action="/search" className="w-full max-w-[520px]">
-                  <div className="flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white px-3 py-2 shadow-sm">
-                    <IconSearch />
-                    <input
-                      name="q"
-                      type="search"
-                      className="w-full bg-transparent text-sm outline-none placeholder:text-neutral-400"
-                      placeholder={searchPlaceholder}
-                    />
-                    <button className="btn-primary px-4 py-2 text-xs" type="submit">
-                      Search
-                    </button>
-                  </div>
-                </form>
+              <div className="hidden flex-1 justify-end lg:flex">
+                <Link className="ma-header-text-action" href="/search">Search</Link>
               </div>
             ) : (
               <div className="hidden flex-1 lg:block" />
             )}
 
-            <div className="ml-auto flex items-center gap-2">
+            <div className="ma-header-actions ml-auto flex items-center gap-2">
               {showAccount ? (
                 <Link
                   href="/account"
-                  className="hidden items-center rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm hover:bg-neutral-50 sm:inline-flex"
+                  className="ma-header-text-action hidden items-center sm:inline-flex"
                 >
                   Account
                 </Link>
@@ -289,15 +276,12 @@ export default function SiteHeader() {
                 <button
                   type="button"
                   onClick={openCart}
-                  className="theme-primary-action inline-flex min-h-10 items-center gap-2 rounded-xl bg-neutral-900 px-3 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+                  className="ma-header-cart inline-flex items-center gap-1"
                   aria-label={`Open cart with ${totalItems} ${
                     totalItems === 1 ? "item" : "items"
                   }`}
                 >
-                  Cart
-                  <span className="rounded-lg bg-white/15 px-2 py-0.5 text-xs">
-                    {totalItems}
-                  </span>
+                  Bag <span>({totalItems})</span>
                 </button>
               ) : null}
             </div>
