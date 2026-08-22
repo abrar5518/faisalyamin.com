@@ -248,6 +248,15 @@ Implement one at a time in visual order:
 
 Each section receives admin controls only for content editors actually need to change. Simple layout constants remain in code rather than creating unnecessary database fields.
 
+### 2026-08-22 implementation update
+
+- Curated fan showcase implemented from the supplied reference, including five-card desktop fan geometry, hover/focus activation, and mobile touch scroll-snap.
+- Showcase headings and product source are managed from Home admin. Product name, price, image, label, and URL continue to come from the existing Product API/model; no duplicate product data was introduced.
+- Editorial journal split block implemented from the supplied reference. Eyebrow, heading, copy, image/alt text, button label/link, and visibility are managed from Home admin.
+- Previous Sale/Deals carousel and Trending product-grid output were removed from the public home page as requested. The Maison category collection remains.
+- No Prisma migration was required: the ordered showcase selection reuses the existing `featuredProductIds` section configuration, while section presentation fields use the existing validated `sectionsJson` design.
+- Validation: TypeScript and the full Next.js production build pass.
+
 ---
 
 ## Data and API Design Principles

@@ -27,6 +27,18 @@ export type HomeSections = {
   featuredViewAllLabel: string;
   featuredViewAllHref: string;
   featuredProductIds: number[];
+  showcaseEnabled: boolean;
+  showcaseEyebrow: string;
+  showcaseTitle: string;
+  showcaseSubtitle: string;
+  editorialEnabled: boolean;
+  editorialEyebrow: string;
+  editorialTitle: string;
+  editorialBody: string;
+  editorialImage: string;
+  editorialImageAlt: string;
+  editorialButtonLabel: string;
+  editorialButtonHref: string;
   socialProofEnabled: boolean;
   socialProofItems: HomeSocialProofItem[];
   reviewsEnabled: boolean;
@@ -64,6 +76,18 @@ export const DEFAULT_HOME_SECTIONS: HomeSections = {
   featuredViewAllLabel: "View all products",
   featuredViewAllHref: "/shop",
   featuredProductIds: [],
+  showcaseEnabled: true,
+  showcaseEyebrow: "Curated product showcase",
+  showcaseTitle: "Pick your statement piece.",
+  showcaseSubtitle: "Hover a card to bring the product into focus.",
+  editorialEnabled: true,
+  editorialEyebrow: "The Aster Journal · Issue 06",
+  editorialTitle: "The art of effortless dressing.",
+  editorialBody: "A capsule of elevated neutrals, expressive texture and relaxed tailoring—created to work harder in your wardrobe.",
+  editorialImage: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1300&q=90",
+  editorialImageAlt: "A considered fashion collection on a clothing rail",
+  editorialButtonLabel: "Discover the story",
+  editorialButtonHref: "/blog",
   socialProofEnabled: true,
   socialProofItems: [
     { title: "Quality Checked", desc: "Products are checked before shipping." },
@@ -141,6 +165,18 @@ export function parseHomeSections(value?: string | null): HomeSections {
       featuredProductIds: Array.isArray(raw.featuredProductIds)
         ? raw.featuredProductIds.map(Number).filter((id: number) => Number.isInteger(id) && id > 0)
         : DEFAULT_HOME_SECTIONS.featuredProductIds,
+      showcaseEnabled: cleanBoolean(raw.showcaseEnabled, DEFAULT_HOME_SECTIONS.showcaseEnabled),
+      showcaseEyebrow: cleanString(raw.showcaseEyebrow, DEFAULT_HOME_SECTIONS.showcaseEyebrow),
+      showcaseTitle: cleanString(raw.showcaseTitle, DEFAULT_HOME_SECTIONS.showcaseTitle),
+      showcaseSubtitle: cleanString(raw.showcaseSubtitle, DEFAULT_HOME_SECTIONS.showcaseSubtitle),
+      editorialEnabled: cleanBoolean(raw.editorialEnabled, DEFAULT_HOME_SECTIONS.editorialEnabled),
+      editorialEyebrow: cleanString(raw.editorialEyebrow, DEFAULT_HOME_SECTIONS.editorialEyebrow),
+      editorialTitle: cleanString(raw.editorialTitle, DEFAULT_HOME_SECTIONS.editorialTitle),
+      editorialBody: cleanString(raw.editorialBody, DEFAULT_HOME_SECTIONS.editorialBody),
+      editorialImage: cleanString(raw.editorialImage, DEFAULT_HOME_SECTIONS.editorialImage),
+      editorialImageAlt: cleanString(raw.editorialImageAlt, DEFAULT_HOME_SECTIONS.editorialImageAlt),
+      editorialButtonLabel: cleanString(raw.editorialButtonLabel, DEFAULT_HOME_SECTIONS.editorialButtonLabel),
+      editorialButtonHref: cleanString(raw.editorialButtonHref, DEFAULT_HOME_SECTIONS.editorialButtonHref),
       socialProofEnabled: cleanBoolean(raw.socialProofEnabled, DEFAULT_HOME_SECTIONS.socialProofEnabled),
       socialProofItems: cleanSocialItems(raw.socialProofItems, DEFAULT_HOME_SECTIONS.socialProofItems),
       reviewsEnabled: cleanBoolean(raw.reviewsEnabled, DEFAULT_HOME_SECTIONS.reviewsEnabled),

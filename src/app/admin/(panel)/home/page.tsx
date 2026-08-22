@@ -416,19 +416,7 @@ export default function AdminHomePage() {
           </div>
 
           <aside className="space-y-6 lg:col-span-5">
-            <Panel title="Deals section">
-              <Field label="Title" value={form.sections.saleTitle} onChange={(v) => setSection("saleTitle", v)} />
-              <Field label="Subtitle" value={form.sections.saleSubtitle} onChange={(v) => setSection("saleSubtitle", v)} multiline />
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="View label" value={form.sections.saleViewAllLabel} onChange={(v) => setSection("saleViewAllLabel", v)} />
-                <Field label="View link" value={form.sections.saleViewAllHref} onChange={(v) => setSection("saleViewAllHref", v)} />
-                <Field label="Product limit" type="number" value={form.homeSaleLimit} onChange={(v) => set("homeSaleLimit", Number(v))} />
-                <Field label="Visible cards" type="number" value={form.homeSaleVisibleCount} onChange={(v) => set("homeSaleVisibleCount", Number(v))} />
-                <Field label="Auto slide ms" type="number" value={form.homeSaleAutoMs} onChange={(v) => set("homeSaleAutoMs", Number(v))} />
-              </div>
-            </Panel>
-
-            <Panel title="Categories and featured products">
+            <Panel title="Categories">
               <Field label="Category title" value={form.sections.categoryTitle} onChange={(v) => setSection("categoryTitle", v)} />
               <Field label="Category subtitle" value={form.sections.categorySubtitle} onChange={(v) => setSection("categorySubtitle", v)} multiline />
               <Field label="Category view label" value={form.sections.categoryViewAllLabel} onChange={(v) => setSection("categoryViewAllLabel", v)} />
@@ -441,9 +429,13 @@ export default function AdminHomePage() {
                 </select>
               </label>
               {form.sections.categorySource === "manual" ? <HomeCategoryPicker value={form.sections.categoryIds} onChange={(ids) => setSection("categoryIds", ids)} /> : null}
-              <Field label="Featured title" value={form.sections.featuredTitle} onChange={(v) => setSection("featuredTitle", v)} />
-              <Field label="Featured subtitle" value={form.sections.featuredSubtitle} onChange={(v) => setSection("featuredSubtitle", v)} multiline />
-              <Field label="Filter labels (comma separated)" value={form.sections.featuredTabs.join(", ")} onChange={(v) => setSection("featuredTabs", v.split(",").map((x) => x.trim()).filter(Boolean))} />
+            </Panel>
+
+            <Panel title="Curated product showcase">
+              <label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={form.sections.showcaseEnabled} onChange={(e) => setSection("showcaseEnabled", e.target.checked)} />Show section</label>
+              <Field label="Eyebrow" value={form.sections.showcaseEyebrow} onChange={(v) => setSection("showcaseEyebrow", v)} />
+              <Field label="Title" value={form.sections.showcaseTitle} onChange={(v) => setSection("showcaseTitle", v)} />
+              <Field label="Subtitle" value={form.sections.showcaseSubtitle} onChange={(v) => setSection("showcaseSubtitle", v)} multiline />
               <label className="block">
                 <span className="text-xs font-medium text-neutral-700">Product source</span>
                 <select value={form.sections.featuredSource} onChange={(e) => setSection("featuredSource", e.target.value as HomeSections["featuredSource"])} className="mt-1 w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none focus:border-neutral-900">
@@ -453,12 +445,17 @@ export default function AdminHomePage() {
                   <option value="manual">Manually selected products</option>
                 </select>
               </label>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Product limit" type="number" value={form.sections.featuredLimit} onChange={(v) => setSection("featuredLimit", Number(v))} />
-                <Field label="View all label" value={form.sections.featuredViewAllLabel} onChange={(v) => setSection("featuredViewAllLabel", v)} />
-              </div>
-              <Field label="View all link" value={form.sections.featuredViewAllHref} onChange={(v) => setSection("featuredViewAllHref", v)} />
               {form.sections.featuredSource === "manual" ? <HomeProductPicker value={form.sections.featuredProductIds} onChange={(ids) => setSection("featuredProductIds", ids)} /> : null}
+            </Panel>
+
+            <Panel title="Editorial story">
+              <label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={form.sections.editorialEnabled} onChange={(e) => setSection("editorialEnabled", e.target.checked)} />Show section</label>
+              <Field label="Eyebrow" value={form.sections.editorialEyebrow} onChange={(v) => setSection("editorialEyebrow", v)} />
+              <Field label="Title" value={form.sections.editorialTitle} onChange={(v) => setSection("editorialTitle", v)} multiline />
+              <Field label="Body" value={form.sections.editorialBody} onChange={(v) => setSection("editorialBody", v)} multiline />
+              <ImageUploader title="Editorial image" value={form.sections.editorialImage ? [{ url: form.sections.editorialImage, alt: form.sections.editorialImageAlt }] : []} onChange={(images) => { setSection("editorialImage", images[0]?.url || ""); setSection("editorialImageAlt", images[0]?.alt || form.sections.editorialImageAlt); }} max={1} kind="product" />
+              <Field label="Image alt text" value={form.sections.editorialImageAlt} onChange={(v) => setSection("editorialImageAlt", v)} />
+              <div className="grid gap-4 sm:grid-cols-2"><Field label="Button label" value={form.sections.editorialButtonLabel} onChange={(v) => setSection("editorialButtonLabel", v)} /><Field label="Button link" value={form.sections.editorialButtonHref} onChange={(v) => setSection("editorialButtonHref", v)} /></div>
             </Panel>
 
             <Panel title="Social proof">

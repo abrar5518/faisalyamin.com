@@ -1,8 +1,7 @@
 // src/app/page.tsx
 import Link from "next/link";
 import CategoryCard, { Category } from "@/components/CategoryCard";
-import ProductCard, { Product } from "@/components/ProductCard";
-import SaleCarousel from "@/components/home/SaleCarousel";
+import type { Product } from "@/components/ProductCard";
 import HomeReviewsSlider from "@/components/home/HomeReviewsSlider";
 import type { ReactNode } from "react";
 import { prisma } from "@/lib/prisma";
@@ -15,6 +14,7 @@ import FaqSection from "@/components/FaqSection";
 import { parseHomeSections } from "@/lib/homeContent";
 import HomeHeroSlider, { type HomeHeroSlideData } from "@/components/home/HomeHeroSlider";
 import { toProductCardData } from "@/lib/productCardData";
+import HomeProductShowcase from "@/components/home/HomeProductShowcase";
 
 type Testimonial = {
   name: string;
@@ -91,6 +91,7 @@ const featuredProductsFallback: Product[] = [
   { id: "reference-jacket", name: "Leather Studio Jacket", price: "PKR 28,900", badge: "Bestseller", rating: 4.8, reviews: 94, image: IMAGES.p2, href: "/shop", subtitle: "Limited edition", hasOptions: true, colorSwatches: [{ label: "Tan", colorCode: "#9c7251" }, { label: "Black", colorCode: "#171717" }] },
   { id: "reference-dress", name: "Sculpted Midi Dress", price: "PKR 14,900", badge: "Online exclusive", rating: 4.7, reviews: 61, image: IMAGES.p3, href: "/shop", subtitle: "3 colours", hasOptions: true, colorSwatches: [{ label: "Stone", colorCode: "#c8b8a5" }, { label: "Rose", colorCode: "#b57a78" }, { label: "Ink", colorCode: "#30343b" }] },
   { id: "reference-overshirt", name: "Utility Overshirt", price: "PKR 11,900", badge: "Trending", rating: 4.9, reviews: 77, image: IMAGES.p4, href: "/shop", subtitle: "4 colours", hasOptions: true, colorSwatches: [{ label: "Olive", colorCode: "#70745b" }, { label: "Navy", colorCode: "#293747" }] },
+  { id: "reference-evening-set", name: "Fluid Evening Set", price: "PKR 17,900", badge: "Online exclusive", rating: 4.8, reviews: 52, image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f", href: "/shop", subtitle: "New collection", hasOptions: true },
 ];
 
 const saleProductsFallback: Product[] = [
@@ -221,13 +222,6 @@ function Container({ children }: { children: ReactNode }) {
 }
 
 
-function clampInt(value: unknown, fallback: number, min: number, max: number) {
-  if (value === null || value === undefined || value === "") return fallback;
-  const num = typeof value === "number" ? value : Number(value);
-  if (!Number.isFinite(num)) return fallback;
-  return Math.max(min, Math.min(max, Math.floor(num)));
-}
-
 function clampFloat(value: unknown, fallback: number, min: number, max: number) {
   if (value === null || value === undefined || value === "") return fallback;
   const num = typeof value === "number" ? value : Number(value);
@@ -302,8 +296,16 @@ export default async function HomePage() {
         ? featuredRows
         : featuredRows.filter((product) => product.isFeatured);
   const featuredList: Product[] = featuredCandidates.length
-    ? featuredCandidates.slice(0, homeSections.featuredLimit).map((product) => toProductCardData(product, IMAGES.p1))
-    : featuredProductsFallback.slice(0, homeSections.featuredLimit);
+    ? featuredCandidates.slice(0, 5).map((product) => toProductCardData(product, IMAGES.p1))
+    : featuredProductsFallback.slice(0, 5);
+  const showcaseItems = featuredList.map((product) => ({
+    id: String(product.id),
+    name: product.name,
+    price: product.price,
+    label: product.badge || product.subtitle || "Curated selection",
+    image: product.image,
+    href: product.href || `/product/${product.id}`,
+  }));
   const saleList: Product[] =
     saleRows.length > 0
       ? saleRows.map((p) => toProductCardData(p, IMAGES.p2))
@@ -433,10 +435,6 @@ export default async function HomePage() {
     intro: pageRow?.homeFaqIntro || "Quick answers to help customers choose with confidence.",
     items: homeFaqItems,
   };
-  const saleLimit = clampInt(pageRow?.homeSaleLimit, 8, 1, 50);
-  const saleVisibleCount = clampFloat(pageRow?.homeSaleVisibleCount, 4.5, 1, 6);
-  const saleAutoMs = clampInt(pageRow?.homeSaleAutoMs, 4500, 1000, 20000);
-  const saleItems = saleList.slice(0, saleLimit);
   const testimonialsFromCms: Testimonial[] =
     pageRow?.homeTestimonials
       ?.map((item) => ({
@@ -529,21 +527,6 @@ export default async function HomePage() {
         />
       ) : null}
 
-      {/* ? Sale & Deals (moved right after Hero) */}
-      <section className="border-t border-neutral-200 bg-white py-14">
-        <Container>
-          <SaleCarousel
-            items={saleItems}
-            visibleCount={saleVisibleCount}
-            autoMs={saleAutoMs}
-            title={homeSections.saleTitle}
-            subtitle={homeSections.saleSubtitle}
-            viewAllLabel={homeSections.saleViewAllLabel}
-            viewAllHref={homeSections.saleViewAllHref}
-          />
-        </Container>
-      </section>
-
       {/* Maison Aster category collection */}
       <section className="ma-category-section">
         <Container>
@@ -555,26 +538,21 @@ export default async function HomePage() {
         </Container>
       </section>
 
-      {/* Maison Aster first product edit */}
-      <section className="ma-product-section">
-        <Container>
-          <div className="ma-section-heading">
-            <div>
-              <h2>{homeSections.featuredTitle}</h2>
-              <p>{homeSections.featuredSubtitle}</p>
-            </div>
-            <Link href={homeSections.featuredViewAllHref}>{homeSections.featuredViewAllLabel}</Link>
+      {homeSections.showcaseEnabled ? (
+        <HomeProductShowcase items={showcaseItems} eyebrow={homeSections.showcaseEyebrow} title={homeSections.showcaseTitle} subtitle={homeSections.showcaseSubtitle} />
+      ) : null}
+
+      {homeSections.editorialEnabled ? (
+        <section className="editorial-pro">
+          <div className="photo" role="img" aria-label={homeSections.editorialImageAlt} style={{ backgroundImage: `url("${homeSections.editorialImage.replace(/"/g, "%22")}")` }} />
+          <div className="copy">
+            <span className="eyebrow">{homeSections.editorialEyebrow}</span>
+            <h2>{homeSections.editorialTitle}</h2>
+            <p>{homeSections.editorialBody}</p>
+            <Link className="btn" href={homeSections.editorialButtonHref}>{homeSections.editorialButtonLabel}</Link>
           </div>
-          <div className="ma-product-tabs" aria-label="Product collections">
-            {homeSections.featuredTabs.map((tab, index) => <span key={tab} className={index === 0 ? "is-active" : ""}>{tab}</span>)}
-          </div>
-          <div className="ma-product-grid">
-            {featuredList.map((p) => (
-              <ProductCard key={p.id} p={p} variant="maison" />
-            ))}
-          </div>
-        </Container>
-      </section>
+        </section>
+      ) : null}
 
       {/* Social proof strip */}
       {homeSections.socialProofEnabled ? (
