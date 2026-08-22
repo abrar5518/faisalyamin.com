@@ -259,6 +259,15 @@ Each section receives admin controls only for content editors actually need to c
 - Hero presentation was subsequently aligned to the supplied final reference: large rounded cream stage, oversized editorial headline, side arrows, pill/dot navigation, slide counter, cutout media treatment, and responsive mobile composition.
 - The four-cell service bar directly beneath the hero was added with Worldwide Delivery, 30-Day Returns, Responsible Materials, and Secure Checkout messaging.
 
+### Product detail page
+
+- Rebuilt the product detail presentation to match the supplied Maison Aster reference.
+- Desktop media renders as a two-column editorial gallery; mobile keeps one focused media panel.
+- Product information uses a borderless editorial buy box and remains sticky beside the scrolling gallery on desktop.
+- Existing dynamic variants, sizes, pricing, wishlist, printable customization, quantity, cart/buy actions, reviews, FAQs, and related products remain connected to the current APIs and Prisma product model.
+- Related products use the Maison product-card style and the same site-wide `2.75vw` content alignment.
+- No schema migration was needed because the existing product/media/variant/review data model covers the supplied design.
+
 ---
 
 ## Data and API Design Principles

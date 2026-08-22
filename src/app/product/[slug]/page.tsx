@@ -505,19 +505,6 @@ export default async function ProductPage({ params }: PageProps) {
           reviews: schemaReviews.length ? schemaReviews : undefined,
         })}
       />
-      {/* Breadcrumb */}
-      <div className="border-b border-neutral-200 bg-neutral-50">
-        <div className="mx-auto w-full max-w-[1360px] px-5 sm:px-8 lg:px-12">
-          <div className="flex h-10 items-center gap-2 text-xs text-neutral-600">
-            <Link className="hover:text-neutral-900" href="/">Home</Link>
-            <span className="text-neutral-300">/</span>
-            <Link className="hover:text-neutral-900" href="/shop">Shop</Link>
-            <span className="text-neutral-300">/</span>
-            <span className="line-clamp-1 text-neutral-900">{typedProduct.name}</span>
-          </div>
-        </div>
-      </div>
-
       <ProductClient
         product={productData}
         catalogSettings={catalogSettings}
@@ -525,7 +512,7 @@ export default async function ProductPage({ params }: PageProps) {
       />
 
       {/* RELATED PRODUCTS */}
-      <div className="mx-auto w-full max-w-[1360px] px-5 sm:px-8 lg:px-12 pb-24">
+      <div className="w-full px-[2.75vw] pb-24 max-[700px]:px-[14px]">
         <FaqSection
           items={typedProduct.faqItems}
           title={renderCatalogTemplate(catalogSettings.productFaqTitleTemplate, {
@@ -541,7 +528,7 @@ export default async function ProductPage({ params }: PageProps) {
         <div className="mt-14 lg:mt-16">
           <div className="flex items-end justify-between gap-6">
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight">
+              <h2 className="font-serif text-4xl font-normal tracking-tight lg:text-5xl">
                 {catalogSettings.relatedProductsTitle}
               </h2>
               <p className="mt-2 text-sm text-neutral-600">
@@ -559,7 +546,7 @@ export default async function ProductPage({ params }: PageProps) {
 
           <div className="product-card-grid mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
             {relatedProducts.map((p) => (
-              <ProductCard key={p.id} p={p} variant="sale" />
+              <ProductCard key={p.id} p={p} variant="maison" />
             ))}
           </div>
 

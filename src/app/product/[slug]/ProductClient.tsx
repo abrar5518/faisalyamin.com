@@ -65,7 +65,7 @@ export type ReviewItem = {
 
 function Container({ children }: { children: ReactNode }) {
   return (
-    <div className="box-border mx-auto min-w-0 w-full max-w-[1360px] px-4 sm:px-8 lg:px-12">
+    <div className="box-border min-w-0 w-full px-[2.75vw] max-[700px]:px-[14px]">
       {children}
     </div>
   );
@@ -652,111 +652,36 @@ export default function ProductClient({
   };
 
   return (
-    <main className="min-w-0 max-w-full overflow-x-clip pb-24 pt-6 sm:pb-0 sm:pt-10 lg:pb-16">
+    <main className="ma-pdp min-w-0 max-w-full overflow-x-clip pb-24 sm:pb-0 lg:pb-16">
       <Container>
         {/* TOP SECTION */}
-          <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-12 lg:gap-12">
+          <div className="ma-pdp-top grid min-w-0 grid-cols-[minmax(0,1fr)] lg:grid-cols-12">
             {/* LEFT: Gallery */}
             <div className="min-w-0 max-w-full lg:col-span-7">
-              <div className="relative w-full max-w-full overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100 sm:rounded-3xl">
-                <div className="aspect-square min-w-0 w-full max-w-full">
-                  {activeMedia.type === "video" ? (
-                    <ProductVideoPlayer
-                      item={activeMedia}
-                      poster={activeMedia.thumbnailUrl || product.images[0]}
-                    />
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (mainImageSwiped.current) return;
-                        openImageLightbox(activeMedia, imageIndex);
-                      }}
-                      onTouchStart={(event) => {
-                        mainTouchStartX.current = event.touches[0]?.clientX ?? null;
-                      }}
-                      onTouchEnd={(event) => {
-                        handleMainImageTouchEnd(event.changedTouches[0]?.clientX ?? 0);
-                      }}
-                      className="block h-full min-w-0 w-full max-w-full cursor-zoom-in touch-pan-y"
-                      aria-label="Open product image preview"
-                    >
-                      <Image
-                        src={withImageParams(activeMedia.url, "auto=format&fit=contain&w=1600&q=90")}
-                        alt={activeMedia.alt || imageAlts[imageIndex] || product.name}
-                        width={1600}
-                        height={1600}
-                        className="h-full max-h-full w-full max-w-full object-contain"
-                        priority
-                        sizes="(min-width: 1024px) 58vw, 100vw"
-                      />
-                    </button>
-                  )}
-                </div>
-
-                {/* top-left badge area */}
-                <div className="pointer-events-none absolute inset-x-3 top-3 flex min-w-0 flex-wrap gap-1.5 sm:inset-x-4 sm:top-4 sm:gap-2">
-                  {catalogSettings.productGalleryBadges.map((badge) => (
-                    <Pill key={badge}>{badge}</Pill>
-                  ))}
-                  {discountPct ? <Pill>{discountPct}% off</Pill> : null}
-                </div>
-
-                {activeMedia.type === "image" ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      openImageLightbox(activeMedia, imageIndex);
-                    }}
-                    className="absolute bottom-3 right-3 min-h-10 rounded-full bg-white/90 px-4 py-2 text-xs font-medium text-neutral-900 shadow-sm backdrop-blur hover:bg-white sm:bottom-4 sm:right-4"
-                  >
-                    View larger
-                  </button>
-                ) : null}
-              </div>
-
-              {/* Thumbnails */}
-              <div className="no-scrollbar mt-3 flex min-w-0 max-w-full snap-x snap-mandatory gap-2 overflow-x-auto pb-1 sm:mt-4 sm:grid sm:grid-cols-4 sm:gap-3 sm:overflow-visible sm:pb-0">
+              <div className="ma-pdp-gallery-grid">
                 {galleryMedia.map((item, idx) => {
-                  const active = activeMedia.url === item.url && activeMedia.type === item.type;
-                  const thumb = item.type === "video" ? item.thumbnailUrl || product.images[0] : item.url;
                   return (
-                    <button
+                    <div
                       key={`${item.type}-${item.url}-${idx}`}
-                      onClick={() => {
-                        handleThumbnailClick(item, idx);
-                      }}
-                      className={[
-                        "group h-16 min-w-16 shrink-0 snap-start overflow-hidden rounded-md border bg-white sm:aspect-square sm:h-auto sm:w-auto sm:rounded-2xl",
-                        "focus:outline-none focus:ring-2 focus:ring-neutral-900/20",
-                        active ? "border-neutral-900 ring-2 ring-black ring-offset-1" : "border-neutral-200 hover:border-neutral-300",
-                      ].join(" ")}
-                      aria-label={`Select ${item.type === "video" ? "video" : "image"} ${idx + 1}`}
+                      className="ma-pdp-gallery-item"
                     >
-                      <div className="relative h-full w-full">
-                        {thumb ? (
+                      {item.type === "video" ? (
+                        <ProductVideoPlayer item={item} poster={item.thumbnailUrl || product.images[0]} />
+                      ) : (
+                        <button type="button" onClick={() => openImageLightbox(item, idx)} aria-label={`Open product image ${idx + 1}`}>
                           <Image
-                            src={withImageParams(thumb, "auto=format&fit=crop&w=320&q=80")}
+                            src={withImageParams(item.url, "auto=format&fit=crop&w=1100&q=90")}
                             alt={item.alt || product.name}
-                            width={320}
-                            height={320}
-                            className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.03]"
-                            loading="lazy"
+                            width={1100}
+                            height={1400}
+                            className="h-full w-full object-cover"
+                            priority={idx < 2}
+                            sizes="(min-width:1024px) 35vw, 100vw"
                           />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center bg-neutral-950 text-xs font-medium text-white">
-                            Video
-                          </div>
-                        )}
-                        {item.type === "video" ? (
-                          <span className="absolute inset-0 flex items-center justify-center bg-black/20">
-                            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-xs font-semibold text-neutral-900 shadow-sm sm:h-10 sm:w-10 sm:text-sm">
-                              ▶
-                            </span>
-                          </span>
-                        ) : null}
-                      </div>
-                    </button>
+                        </button>
+                      )}
+                      {idx === 0 ? <div className="ma-pdp-badges">{catalogSettings.productGalleryBadges.map((badge) => <Pill key={badge}>{badge}</Pill>)}{discountPct ? <Pill>{discountPct}% off</Pill> : null}</div> : null}
+                    </div>
                   );
                 })}
               </div>
@@ -770,9 +695,10 @@ export default function ProductClient({
             </div>
 
             {/* RIGHT: Sticky Buy Box */}
-            <div className="min-w-0 max-w-full lg:col-span-5">
-              <div className="min-w-0 max-w-full lg:sticky lg:top-6">
-                <div className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-6">
+            <div className="ma-pdp-info-column min-w-0 max-w-full lg:col-span-5">
+              <div className="min-w-0 max-w-full lg:sticky lg:top-[145px]">
+                <div className="ma-pdp-buybox min-w-0 max-w-full overflow-hidden bg-white p-4 sm:p-6">
+                  <p className="ma-pdp-breadcrumb">Home / {product.category || "Collection"}</p>
                   {/* Brand + title */}
                   <p className="break-words text-xs font-medium uppercase tracking-wider text-neutral-500 [overflow-wrap:anywhere]">
                     {product.brand}
@@ -1015,9 +941,9 @@ export default function ProductClient({
                     <button
                       onClick={() => onAddToCart()}
                       disabled={printUploading}
-                      className="min-h-11 rounded-2xl cursor-pointer border border-neutral-200 px-6 py-4 text-sm font-medium hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="ma-pdp-add-bag min-h-11 cursor-pointer px-6 py-4 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      {globalCopy.product.addToCart}
+                      Add to bag — {variant.price}
                     </button>
                   </div>
 
