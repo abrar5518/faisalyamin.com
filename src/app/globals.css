@@ -844,21 +844,21 @@ h1, h2, h3 {
 
 /* Maison Aster home hero */
 .ma-hero {
-  padding: 40px 2.8vw 0;
+  padding: 32px 2.75vw 0;
   background: #fbfaf7;
 }
 .ma-hero-stage {
   position: relative;
-  height: clamp(560px, 36vw, 685px);
+  height: 550px;
   overflow: hidden;
-  border-radius: 48px;
-  background: #f5efe6;
+  border-radius: 40px;
+  background: #f8eee3;
 }
 .ma-hero-slide {
   position: absolute;
   inset: 0;
   display: grid;
-  grid-template-columns: 52% 48%;
+  grid-template-columns: 45.3% 54.7%;
   visibility: hidden;
   background: var(--ma-hero-bg, #f5efe6);
   opacity: 0;
@@ -877,32 +877,32 @@ h1, h2, h3 {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 62px 5vw 62px 11.2vw;
+  padding: 0 0 0 11.1vw;
 }
 .ma-hero-eyebrow {
-  margin: 0 0 18px;
+  margin: 0 0 31px;
   color: var(--ma-hero-accent, #b36f49);
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.45em;
   text-transform: uppercase;
 }
 .ma-hero-copy h1 {
-  max-width: 620px;
-  margin: 0 0 38px;
+  max-width: 590px;
+  margin: 0 0 25px;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(64px, 5.4vw, 104px);
+  font-size: clamp(54px, 5.25vw, 88px);
   font-weight: 400;
-  line-height: 0.98;
-  letter-spacing: -0.035em;
+  line-height: 1.04;
+  letter-spacing: -0.052em;
   white-space: pre-line;
 }
 .ma-hero-description {
-  max-width: 430px;
-  margin: 0 0 48px;
-  color: #55534f;
-  font-size: 19px;
-  line-height: 1.55;
+  max-width: 420px;
+  margin: 0 0 40px;
+  color: #27302e;
+  font-size: 16px;
+  line-height: 1.5;
 }
 .ma-hero-actions {
   display: flex;
@@ -921,11 +921,15 @@ h1, h2, h3 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 320px;
-  min-height: 82px;
-  padding: 20px 34px;
-  background: #171916;
+  width: 257px;
+  min-width: 0;
+  height: 65px;
+  min-height: 0;
+  padding: 0;
+  border-radius: 4px;
+  background: #171918;
   color: #fff;
+  font-size: 14px;
 }
 .ma-hero-secondary {
   display: none;
@@ -957,12 +961,14 @@ h1, h2, h3 {
   justify-content: center;
 }
 .ma-hero-media img {
-  position: relative;
+  position: absolute;
+  right: 2.2%;
+  bottom: -.4%;
   z-index: 2;
   display: block;
-  width: 100%;
-  height: 100%;
-  max-width: 100%;
+  width: 111%;
+  height: 106%;
+  max-width: none;
   object-fit: contain;
   object-position: center bottom;
   filter: drop-shadow(0 18px 20px rgba(44,34,25,.14));
@@ -975,40 +981,39 @@ h1, h2, h3 {
 }
 .ma-hero-index {
   position: absolute;
-  bottom: 28px;
-  left: 2%;
+  bottom: 27px;
+  left: 34px;
   z-index: 3;
   color: #776b61;
   color: #111;
-  font-size: 31px;
-  letter-spacing: -.06em;
+  letter-spacing: 0;
 }
+.ma-hero-index b{font:500 28px/1 Arial,sans-serif}.ma-hero-index small{font:500 17px/1 Arial,sans-serif}
 .ma-hero-controls {
   position: absolute;
-  bottom: 28px;
-  left: 0;
-  width: 52%;
+  inset: 0;
   z-index: 6;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  padding-right: 72px;
+  pointer-events: none;
 }
-.ma-hero-dots { display: flex; align-items:center; gap: 20px; }
+.ma-hero-dots { position:absolute; inset:0; }
 .ma-hero-dots button {
-  width: 16px;
-  height: 16px;
+  position:absolute;
+  bottom:28px;
+  width: 13px;
+  height: 13px;
   padding: 0;
   border: 0;
   border-radius: 99px;
-  background: #c9c5bd;
+  background: #c9c1b7;
+  pointer-events:auto;
   cursor: pointer;
 }
 .ma-hero-dots button.is-active {
-  width: 80px;
-  background: #171916;
+  width: 64px;
+  transform:translateX(-51px);
+  background: #171918;
 }
-.ma-hero-side-arrow{position:absolute;top:50%;z-index:7;display:grid;width:78px;height:78px;place-items:center;transform:translateY(-50%);border:0;border-radius:50%;background:#fff;color:#111;font-size:38px;font-weight:300;cursor:pointer}.ma-hero-side-arrow.is-prev{left:30px}.ma-hero-side-arrow.is-next{right:30px}.ma-servicebar{height:72px;display:grid;grid-template-columns:repeat(4,1fr);margin:0 -2.8vw;border-bottom:1px solid #deddd7;background:#fbfaf7}.ma-servicebar div{display:flex;align-items:center;justify-content:center;gap:12px;border-right:1px solid #deddd7;font-size:11px;letter-spacing:.06em;text-transform:uppercase}.ma-servicebar div:last-child{border-right:0}.ma-servicebar span{font-size:13px}
+.ma-hero-dots button:nth-child(1){left:37.2%}.ma-hero-dots button:nth-child(2){left:39.7%}.ma-hero-dots button:nth-child(3){left:42.2%}.ma-hero-side-arrow{position:absolute;top:47.6%;z-index:7;display:grid;width:62px;height:62px;place-items:center;transform:translateY(-50%);border:0;border-radius:50%;background:rgba(255,255,255,.96);box-shadow:0 7px 18px rgba(35,29,22,.08);color:#111;font-size:33px;font-weight:300;cursor:pointer}.ma-hero-side-arrow.is-prev{left:25px}.ma-hero-side-arrow.is-next{right:25px}.ma-servicebar{height:58px;display:grid;grid-template-columns:repeat(4,1fr);margin:0 -2.75vw;border-bottom:1px solid #deddd7;background:#fbfaf7}.ma-servicebar div{display:flex;align-items:center;justify-content:center;gap:12px;border-right:1px solid #deddd7;font-size:10px;letter-spacing:.08em;text-transform:uppercase}.ma-servicebar div:last-child{border-right:0}.ma-servicebar span{font-size:12px}
 @keyframes maHeroIn {
   from { opacity: .5; transform: translateY(14px) scale(1.015); }
   to { opacity: 1; transform: none; }
@@ -1036,7 +1041,7 @@ h1, h2, h3 {
   .ma-hero-media img { max-width: 100%; object-position: center bottom; }
   .ma-hero-badge { top: 14px; right: 14px; width: 62px; height: 62px; }
   .ma-hero-index { display: none; }
-  .ma-hero-primary{min-width:210px;min-height:56px}.ma-hero-controls{right:20px;bottom:20px;left:auto;width:auto;padding:0}.ma-hero-dots{gap:9px}.ma-hero-dots button{width:9px;height:9px;background:rgba(255,255,255,.55)}.ma-hero-dots button.is-active{width:42px;background:#fff}.ma-hero-side-arrow{top:42%;width:46px;height:46px;font-size:22px}.ma-hero-side-arrow.is-prev{left:10px}.ma-hero-side-arrow.is-next{right:10px}.ma-servicebar{height:auto;grid-template-columns:1fr 1fr;margin:0 -14px}.ma-servicebar div{height:48px;font-size:8px}.ma-servicebar div:nth-child(2){border-right:0}.ma-servicebar div:nth-child(-n+2){border-bottom:1px solid #deddd7}
+  .ma-hero-primary{width:190px;height:51px;min-width:0;min-height:0;font-size:11px}.ma-hero-controls{inset:0}.ma-hero-dots button{bottom:21px;width:13px;height:13px;background:#c9c1b7}.ma-hero-dots button:nth-child(1){left:48%}.ma-hero-dots button:nth-child(2){left:56%}.ma-hero-dots button:nth-child(3){left:64%}.ma-hero-dots button.is-active{width:64px;background:#171918}.ma-hero-side-arrow{top:35%;width:46px;height:46px;font-size:22px}.ma-hero-side-arrow.is-prev{left:12px}.ma-hero-side-arrow.is-next{right:12px}.ma-servicebar{height:auto;grid-template-columns:1fr 1fr;margin:0 -14px}.ma-servicebar div{height:44px;font-size:8px}.ma-servicebar div:nth-child(2){border-right:0}.ma-servicebar div:nth-child(-n+2){border-bottom:1px solid #deddd7}
 }
 @media (prefers-reduced-motion: reduce) {
   .ma-hero-slide { transition: none; }

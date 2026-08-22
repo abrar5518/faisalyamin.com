@@ -128,7 +128,7 @@ export default function HomeHeroSlider({
                   />
                 </picture>
                 {slide.badgeText ? <span className="ma-hero-badge">{slide.badgeText}</span> : null}
-                <span className="ma-hero-index">{String(index + 1).padStart(2, "0")} / {String(slides.length).padStart(2, "0")}</span>
+                <span className="ma-hero-index"><b>{String(index + 1).padStart(2, "0")}</b><small> / {String(slides.length).padStart(2, "0")}</small></span>
               </div>
             </article>
           );
