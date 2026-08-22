@@ -134,30 +134,35 @@ export default function HomeHeroSlider({
           );
         })}
 
-        {slides.length > 1 && (showArrows || showDots) ? (
+        {slides.length > 1 && showArrows ? (
+          <>
+            <button className="ma-hero-side-arrow is-prev" type="button" onClick={() => show(active - 1)} aria-label="Previous slide">←</button>
+            <button className="ma-hero-side-arrow is-next" type="button" onClick={() => show(active + 1)} aria-label="Next slide">→</button>
+          </>
+        ) : null}
+
+        {slides.length > 1 && showDots ? (
           <div className="ma-hero-controls">
-            {showArrows ? (
-              <button type="button" onClick={() => show(active - 1)} aria-label="Previous slide">←</button>
-            ) : null}
-            {showDots ? (
-              <div className="ma-hero-dots" aria-label="Choose slide">
-                {slides.map((slide, index) => (
-                  <button
-                    key={slide.id ?? index}
-                    type="button"
-                    className={index === active ? "is-active" : ""}
-                    onClick={() => show(index)}
-                    aria-label={`Show slide ${index + 1}`}
-                    aria-current={index === active ? "true" : undefined}
-                  />
-                ))}
-              </div>
-            ) : null}
-            {showArrows ? (
-              <button type="button" onClick={() => show(active + 1)} aria-label="Next slide">→</button>
-            ) : null}
+            <div className="ma-hero-dots" aria-label="Choose slide">
+              {slides.map((slide, index) => (
+                <button
+                  key={slide.id ?? index}
+                  type="button"
+                  className={index === active ? "is-active" : ""}
+                  onClick={() => show(index)}
+                  aria-label={`Show slide ${index + 1}`}
+                  aria-current={index === active ? "true" : undefined}
+                />
+              ))}
+            </div>
           </div>
         ) : null}
+      </div>
+      <div className="ma-servicebar" aria-label="Store services">
+        <div><span>◇</span> Worldwide delivery</div>
+        <div><span>↻</span> 30-day returns</div>
+        <div><span>♧</span> Responsible materials</div>
+        <div><span>⌁</span> Secure checkout</div>
       </div>
     </section>
   );

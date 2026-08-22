@@ -256,6 +256,8 @@ Each section receives admin controls only for content editors actually need to c
 - Previous Sale/Deals carousel and Trending product-grid output were removed from the public home page as requested. The Maison category collection remains.
 - No Prisma migration was required: the ordered showcase selection reuses the existing `featuredProductIds` section configuration, while section presentation fields use the existing validated `sectionsJson` design.
 - Validation: TypeScript and the full Next.js production build pass.
+- Hero presentation was subsequently aligned to the supplied final reference: large rounded cream stage, oversized editorial headline, side arrows, pill/dot navigation, slide counter, cutout media treatment, and responsive mobile composition.
+- The four-cell service bar directly beneath the hero was added with Worldwide Delivery, 30-Day Returns, Responsible Materials, and Secure Checkout messaging.
 
 ---
 
