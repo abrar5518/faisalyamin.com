@@ -460,13 +460,16 @@ function MaisonCard({ p }: { p: Product }) {
           <span>{subtitle || `${p.rating.toFixed(1)} · ${p.reviews} reviews`}</span>
           {p.compareAt ? <span className="ma-product-compare">{p.compareAt}</span> : null}
         </div>
-        {swatches.length ? (
-          <div className="ma-product-swatches" aria-label="Available colours">
-            {swatches.map((swatch) => (
-              <span key={`${swatch.label}-${swatch.colorCode}`} title={swatch.label} style={{ backgroundColor: swatch.colorCode }} />
-            ))}
-          </div>
-        ) : null}
+        <div className="ma-product-footer">
+          {swatches.length ? (
+            <div className="ma-product-swatches" aria-label="Available colours">
+              {swatches.map((swatch) => (
+                <span key={`${swatch.label}-${swatch.colorCode}`} title={swatch.label} style={{ backgroundColor: swatch.colorCode }} />
+              ))}
+            </div>
+          ) : <span />}
+          {p.rating > 0 ? <span className="ma-product-rating">★ {p.rating.toFixed(1)}</span> : null}
+        </div>
       </div>
     </article>
   );

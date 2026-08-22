@@ -8,6 +8,7 @@ import Schema from "@/components/seo/Schema";
 import { absoluteUrl, breadcrumbSchema, collectionPageSchema, itemListSchema } from "@/components/seo/schemas";
 import { normalizeSiteUrl } from "@/lib/siteUrl";
 import { withResponsiveTables } from "@/lib/richText";
+import { toProductCardData } from "@/lib/productCardData";
 
 const baseUrl = normalizeSiteUrl();
 
@@ -65,27 +66,9 @@ function formatPKR(n: number) {
 }
 
 function buildProducts(rows: any[]): Product[] {
-  return rows.map((p) => {
-    const sortedImages = [...(p.images ?? [])].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-    const imageItems = sortedImages.filter((img: any) => (img.mediaType ?? "image") === "image");
-    const img = imageItems[0]?.url;
-    const imgAlt = imageItems[0]?.alt || p.name;
-    return {
-      id: p.slug,
-      name: p.name,
-      price: formatPKR(Number(p.price ?? 0)),
-      compareAt: p.compareAt ? formatPKR(Number(p.compareAt)) : undefined,
-      badge: p.badge ?? undefined,
-      rating: p.rating ?? 0,
-      reviews: p.reviewsCount ?? 0,
-      image: img || "https://images.unsplash.com/photo-1523275335684-37898b6baf30",
-      imageAlt: imgAlt,
-      hoverImage: imageItems[1]?.url,
-      hoverImageAlt: imageItems[1]?.alt || p.name,
-      shortDesc: p.shortDesc ?? undefined,
-      href: `/product/${p.slug}`,
-    };
-  });
+  return rows.map((p) =>
+    toProductCardData(p, "https://images.unsplash.com/photo-1523275335684-37898b6baf30")
+  );
 }
 
 export default async function DealsPage() {

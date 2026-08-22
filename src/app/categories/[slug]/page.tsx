@@ -16,6 +16,7 @@ import { normalizeSiteUrl } from "@/lib/siteUrl";
 import FaqSection from "@/components/FaqSection";
 import { parseCatalogSettings, renderCatalogTemplate } from "@/lib/catalogSettings";
 import { withResponsiveTables } from "@/lib/richText";
+import { toProductCardData } from "@/lib/productCardData";
 
 function Container({ children }: { children: ReactNode }) {
   return (
@@ -164,27 +165,9 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
     include: { images: true },
   });
 
-  const pageProducts: Product[] = products.map((p) => {
-    const sortedImages = [...p.images].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-    const imageItems = sortedImages.filter((img: any) => (img.mediaType ?? "image") === "image");
-    const img = imageItems[0]?.url;
-    const imgAlt = imageItems[0]?.alt || p.name;
-    return {
-      id: p.slug,
-      name: p.name,
-      price: formatPKR(Number(p.price ?? 0)),
-      compareAt: p.compareAt ? formatPKR(Number(p.compareAt)) : undefined,
-      badge: p.badge ?? undefined,
-      rating: p.rating ?? 0,
-      reviews: p.reviewsCount ?? 0,
-      image: img || "https://images.unsplash.com/photo-1523362628745-0c100150b504",
-      imageAlt: imgAlt,
-      hoverImage: imageItems[1]?.url,
-      hoverImageAlt: imageItems[1]?.alt || p.name,
-      shortDesc: p.shortDesc ?? undefined,
-      href: `/product/${p.slug}`,
-    };
-  });
+  const pageProducts: Product[] = products.map((p) =>
+    toProductCardData(p, "https://images.unsplash.com/photo-1523362628745-0c100150b504")
+  );
 
   const catalogSettings = parseCatalogSettings(siteSettings?.catalogSettings);
   const title = category.name || "Category";

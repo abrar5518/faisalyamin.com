@@ -13,6 +13,7 @@ import {
   renderCatalogTemplate,
 } from "@/lib/catalogSettings";
 import { redirectIfManaged } from "@/lib/serverRedirects";
+import { toProductCardData } from "@/lib/productCardData";
 
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
@@ -402,28 +403,10 @@ export default async function ProductPage({ params }: PageProps) {
 
   const relatedProducts: RelatedProduct[] =
     relatedRows.length > 0
-      ? relatedRows.map((p) => {
-          const imgs = [...p.images].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-          const imageItems = imgs.filter((img: any) => (img.mediaType ?? "image") === "image");
-          const img = imageItems[0]?.url || "/images/shopping.jpg";
-          const imgAlt = imageItems[0]?.alt || p.name;
-          const hoverImage = imageItems[1]?.url;
-          return {
-            id: p.slug,
-            name: p.name,
-            price: formatPKR(Number(p.price)),
-            compareAt: p.compareAt ? formatPKR(Number(p.compareAt)) : undefined,
-            badge: p.badge ?? undefined,
-            rating: p.rating ?? 0,
-            reviews: p.reviewsCount ?? 0,
-            image: img,
-            imageAlt: imgAlt,
-            hoverImage,
-            hoverImageAlt: imageItems[1]?.alt || p.name,
-            shortDesc: p.shortDesc ?? undefined,
-            href: `/product/${p.slug}`,
-          };
-        })
+      ? relatedRows.map((p) => ({
+          ...toProductCardData(p, "/images/shopping.jpg"),
+          href: `/product/${p.slug}`,
+        }))
       : RELATED_FALLBACK;
   const baseUrlResolved = normalizeSiteUrl(siteSettings?.siteUrl);
   const pageUrl = `${baseUrlResolved}/product/${slug}`;

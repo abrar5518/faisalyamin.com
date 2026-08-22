@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { toProductCardData } from "@/lib/productCardData";
 import { requireCustomer } from "@/lib/customerAuth";
 
 const WishlistSchema = z.object({
@@ -50,30 +51,7 @@ export async function GET(req: NextRequest) {
     },
   });
 
-  const items = rows.map((row: any) => {
-    const product = row.product;
-    const images = [...(product?.images ?? [])].sort(
-      (a: any, b: any) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)
-    );
-    const img = images[0]?.url || "/images/shopping.jpg";
-    const imgAlt = images[0]?.alt || product?.name || "Product image";
-    const priceValue = Number(product?.price ?? 0);
-    const compareAtValue = product?.compareAt ? Number(product.compareAt) : null;
-
-    return {
-      id: product?.slug ? String(product.slug) : String(product?.id ?? ""),
-      productId: Number(product?.id ?? 0),
-      name: product?.name ?? "Product",
-      price: formatPKR(priceValue),
-      compareAt: compareAtValue ? formatPKR(compareAtValue) : undefined,
-      badge: product?.badge ?? undefined,
-      rating: product?.rating ?? 0,
-      reviews: product?.reviewsCount ?? 0,
-      image: img,
-      imageAlt: imgAlt,
-      href: product?.slug ? `/product/${product.slug}` : "/shop",
-    };
-  });
+  const items = rows.map((row: any) => toProductCardData(row.product, "/images/shopping.jpg"));
 
   return NextResponse.json({ ok: true, data: items });
 }

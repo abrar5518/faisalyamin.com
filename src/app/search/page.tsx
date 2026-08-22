@@ -5,6 +5,7 @@ import ProductCard from "@/components/ProductCard";
 import Schema from "@/components/seo/Schema";
 import { absoluteUrl, itemListSchema } from "@/components/seo/schemas";
 import { canonicalUrl } from "@/lib/siteUrl";
+import { toProductCardData } from "@/lib/productCardData";
 
 function formatPKR(n: number) {
   return `PKR ${n.toLocaleString("en-PK")}`;
@@ -125,28 +126,11 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
           <div className="product-card-grid mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
             {rows.map((p) => {
-              const sortedImages = [...(p.images ?? [])].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-              const imageItems = sortedImages.filter((img: any) => (img.mediaType ?? "image") === "image");
-              const img = imageItems[0]?.url || "https://images.unsplash.com/photo-1523275335684-37898b6baf30";
-              const imgAlt = imageItems[0]?.alt || p.name;
+              const card = toProductCardData(p, "https://images.unsplash.com/photo-1523275335684-37898b6baf30");
               return (
                 <ProductCard
                   key={p.id}
-                  p={{
-                    id: p.slug,
-                    name: p.name,
-                    price: formatPKR(Number(p.price ?? 0)),
-                    compareAt: p.compareAt ? formatPKR(Number(p.compareAt)) : undefined,
-                    badge: p.badge ?? undefined,
-                    rating: p.rating ?? 0,
-                    reviews: p.reviewsCount ?? 0,
-                    image: img,
-                    imageAlt: imgAlt,
-                    hoverImage: imageItems[1]?.url,
-                    hoverImageAlt: imageItems[1]?.alt || p.name,
-                    shortDesc: p.shortDesc ?? undefined,
-                    href: `/product/${p.slug}`,
-                  }}
+                  p={card}
                   variant="compact"
                 />
               );

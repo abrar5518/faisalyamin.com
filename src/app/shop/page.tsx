@@ -5,6 +5,7 @@ import Schema from "@/components/seo/Schema";
 import { absoluteUrl, breadcrumbSchema, collectionPageSchema, itemListSchema } from "@/components/seo/schemas";
 import { normalizeSiteUrl } from "@/lib/siteUrl";
 import { parseCatalogSettings } from "@/lib/catalogSettings";
+import { toProductCardData } from "@/lib/productCardData";
 
 const baseUrl = normalizeSiteUrl();
 
@@ -51,28 +52,9 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-function formatPKR(n: number) {
-  return `PKR ${n.toLocaleString("en-PK")}`;
-}
-
 function mapProduct(p: any): ShopProduct {
-  const imageItems = [...(p.images ?? [])]
-    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
-    .filter((img) => (img.mediaType ?? "image") === "image");
-  const img = imageItems[0]?.url || "https://images.unsplash.com/photo-1523275335684-37898b6baf30";
   return {
-    id: p.slug,
-    name: p.name ?? "Untitled product",
-    price: formatPKR(Number(p.price ?? 0)),
-    compareAt: p.compareAt != null ? formatPKR(Number(p.compareAt)) : undefined,
-    badge: p.badge ?? undefined,
-    rating: typeof p.rating === "number" ? p.rating : 0,
-    reviews: typeof p.reviewsCount === "number" ? p.reviewsCount : 0,
-    image: img,
-    imageAlt: imageItems[0]?.alt || p.name,
-    hoverImage: imageItems[1]?.url,
-    hoverImageAlt: imageItems[1]?.alt || p.name,
-    shortDesc: p.shortDesc ?? undefined,
+    ...toProductCardData(p, "https://images.unsplash.com/photo-1523275335684-37898b6baf30"),
     createdAt: p.createdAt ? new Date(p.createdAt).toISOString().slice(0, 10) : "",
   };
 }
