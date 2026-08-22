@@ -18,17 +18,17 @@ export type ThemeSettings = {
 };
 
 export const DEFAULT_THEME_SETTINGS: ThemeSettings = {
-  primaryColor: "#111111",
-  primaryHoverColor: "#262626",
-  secondaryColor: "#f5f5f5",
-  accentColor: "#0f766e",
-  backgroundColor: "#ffffff",
-  surfaceColor: "#fafafa",
-  textColor: "#111111",
-  mutedTextColor: "#525252",
-  borderColor: "#e5e5e5",
-  buttonRadius: 16,
-  cardRadius: 24,
+  primaryColor: "#183b31",
+  primaryHoverColor: "#254f42",
+  secondaryColor: "#e8e1d6",
+  accentColor: "#dff06c",
+  backgroundColor: "#fbfaf7",
+  surfaceColor: "#f1eee7",
+  textColor: "#171916",
+  mutedTextColor: "#716f68",
+  borderColor: "#dedbd4",
+  buttonRadius: 0,
+  cardRadius: 2,
   fontChoice: "classic",
 };
 

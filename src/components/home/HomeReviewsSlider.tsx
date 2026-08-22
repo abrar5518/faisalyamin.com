@@ -25,12 +25,12 @@ export default function HomeReviewsSlider({ items }: { items: HomeReviewSlide[] 
   };
 
   return (
-    <div className="mt-8">
+    <div className="ma-review-slider">
       <div className="mb-4 flex items-center justify-end gap-2">
         <button
           type="button"
           onClick={() => scrollByCard("left")}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-700 shadow-sm hover:bg-neutral-50"
+          className="ma-review-arrow"
           aria-label="Previous review"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -38,7 +38,7 @@ export default function HomeReviewsSlider({ items }: { items: HomeReviewSlide[] 
         <button
           type="button"
           onClick={() => scrollByCard("right")}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-700 shadow-sm hover:bg-neutral-50"
+          className="ma-review-arrow"
           aria-label="Next review"
         >
           <ChevronRight className="h-4 w-4" />
@@ -52,7 +52,7 @@ export default function HomeReviewsSlider({ items }: { items: HomeReviewSlide[] 
         {items.map((item) => (
           <article
             key={item.name}
-            className="group min-w-[86%] snap-start rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:min-w-[430px] lg:min-w-[31.5%]"
+            className="ma-review-card group min-w-[86%] snap-start sm:min-w-[430px] lg:min-w-[31.5%]"
           >
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">

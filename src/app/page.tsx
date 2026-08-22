@@ -578,13 +578,13 @@ export default async function HomePage() {
 
       {/* Social proof strip */}
       {homeSections.socialProofEnabled ? (
-        <section className="border-t border-neutral-200 bg-white py-10">
+        <section className="ma-home-trust">
           <Container>
-            <div className="grid gap-4 rounded-3xl border border-neutral-200 bg-neutral-50 p-6 sm:grid-cols-3">
-              {homeSections.socialProofItems.map((x) => (
-                <div key={x.title} className="rounded-2xl bg-white p-5">
-                  <p className="text-sm font-semibold">{x.title}</p>
-                  <p className="mt-2 text-sm text-neutral-600">{x.desc}</p>
+            <div className="ma-home-trust-grid">
+              {homeSections.socialProofItems.map((x, index) => (
+                <div key={x.title} className="ma-home-trust-item">
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <div><p>{x.title}</p><small>{x.desc}</small></div>
                 </div>
               ))}
             </div>
@@ -594,16 +594,12 @@ export default async function HomePage() {
 
       {/* Testimonials: set SHOW_HOME_REVIEWS to true to restore the full reviews section. */}
       {homeSections.reviewsEnabled ? (
-      <section className="border-t border-neutral-200 bg-white py-14">
+      <section className="ma-home-reviews">
         <Container>
-          {/* Section shell (adds premium separation without changing page layout) */}
-          <section className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <section className="ma-home-reviews-shell">
+            <div className="ma-home-section-head flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-xs font-medium text-neutral-700">
-                  <span className="h-1.5 w-1.5 rounded-full bg-neutral-900" />
-                  {homeSections.reviewsBadge}
-                </p>
+                <p className="ma-home-kicker">{homeSections.reviewsBadge}</p>
 
                 <h2 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl">
                   {homeSections.reviewsTitle}
@@ -615,7 +611,7 @@ export default async function HomePage() {
 
               <Link
                 href={homeSections.reviewsLinkHref}
-                className="inline-flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white px-4 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-50"
+                className="ma-home-text-link"
               >
                 {homeSections.reviewsLinkLabel}
                 <span className="text-neutral-400">→</span>
@@ -646,21 +642,18 @@ export default async function HomePage() {
       )}
 
       {/* Introducing products */}
-      <section className="border-t border-neutral-200 bg-white py-14">
+      <section className="ma-home-intro">
         <Container>
-          <div className="grid gap-8 lg:grid-cols-12 lg:items-start">
+          <div className="ma-home-intro-grid grid gap-8 lg:grid-cols-12 lg:items-start">
             <div className="lg:col-span-4">
-              <p className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-xs font-medium text-neutral-700">
-                <span className="h-1.5 w-1.5 rounded-full bg-neutral-900" />
-                {homeSections.introBadge}
-              </p>
+              <p className="ma-home-kicker">{homeSections.introBadge}</p>
               <h2 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl">
                 {homeIntro.title}
               </h2>
             </div>
             <div className="lg:col-span-8">
-              <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-6 sm:p-8">
-                <p className="text-sm leading-relaxed text-neutral-600 sm:text-base">
+              <div className="ma-home-intro-copy">
+                <p>
                   {homeIntro.body}
                 </p>
               </div>
@@ -670,19 +663,20 @@ export default async function HomePage() {
       </section>
 
       {/* Benefits */}
-      <section className="border-t border-neutral-200 bg-neutral-50 py-14">
+      <section className="ma-home-benefits">
         <Container>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="ma-home-section-head flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h2 className="text-2xl font-semibold tracking-tight">{homeBenefits.title}</h2>
               <p className="mt-2 text-sm text-neutral-600">{homeBenefits.intro}</p>
             </div>
           </div>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {homeBenefits.items.map((item) => (
-              <div key={item.title} className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
-                <p className="line-clamp-2 min-h-10 text-sm font-semibold leading-5 text-neutral-900">{item.title}</p>
-                <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-neutral-600">{item.desc}</p>
+          <div className="ma-home-benefit-grid">
+            {homeBenefits.items.map((item, index) => (
+              <div key={item.title} className="ma-home-benefit-card">
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <p>{item.title}</p>
+                <small>{item.desc}</small>
               </div>
             ))}
           </div>
@@ -690,7 +684,7 @@ export default async function HomePage() {
       </section>
 
       {/* FAQs */}
-      <section className="border-t border-neutral-200 bg-white py-14">
+      <section className="ma-home-faq">
         <Container>
           <FaqSection
             items={homeFaq.items}

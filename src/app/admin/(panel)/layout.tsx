@@ -35,7 +35,7 @@ export default async function AdminPanelLayout({
   if (!token) redirect("/admin/login");
 
   return (
-    <div className="min-h-screen bg-white text-neutral-900">
+    <div className="min-h-screen bg-white text-neutral-900" data-admin-shell>
       <div className="mx-auto w-full max-w-[1360px] px-0 lg:px-0">
         <div className="lg:flex">
           <AdminSidebar />

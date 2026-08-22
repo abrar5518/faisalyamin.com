@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { withImageParams } from "@/lib/image";
 import type { ChangeEvent, ReactNode } from "react";
 import { useRouter } from "next/navigation";
@@ -233,7 +234,9 @@ export default function ProductClient({
   const initialMedia = product.media[0] ?? imageMedia(product.images[0] ?? initialVariant.images[0] ?? "", product.imageAlts[0]);
   const [activeMedia, setActiveMedia] = useState<ProductMediaItem>(initialMedia);
   const [imageIndex, setImageIndex] = useState(0);
-  const [size, setSize] = useState(product.sizes[0] || "");
+  const [size, setSize] = useState("");
+  const [sizeError, setSizeError] = useState<string | null>(null);
+  const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
   const [qty, setQty] = useState(1);
   const [printText, setPrintText] = useState("");
   const [printFileUrl, setPrintFileUrl] = useState("");
@@ -315,6 +318,42 @@ export default function ProductClient({
     return index >= 0 ? index : 0;
   }, [activeMedia.url, lightboxImages]);
   const currentLightboxImage = lightboxImages[activeLightboxIndex];
+  useEffect(() => {
+    if (!lightboxOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setLightboxOpen(false);
+      const direction = event.key === "ArrowLeft" ? -1 : event.key === "ArrowRight" ? 1 : 0;
+      if (direction && lightboxImages.length) {
+        const nextIndex = (activeLightboxIndex + direction + lightboxImages.length) % lightboxImages.length;
+        const item = lightboxImages[nextIndex];
+        const mediaIndex = galleryMedia.findIndex(
+          (media) => media.type === "image" && media.url === item.url,
+        );
+        setActiveMedia(item);
+        setImageIndex(mediaIndex >= 0 ? mediaIndex : nextIndex);
+        setZoom(1);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [activeLightboxIndex, galleryMedia, lightboxImages, lightboxOpen]);
+
+  useEffect(() => {
+    if (!sizeGuideOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSizeGuideOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [sizeGuideOpen]);
+
   const activePrice = useMemo(() => parsePKR(variant.price) ?? 0, [variant]);
   const compareAt = useMemo(() => parsePKR(variant.compareAt), [variant]);
   const descriptionHtml = useMemo(
@@ -506,6 +545,11 @@ export default function ProductClient({
       if ("preventDefault" in e) e.preventDefault();
       if ("stopPropagation" in e) e.stopPropagation();
     }
+    if (product.sizes.length && !size) {
+      setSizeError("Please select a size.");
+      return;
+    }
+    setSizeError(null);
     const price = parsePKR(variant.price) ?? 0;
     const compareAtValue = parsePKR(variant.compareAt);
     const sizeKey = size || "default";
@@ -541,6 +585,10 @@ export default function ProductClient({
 
   const onBuyNow = () => {
     if (printUploading) return;
+    if (product.sizes.length && !size) {
+      setSizeError("Please select a size.");
+      return;
+    }
     onAddToCart(undefined, { showToast: false, openCart: false });
     router.push("/checkout");
   };
@@ -657,13 +705,19 @@ export default function ProductClient({
         {/* TOP SECTION */}
           <div className="ma-pdp-top grid min-w-0 grid-cols-[minmax(0,1fr)] lg:grid-cols-12">
             {/* LEFT: Gallery */}
-            <div className="min-w-0 max-w-full lg:col-span-7">
+            <div className="ma-pdp-gallery-column min-w-0 max-w-full lg:col-span-7">
               <div className="ma-pdp-gallery-grid">
                 {galleryMedia.map((item, idx) => {
                   return (
                     <div
                       key={`${item.type}-${item.url}-${idx}`}
-                      className="ma-pdp-gallery-item"
+                      className={`ma-pdp-gallery-item ${idx === imageIndex ? "is-active" : ""}`}
+                      onTouchStart={(event) => {
+                        mainTouchStartX.current = event.touches[0]?.clientX ?? null;
+                      }}
+                      onTouchEnd={(event) => {
+                        handleMainImageTouchEnd(event.changedTouches[0]?.clientX ?? 0);
+                      }}
                     >
                       {item.type === "video" ? (
                         <ProductVideoPlayer item={item} poster={item.thumbnailUrl || product.images[0]} />
@@ -684,10 +738,21 @@ export default function ProductClient({
                     </div>
                   );
                 })}
+                {galleryMedia.length > 1 ? (
+                  <div className="ma-pdp-mobile-gallery-controls" aria-label="Product gallery controls">
+                    <button type="button" onClick={() => setGalleryMediaAt(imageIndex - 1)} aria-label="Previous product media">
+                      <ChevronLeft aria-hidden="true" />
+                    </button>
+                    <span aria-live="polite">{imageIndex + 1} / {galleryMedia.length}</span>
+                    <button type="button" onClick={() => setGalleryMediaAt(imageIndex + 1)} aria-label="Next product media">
+                      <ChevronRight aria-hidden="true" />
+                    </button>
+                  </div>
+                ) : null}
               </div>
 
               {/* Under-gallery micro info */}
-              <div className="mt-6 hidden gap-3 sm:grid sm:grid-cols-3">
+              <div className="ma-pdp-gallery-trust hidden gap-3 sm:grid sm:grid-cols-3">
                 {catalogSettings.productGalleryTrustItems.map((item) => (
                   <TrustItem key={item.title || item.text} title={item.title} desc={item.text} />
                 ))}
@@ -697,23 +762,38 @@ export default function ProductClient({
             {/* RIGHT: Sticky Buy Box */}
             <div className="ma-pdp-info-column min-w-0 max-w-full lg:col-span-5">
               <div className="min-w-0 max-w-full lg:sticky lg:top-[145px]">
-                <div className="ma-pdp-buybox min-w-0 max-w-full overflow-hidden bg-white p-4 sm:p-6">
-                  <p className="ma-pdp-breadcrumb">Home / {product.category || "Collection"}</p>
+                <div className="ma-pdp-buybox min-w-0 max-w-full overflow-visible bg-white p-4 sm:p-6">
+                  <nav className="ma-pdp-breadcrumb" aria-label="Breadcrumb">
+                    <Link href="/">Home</Link>
+                    <span aria-hidden="true"> / </span>
+                    <Link href="/shop">{product.category || "Collection"}</Link>
+                  </nav>
                   {/* Brand + title */}
                   <p className="break-words text-xs font-medium uppercase tracking-wider text-neutral-500 [overflow-wrap:anywhere]">
                     {product.brand}
                   </p>
+
+                  <div className="ma-pdp-availability">
+                    <span aria-hidden="true" />
+                    In stock & ready to dispatch
+                  </div>
 
                   <h1 className="mt-2 max-w-full break-words text-[1.65rem] font-semibold leading-tight tracking-tight [overflow-wrap:anywhere] sm:text-3xl">
                     {product.name}
                   </h1>
 
                   <div className="mt-3 flex min-w-0 max-w-full flex-wrap items-center gap-3 sm:flex-nowrap sm:justify-between">
-                    <Stars
-                      rating={product.rating}
-                      reviews={product.reviews}
-                      supportText={globalCopy.trust.qualityText}
-                    />
+                    <button
+                      type="button"
+                      className="ma-pdp-review-link"
+                      onClick={() => {
+                        setTab("reviews");
+                        window.setTimeout(() => document.getElementById("product-information")?.scrollIntoView({ behavior: "smooth" }), 0);
+                      }}
+                      aria-label={`${product.rating.toFixed(1)} out of 5 stars, read ${product.reviews} reviews`}
+                    >
+                      <Stars rating={product.rating} reviews={product.reviews} supportText="" />
+                    </button>
                     <button
                       type="button"
                       onClick={toggleWishlist}
@@ -736,16 +816,15 @@ export default function ProductClient({
                   </div>
 
                   {/* Price block */}
-                  <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4 sm:mt-6 sm:p-5">
-                    <div className="flex items-start justify-between gap-3">
+                  <div className="ma-pdp-price mt-5 sm:mt-6">
+                    <div className="ma-pdp-price-row flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-xs text-neutral-500">{catalogSettings.productPriceLabel}</p>
                         <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                          <p className="text-2xl font-bold tracking-tight sm:text-3xl">
+                          <p className="ma-pdp-current-price text-2xl font-bold tracking-tight sm:text-3xl">
                             {variant.price}
                           </p>
                           {compareAt && compareAt > activePrice ? (
-                            <p className="text-sm text-neutral-500 line-through">
+                            <p className="ma-pdp-compare-price text-sm text-neutral-500 line-through">
                               {formatPKR(compareAt)}
                             </p>
                           ) : null}
@@ -753,24 +832,24 @@ export default function ProductClient({
                       </div>
 
                       {discountPct ? (
-                        <span className="theme-primary-action shrink-0 rounded-full bg-neutral-900 px-2.5 py-1 text-xs font-semibold text-white sm:rounded-2xl sm:px-3">
+                        <span className="ma-pdp-discount theme-primary-action shrink-0 bg-neutral-900 px-2.5 py-1 text-xs font-semibold text-white sm:px-3">
                           Save {discountPct}%
                         </span>
                       ) : null}
                     </div>
 
                     {/* Short description right under price (best conversion placement) */}
-                    <p className="mt-3 max-w-full break-words text-sm leading-relaxed text-neutral-700 [overflow-wrap:anywhere] sm:mt-4">
+                    <p className="ma-pdp-short-description mt-3 max-w-full break-words text-sm leading-relaxed text-neutral-700 [overflow-wrap:anywhere] sm:mt-4">
                       {product.shortDescription}
                     </p>
                   </div>
 
                   {/* Variants */}
                   {product.hasVariants ? (
-                    <div className="mt-7">
+                    <div className="ma-pdp-option-group mt-7">
                       <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium">Color</p>
-                        <p className="text-xs text-neutral-500">{variant.label}</p>
+                        <p className="ma-pdp-option-label text-sm font-medium">Select color</p>
+                        <p className="ma-pdp-selected-option text-xs text-neutral-500">Selected: {variant.label}</p>
                       </div>
 
                       <div className="mt-3 flex flex-wrap gap-2">
@@ -778,29 +857,18 @@ export default function ProductClient({
                           const active = variant.id === v.id;
                           return (
                             <button
+                              type="button"
                               key={v.id}
                               onClick={() => onSelectVariant(v)}
-                              className={[
-                                "group inline-flex min-h-10 items-center gap-2 rounded-2xl border px-3 py-2 text-sm transition",
-                                "focus:outline-none focus:ring-2 focus:ring-neutral-900/20",
-                                active
-                                  ? "theme-primary-action border-neutral-900 bg-neutral-900 text-white"
-                                  : "border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50",
-                              ].join(" ")}
+                              className={`ma-pdp-color-swatch ${active ? "is-active" : ""}`}
                               aria-label={`Select ${v.label}`}
+                              aria-pressed={active}
                               title={v.label}
                             >
                               <span
-                                className={[
-                                  "h-4 w-4 rounded-full border",
-                                  active ? "border-white/50" : "border-neutral-300",
-                                ].join(" ")}
+                                className="ma-pdp-color-dot"
                                 style={{ backgroundColor: v.colorCode }}
                               />
-                              <span className="max-w-full break-words [overflow-wrap:anywhere]">{v.label}</span>
-                              <span className={active ? "text-white/70" : "text-neutral-500"}>
-                                {/* - {v.price} */}
-                              </span>
                             </button>
                           );
                         })}
@@ -810,15 +878,21 @@ export default function ProductClient({
 
                   {/* Size */}
                   {product.sizes.length ? (
-                    <div className="mt-7">
-                      <p className="text-sm font-medium">Size</p>
+                    <div className="ma-pdp-option-group mt-7">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="ma-pdp-option-label text-sm font-medium">Select size</p>
+                        <button type="button" className="ma-pdp-size-guide-link" onClick={() => setSizeGuideOpen(true)}>
+                          Size guide
+                        </button>
+                      </div>
                       <div className="mt-3 flex flex-wrap gap-2">
                         {product.sizes.map((s) => {
                           const active = size === s;
                           return (
                             <button
+                              type="button"
                               key={s}
-                              onClick={() => setSize(s)}
+                              onClick={() => { setSize(s); setSizeError(null); }}
                               className={[
                                 "min-h-10 rounded-2xl px-4 py-2 text-sm transition",
                                 "focus:outline-none focus:ring-2 focus:ring-neutral-900/20",
@@ -826,12 +900,15 @@ export default function ProductClient({
                                   ? "theme-primary-action bg-neutral-900 text-white"
                                   : "border border-neutral-200 hover:bg-neutral-50",
                               ].join(" ")}
+                              aria-pressed={active}
+                              aria-label={`Select size ${s}`}
                             >
                               {s}
                             </button>
                           );
                         })}
                       </div>
+                      {sizeError ? <p className="ma-pdp-field-error" role="alert">{sizeError}</p> : null}
                       <p className="mt-2 text-xs text-neutral-500">
                         {catalogSettings.productSizeHelper}
                       </p>
@@ -907,10 +984,11 @@ export default function ProductClient({
                   ) : null}
 
                   {/* QTY */}
-                  <div className="mt-7">
-                    <p className="text-sm font-medium">Quantity</p>
+                  <div className="ma-pdp-quantity-row mt-7">
+                    <p className="ma-pdp-option-label text-sm font-medium">Quantity</p>
                     <div className="mt-2 inline-flex items-center gap-2 rounded-2xl border border-neutral-200 bg-white p-1">
                       <button
+                        type="button"
                         onClick={decQty}
                         disabled={qty <= 1}
                         className="h-10 w-10 rounded-xl border border-neutral-200 bg-white text-sm hover:bg-neutral-50 disabled:opacity-40"
@@ -920,6 +998,7 @@ export default function ProductClient({
                       </button>
                       <div className="min-w-12 text-center text-sm font-medium">{qty}</div>
                       <button
+                        type="button"
                         onClick={incQty}
                         className="h-10 w-10 rounded-xl border border-neutral-200 bg-white text-sm hover:bg-neutral-50"
                         aria-label="Increase quantity"
@@ -930,15 +1009,17 @@ export default function ProductClient({
                   </div>
 
                   {/* CTA */}
-                  <div ref={ctaBlockRef} className="mt-7 grid gap-3 sm:grid-cols-2">
+                  <div ref={ctaBlockRef} className="ma-pdp-cta-group mt-7 grid gap-3">
                     <button
+                      type="button"
                       onClick={onBuyNow}
                       disabled={printUploading}
-                      className="cta-attention theme-primary-action min-h-11 rounded-2xl cursor-pointer bg-neutral-900 px-6 py-4 text-sm font-medium text-white hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="ma-pdp-buy-now min-h-11 cursor-pointer px-6 py-4 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {globalCopy.product.buyNow}
                     </button>
                     <button
+                      type="button"
                       onClick={() => onAddToCart()}
                       disabled={printUploading}
                       className="ma-pdp-add-bag min-h-11 cursor-pointer px-6 py-4 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60"
@@ -948,16 +1029,16 @@ export default function ProductClient({
                   </div>
 
                   {/* Trust strip (below CTA) */}
-                  <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                    <div className="rounded-2xl bg-neutral-50 p-3">
+                  <div className="ma-pdp-purchase-trust mt-6 grid gap-3 sm:grid-cols-3">
+                    <div className="ma-pdp-purchase-trust-item rounded-2xl bg-neutral-50 p-3">
                       <p className="text-xs font-semibold">{globalCopy.trust.qualityTitle}</p>
                       <p className="mt-0.5 text-xs text-neutral-600">{globalCopy.trust.qualityText}</p>
                     </div>
-                    <div className="rounded-2xl bg-neutral-50 p-3">
+                    <div className="ma-pdp-purchase-trust-item rounded-2xl bg-neutral-50 p-3">
                       <p className="text-xs font-semibold">{globalCopy.trust.shippingTitle}</p>
                       <p className="mt-0.5 text-xs text-neutral-600">{globalCopy.trust.shippingText}</p>
                     </div>
-                    <div className="rounded-2xl bg-neutral-50 p-3">
+                    <div className="ma-pdp-purchase-trust-item rounded-2xl bg-neutral-50 p-3">
                       <p className="text-xs font-semibold">Returns</p>
                       <p className="mt-0.5 text-xs text-neutral-600">7-day return policy</p>
                     </div>
@@ -973,9 +1054,9 @@ export default function ProductClient({
           </div>
 
           {/* TABS */}
-          <div className="mt-10 min-w-0 max-w-full lg:mt-16">
-            <div className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-neutral-200 bg-white p-4 sm:rounded-3xl sm:p-8">
-              <div className="flex flex-wrap gap-2 border-b border-neutral-200 pb-3 text-sm">
+          <div id="product-information" className="ma-pdp-content-tabs min-w-0 max-w-full">
+            <div className="ma-pdp-content-shell min-w-0 max-w-full overflow-hidden">
+              <div className="ma-pdp-tab-list flex flex-wrap gap-2 border-b border-neutral-200 pb-3 text-sm" role="tablist" aria-label="Product information">
                 {[
                   { id: "description", label: catalogSettings.productDescriptionTabLabel },
                   { id: "reviews", label: catalogSettings.productReviewsTabLabel },
@@ -984,8 +1065,13 @@ export default function ProductClient({
                   const active = tab === t.id;
                   return (
                     <button
+                      type="button"
                       key={t.id}
                       onClick={() => setTab(t.id as any)}
+                      id={`product-tab-${t.id}`}
+                      role="tab"
+                      aria-selected={active}
+                      aria-controls={`product-panel-${t.id}`}
                       className={[
                         "rounded-full px-4 py-2 transition",
                         active
@@ -999,7 +1085,13 @@ export default function ProductClient({
                 })}
               </div>
 
-              <div className={`mt-6 min-w-0 w-full max-w-full sm:mt-8 ${tab === "reviews" ? "" : "sm:max-w-4xl"}`}>
+              <div
+                className={`ma-pdp-tab-panel min-w-0 w-full max-w-full ${tab === "reviews" ? "" : "sm:max-w-4xl"}`}
+                id={`product-panel-${tab}`}
+                role="tabpanel"
+                aria-labelledby={`product-tab-${tab}`}
+                tabIndex={0}
+              >
                 {tab === "description" && (
                   <div
                     className="rt-content"
@@ -1225,8 +1317,21 @@ export default function ProductClient({
 
       </Container>
 
+      {sizeGuideOpen ? (
+        <div className="ma-pdp-size-guide-backdrop" role="presentation" onMouseDown={() => setSizeGuideOpen(false)}>
+          <section className="ma-pdp-size-guide" role="dialog" aria-modal="true" aria-labelledby="size-guide-title" onMouseDown={(event) => event.stopPropagation()}>
+            <button type="button" className="ma-pdp-size-guide-close" onClick={() => setSizeGuideOpen(false)} aria-label="Close size guide"><X aria-hidden="true" /></button>
+            <p className="ma-pdp-eyebrow">Fit guidance</p>
+            <h2 id="size-guide-title">Choose your size</h2>
+            <p>{catalogSettings.productSizeHelper}</p>
+            <p>For garment measurements and personal sizing advice, contact our support team before ordering.</p>
+            <Link href="/contact" onClick={() => setSizeGuideOpen(false)}>Contact support</Link>
+          </section>
+        </div>
+      ) : null}
+
       {lightboxOpen && currentLightboxImage ? (
-        <div className="fixed inset-0 z-[80] bg-black/90 text-white">
+        <div className="fixed inset-0 z-[80] bg-black/90 text-white" role="dialog" aria-modal="true" aria-label={`${product.name} image gallery`}>
           <div className="absolute left-4 right-4 top-4 z-10 flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="line-clamp-1 text-sm font-medium">{product.name}</p>

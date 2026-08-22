@@ -52,23 +52,20 @@ export default function FaqSection({
   if (!faqs.length) return null;
 
   const isCompact = variant === "compact";
-  const shellClass =
-    variant === "soft"
-      ? "rounded-[2rem] border border-neutral-200 bg-neutral-50 p-5 sm:p-7"
-      : "";
+  const shellClass = variant === "soft" ? "ma-faq-shell" : "";
   const gridClass = columns === 1 ? "grid gap-3" : "grid gap-3 lg:grid-cols-2 lg:gap-4";
 
   return (
-    <section className={className}>
+    <section className={`ma-faq-section ${className}`}>
       {includeSchema ? <Schema data={faqSchema(faqs)} /> : null}
       <div className={shellClass}>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="ma-faq-heading flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="max-w-3xl">
-            <p className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs font-medium uppercase tracking-wide text-neutral-600 shadow-sm">
+            <p className="ma-eyebrow inline-flex items-center gap-2">
               <HelpCircle className="h-3.5 w-3.5" aria-hidden="true" />
               {eyebrow}
             </p>
-            <h2 className={isCompact ? "mt-3 text-2xl font-semibold tracking-tight" : "mt-4 text-2xl font-semibold tracking-tight sm:text-3xl"}>
+            <h2 className={isCompact ? "mt-3 text-2xl" : "mt-4 text-2xl sm:text-3xl"}>
               {title}
             </h2>
             {intro ? (
@@ -81,7 +78,7 @@ export default function FaqSection({
           {linkHref ? (
             <Link
               href={linkHref}
-              className="inline-flex items-center justify-center rounded-2xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-900 transition hover:bg-neutral-50"
+              className="ma-outline-action inline-flex items-center justify-center"
             >
               {linkLabel}
             </Link>
@@ -92,13 +89,13 @@ export default function FaqSection({
           {faqs.map((item, index) => (
             <details
               key={`${item.q}-${index}`}
-              className="group rounded-3xl border border-neutral-200 bg-white p-5 shadow-sm transition hover:border-neutral-300 hover:shadow-md sm:p-6"
+              className="ma-faq-item group"
             >
               <summary className="flex min-h-10 cursor-pointer list-none items-center justify-between gap-4">
-                <h3 className="line-clamp-2 text-sm font-semibold leading-6 text-neutral-900">
+                <h3 className="line-clamp-2 text-sm font-medium leading-6 text-neutral-900">
                   {item.q}
                 </h3>
-                <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 text-neutral-900 transition group-open:bg-neutral-900 group-open:text-white">
+                <span className="ma-faq-toggle inline-flex h-9 w-9 shrink-0 items-center justify-center transition">
                   <Plus className="h-4 w-4 transition group-open:rotate-45" aria-hidden="true" />
                 </span>
               </summary>

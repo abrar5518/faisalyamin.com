@@ -177,7 +177,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <GlobalCopyProvider initialGlobalCopy={settings?.globalCopy}>
           <CartProvider>
             <SiteHeader />
-            {children}
+            <div className="ma-page-content">{children}</div>
             <SiteFooter />
             <WhatsAppFloatButton />
             <RichTextTableEnhancer />

@@ -30,7 +30,7 @@ function DefaultCard({ p }: { p: BlogPostCard }) {
   return (
     <Link
       href={`/blog/${p.slug}`}
-      className="group overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+      className="ma-article-card group overflow-hidden bg-white transition"
     >
       <div className="h-48 overflow-hidden bg-neutral-100">
         <Image

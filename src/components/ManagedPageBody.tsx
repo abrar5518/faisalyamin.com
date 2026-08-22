@@ -18,10 +18,10 @@ export default function ManagedPageBody({ page }: ManagedPageBodyProps) {
   if (!page?.contentHtml?.trim()) return null;
 
   return (
-    <section className="bg-white py-12">
+    <section className="ma-managed-section">
       <Container>
         <div
-          className="rt-content rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8"
+          className="ma-managed-content rt-content"
           dangerouslySetInnerHTML={{ __html: withResponsiveTables(page.contentHtml) }}
         />
       </Container>

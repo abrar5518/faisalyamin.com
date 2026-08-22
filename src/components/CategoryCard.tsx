@@ -59,7 +59,7 @@ function PremiumCard({ c }: { c: Category }) {
   return (
     <Link
       href={c.href}
-      className="group relative overflow-hidden rounded-3xl border border-neutral-200 bg-neutral-100 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+      className="ma-collection-card group relative overflow-hidden bg-neutral-100 transition"
     >
       <div className="relative aspect-[4/3] w-full overflow-hidden">
         <Image
@@ -79,7 +79,7 @@ function PremiumCard({ c }: { c: Category }) {
         </div>
 
         <div className="absolute bottom-0 left-0 right-0 p-5">
-          <p className="text-lg font-semibold text-white">{c.name}</p>
+          <p className="ma-collection-title text-lg text-white">{c.name}</p>
           <p className="mt-1 line-clamp-2 text-sm text-white/80">
             {c.description}
           </p>

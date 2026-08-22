@@ -13,15 +13,14 @@ export async function GET(req: NextRequest) {
     const subcategorySlug = searchParams.get("subcategorySlug");
     const isSale = searchParams.get("isSale");
     const isFeatured = searchParams.get("isFeatured");
-    const isActive = searchParams.get("isActive");
     const q = searchParams.get("q");
     const page = Number(searchParams.get("page") ?? "1");
     const pageSize = Number(searchParams.get("pageSize") ?? "30");
     const sort = searchParams.get("sort") ?? "createdAt_desc";
 
     if (slug) {
-      const item = await prisma.product.findUnique({
-        where: { slug },
+      const item = await prisma.product.findFirst({
+        where: { slug, isActive: true },
         include: {
           category: { select: { slug: true, name: true } },
           subcategory: { select: { slug: true } },
@@ -100,19 +99,12 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    const where: Prisma.ProductWhereInput | undefined =
-      categorySlug || subcategorySlug || q || isSale || isFeatured || isActive
-        ? {
-            ...(andFilters.length ? { AND: andFilters } : {}),
-            ...(isSale === "1" || isSale === "true" ? { isSale: true } : {}),
-            ...(isFeatured === "1" || isFeatured === "true" ? { isFeatured: true } : {}),
-            ...(isActive === "0" || isActive === "false"
-              ? { isActive: false }
-              : isActive === "1" || isActive === "true"
-                ? { isActive: true }
-                : {}),
-          }
-        : undefined;
+    const where: Prisma.ProductWhereInput = {
+      isActive: true,
+      ...(andFilters.length ? { AND: andFilters } : {}),
+      ...(isSale === "1" || isSale === "true" ? { isSale: true } : {}),
+      ...(isFeatured === "1" || isFeatured === "true" ? { isFeatured: true } : {}),
+    };
 
     const orderBy: Prisma.ProductOrderByWithRelationInput =
       sort === "price_asc"

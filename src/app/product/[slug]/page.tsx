@@ -18,8 +18,8 @@ import { toProductCardData } from "@/lib/productCardData";
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
   const baseUrl = normalizeSiteUrl();
-  const product = (await prisma.product.findUnique({
-    where: { slug },
+  const product = (await prisma.product.findFirst({
+    where: { slug, isActive: true },
     include: { images: true },
   })) as {
     name: string;
@@ -232,8 +232,8 @@ export default async function ProductPage({ params }: PageProps) {
   }
   await redirectIfManaged(`/product/${slug}`);
   const [product, siteSettings, storeSettings] = await Promise.all([
-    prisma.product.findUnique({
-      where: { slug },
+    prisma.product.findFirst({
+      where: { slug, isActive: true },
       include: {
         images: true,
         category: true,
@@ -391,7 +391,7 @@ export default async function ProductPage({ params }: PageProps) {
     isPrintable: Boolean(typedProduct.isPrintable),
   };
 
-  const relatedRows = await prisma.product.findMany({
+  const categoryRelatedRows = await prisma.product.findMany({
     where: {
       categoryId: typedProduct.categoryId,
       slug: { not: slug },
@@ -400,6 +400,19 @@ export default async function ProductPage({ params }: PageProps) {
     take: 4,
     include: { images: true },
   });
+  const missingRelatedCount = Math.max(0, 4 - categoryRelatedRows.length);
+  const additionalRelatedRows = missingRelatedCount
+    ? await prisma.product.findMany({
+        where: {
+          slug: { notIn: [slug, ...categoryRelatedRows.map((item) => item.slug)] },
+          isActive: true,
+        },
+        orderBy: [{ isFeatured: "desc" }, { rating: "desc" }, { createdAt: "desc" }],
+        take: missingRelatedCount,
+        include: { images: true },
+      })
+    : [];
+  const relatedRows = [...categoryRelatedRows, ...additionalRelatedRows];
 
   const relatedProducts: RelatedProduct[] =
     relatedRows.length > 0
@@ -495,7 +508,7 @@ export default async function ProductPage({ params }: PageProps) {
       />
 
       {/* RELATED PRODUCTS */}
-      <div className="w-full px-[2.75vw] pb-24 max-[700px]:px-[14px]">
+      <div className="ma-pdp-aftercare w-full px-[2.75vw] pb-24 max-[700px]:px-[14px]">
         <FaqSection
           items={typedProduct.faqItems}
           title={renderCatalogTemplate(catalogSettings.productFaqTitleTemplate, {
@@ -508,7 +521,7 @@ export default async function ProductPage({ params }: PageProps) {
           className="mt-14 lg:mt-16"
         />
 
-        <div className="mt-14 lg:mt-16">
+        <div className="ma-pdp-related">
           <div className="flex items-end justify-between gap-6">
             <div>
               <h2 className="font-serif text-4xl font-normal tracking-tight lg:text-5xl">

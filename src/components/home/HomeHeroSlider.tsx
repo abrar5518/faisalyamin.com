@@ -56,11 +56,9 @@ export default function HomeHeroSlider({
     return () => window.clearInterval(timer);
   }, [autoPlay, paused, safeInterval, slides.length]);
 
-  useEffect(() => {
-    if (active >= slides.length) setActive(0);
-  }, [active, slides.length]);
-
   if (!slides.length) return null;
+
+  const visibleActive = active % slides.length;
 
   return (
     <section
@@ -81,12 +79,12 @@ export default function HomeHeroSlider({
         const delta = (event.changedTouches[0]?.clientX ?? touchStartX.current) - touchStartX.current;
         touchStartX.current = null;
         if (Math.abs(delta) < 45) return;
-        show(active + (delta < 0 ? 1 : -1));
+        show(visibleActive + (delta < 0 ? 1 : -1));
       }}
     >
       <div className="ma-hero-stage">
         {slides.map((slide, index) => {
-          const isActive = index === active;
+          const isActive = index === visibleActive;
           return (
             <article
               key={slide.id ?? `${slide.title}-${index}`}
@@ -136,8 +134,8 @@ export default function HomeHeroSlider({
 
         {slides.length > 1 && showArrows ? (
           <>
-            <button className="ma-hero-side-arrow is-prev" type="button" onClick={() => show(active - 1)} aria-label="Previous slide">←</button>
-            <button className="ma-hero-side-arrow is-next" type="button" onClick={() => show(active + 1)} aria-label="Next slide">→</button>
+            <button className="ma-hero-side-arrow is-prev" type="button" onClick={() => show(visibleActive - 1)} aria-label="Previous slide">←</button>
+            <button className="ma-hero-side-arrow is-next" type="button" onClick={() => show(visibleActive + 1)} aria-label="Next slide">→</button>
           </>
         ) : null}
 
@@ -148,10 +146,10 @@ export default function HomeHeroSlider({
                 <button
                   key={slide.id ?? index}
                   type="button"
-                  className={index === active ? "is-active" : ""}
+                  className={index === visibleActive ? "is-active" : ""}
                   onClick={() => show(index)}
                   aria-label={`Show slide ${index + 1}`}
-                  aria-current={index === active ? "true" : undefined}
+                  aria-current={index === visibleActive ? "true" : undefined}
                 />
               ))}
             </div>
