@@ -475,14 +475,13 @@ function MaisonCard({ p }: { p: Product }) {
 
 export default function ProductCard({
   p,
-  variant = "default",
+  variant: _variant = "maison",
 }: {
   p: Product;
   variant?: ProductCardVariant;
 }) {
-  if (variant === "featured") return <FeaturedCard p={p} />;
-  if (variant === "compact") return <CompactCard p={p} />;
-  if (variant === "sale") return <SaleCard p={p} />;
-  if (variant === "maison") return <MaisonCard p={p} />;
-  return <DefaultCard p={p} />;
+  // Storefront product cards intentionally share one visual system. Keep the
+  // legacy prop for API compatibility while all callers render MaisonCard.
+  void _variant;
+  return <MaisonCard p={p} />;
 }
