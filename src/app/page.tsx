@@ -218,7 +218,7 @@ const testimonialsFallback: Testimonial[] = [
 ];
 
 function Container({ children }: { children: ReactNode }) {
-  return <div className="mx-auto w-full max-w-340 px-4 sm:px-6 lg:px-12">{children}</div>;
+  return <div className="w-full px-[2.75vw] max-[700px]:px-[14px]">{children}</div>;
 }
 
 
